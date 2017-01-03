@@ -8,19 +8,11 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ConversionExceptio
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Converter;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EARepository;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryRepositoryBuilder;
-import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
-import com.google.common.io.CharStreams;
-import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +28,7 @@ public class Main {
     public static void main(String[] rawArgs) {
         Args args = new Args();
         JCommander jCommander = new JCommander(args);
+        jCommander.setProgramName("java -jar <jarfile>");
         ListArgs listArgs = new ListArgs();
         jCommander.addCommand("list", listArgs);
         ConvertDiagramArgs convertArgs = new ConvertDiagramArgs();
@@ -66,8 +59,10 @@ public class Main {
                 new Converter(repo, MoreObjects.firstNonNull(convertArgs.mandatoryLanguages, Collections.emptyList()))
                         .convertDiagramToFile(
                                 convertArgs.base != null ? convertArgs.base.toPath() : null,
-                                convertArgs.diagramGuid,
+                                convertArgs.diagramName,
                                 convertArgs.outputFile.toPath());
+            } else {
+                jCommander.usage();
             }
         } catch (SQLException e) {
             LOGGER.error("An error occurred while reading the EA model.", e);
@@ -98,8 +93,8 @@ public class Main {
         @Parameter(names = {"-b", "--base"}, required = false, description = "Turtle file containing starting statements.")
         File base;
 
-        @Parameter(names = {"-d", "--diagram"}, required = true, description = "The GUID of the diagram to convert.")
-        String diagramGuid;
+        @Parameter(names = {"-d", "--diagram"}, required = true, description = "The name of the diagram to convert.")
+        String diagramName;
 
         @Parameter(names = {"-o", "--output"}, required = true, description = "Output file name.")
         File outputFile;
