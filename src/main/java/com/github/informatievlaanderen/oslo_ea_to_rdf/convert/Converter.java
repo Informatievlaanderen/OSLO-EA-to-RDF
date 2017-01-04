@@ -114,7 +114,7 @@ public class Converter {
         }
 
         // Convert package
-        Resource packageResource = model.createResource(uris.packageURIs.get(diagram.getPackage()), OWL.Ontology);
+        Resource packageResource = convertPackage(model, diagram.getPackage(), uris.packageURIs);
 
         // Convert elements.
         for (DiagramElement diagramElement : diagram.getElements()) {
@@ -240,6 +240,17 @@ public class Converter {
         }
 
         return model;
+    }
+
+    private Resource convertPackage(Model model, EAPackage aPackage, Map<EAPackage, String> packageURIs) {
+        Resource packResource = model.createResource(packageURIs.get(aPackage), OWL.Ontology);
+        model.add(packResource, model.createProperty("http://purl.org/vocab/vann/preferredNamespaceUri"), packageURIs.get(aPackage));
+
+        String prefix = Util.getOptionalTag(aPackage, TagNames.PACKAGE_BASE_URI_ABBREVIATION, null);
+        if (prefix != null)
+            model.add(packResource, model.createProperty("http://purl.org/vocab/vann/preferredNamespacePrefix"), prefix);
+
+        return packResource;
     }
 
     private void convertEnumeration(Model model, EAElement element, Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs, Resource packageResource) {
