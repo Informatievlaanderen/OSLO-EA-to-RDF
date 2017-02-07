@@ -94,7 +94,7 @@ The type of the attribute will be mapped to a class in the project (as an `owl:O
 ### Connector
 
 A generalization connector will be converted into a `rdfs:subClassOf` triple.
-An association or generalization connector will be converted into a `owl:ObjectProperty`.
+An association or aggregation connector will be converted into a `owl:ObjectProperty`.
 
 Connectors can be defined between elements from different packages, so it is not always clear to
 which package (= ontology) they belong.
