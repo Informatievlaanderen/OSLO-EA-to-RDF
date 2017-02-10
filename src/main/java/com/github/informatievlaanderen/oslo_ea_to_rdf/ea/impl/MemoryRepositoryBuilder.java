@@ -8,6 +8,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import javafx.geometry.Rectangle2D;
 
@@ -49,7 +50,7 @@ public class MemoryRepositoryBuilder {
             elements = loadElements(conn, packages);
             attributes = loadAttributes(conn, elements);
             connectors = loadElementConnectors(conn, elements);
-            loadObjectTags(conn, elements, packages);
+            loadObjectTags(conn, elements, Maps.uniqueIndex(packages.values(), MemoryEAPackage::getObjectID));
             loadAttributeTags(conn, attributes);
             loadConnectorTags(conn, connectors);
             diagrams = loadDiagrams(conn, packages);
