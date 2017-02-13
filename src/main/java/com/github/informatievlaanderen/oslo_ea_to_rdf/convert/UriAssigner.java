@@ -24,10 +24,11 @@ public class UriAssigner {
         Map<EAPackage, String> packageURIs = new HashMap<>();
         Map<EAElement, String> elementURIs = new HashMap<>();
         Map<EAAttribute, String> attributeURIs = new HashMap<>();
+        Map<EAAttribute, String> instanceURIs = new HashMap<>();
         Map<EAConnector, String> connectorURIs = new HashMap<>();
         Map<EAConnector, EAPackage> definingPackages = new HashMap<>();
 
-        assignNonConnectorURIs(packages, packageURIs, elementURIs, attributeURIs);
+        assignNonConnectorURIs(packages, packageURIs, elementURIs, attributeURIs, instanceURIs);
 
         // A connector can reference a package as its defining package, meaning it takes on the base URI of that package.
         // This means connectors need to be handled after all package names are assigned an URI.
@@ -36,6 +37,7 @@ public class UriAssigner {
         // Build indexes for packages and elements
         ListMultimap<String, EAPackage> packageIndex = Multimaps.index(packageURIs.keySet(), packageURIs::get);
         ListMultimap<String, EAElement> elementIndex = Multimaps.index(elementURIs.keySet(), elementURIs::get);
+        ListMultimap<String, EAAttribute> instanceIndex = Multimaps.index(instanceURIs.keySet(), instanceURIs::get);
 
         // Build indexes for properties
         ImmutableListMultimap.Builder<String, Object> builder = ImmutableListMultimap.builder();
@@ -76,6 +78,21 @@ public class UriAssigner {
             }
         }
 
+        claimedKeys = new HashSet<>(instanceIndex.keys());
+        for (Map.Entry<String, Collection<EAAttribute>> entry : instanceIndex.asMap().entrySet()) {
+            if (entry.getValue().size() > 1) {
+                Iterable<String> conflictingElements = Iterables.transform(entry.getValue(), e -> Util.getFullName(e));
+                LOGGER.warn("The following instances map to the same URI ({}): {}",
+                        entry.getKey(),
+                        Joiner.on(", ").join(conflictingElements));
+                for (EAAttribute instance : entry.getValue()) {
+                    String newKey = findUniqueKey(entry.getKey(), claimedKeys);
+                    claimedKeys.add(newKey);
+                    instanceURIs.put(instance, newKey);
+                }
+            }
+        }
+
         claimedKeys = new HashSet<>(propertyIndex.keys());
         for (Map.Entry<String, Collection<Object>> entry : propertyIndex.asMap().entrySet()) {
             if (entry.getValue().size() > 1) {
@@ -96,10 +113,12 @@ public class UriAssigner {
             }
         }
 
-        return new Result(packageURIs, elementURIs, attributeURIs, connectorURIs, definingPackages);
+        return new Result(packageURIs, elementURIs, attributeURIs, connectorURIs, instanceURIs, definingPackages);
     }
 
-    private void assignNonConnectorURIs(Iterable<EAPackage> packages, Map<EAPackage, String> packageURIs, Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs) {
+    private void assignNonConnectorURIs(Iterable<EAPackage> packages, Map<EAPackage, String> packageURIs,
+                                        Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs,
+                                        Map<EAAttribute, String> instanceURIs) {
         for (EAPackage eaPackage : packages) {
             if (Boolean.valueOf(Util.getOptionalTag(eaPackage, TagNames.IGNORE, "false")))
                 continue;
@@ -121,15 +140,16 @@ public class UriAssigner {
                         continue;
 
                     localName = Util.getOptionalTag(attribute, LOCALNAME, attribute.getName());
-                    String attributeURI;
+
                     if (element.getType() == EAElement.Type.ENUMERATION) {
-                        attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI,
+                        String attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI,
                                 packageURI + "/" + Util.getOptionalTag(element, LOCALNAME, element.getName()) + "/" + localName);
+                        instanceURIs.put(attribute, attributeURI);
                     } else {
-                        attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, packageURI + "#" + localName);
+                        String attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, packageURI + "#" + localName);
+                        attributeURIs.put(attribute, attributeURI);
                     }
 
-                    attributeURIs.put(attribute, attributeURI);
                 }
             }
         }
@@ -231,16 +251,23 @@ public class UriAssigner {
          */
         public final Map<EAConnector, String> connectorURIs;
         /**
+         * For each instance, the corresponding URI to be used.
+         */
+        public final Map<EAAttribute, String> instanceURIs;
+        /**
          * Maps each connector to the package it was assigned to. Contains the keys that {@code connectorURIs} contains,
          * plus any generalization connections.
          */
         public final Map<EAConnector, EAPackage> definingPackages;
 
-        public Result(Map<EAPackage, String> packageURIs, Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs, Map<EAConnector, String> connectorURIs, Map<EAConnector, EAPackage> definingPackages) {
+        public Result(Map<EAPackage, String> packageURIs, Map<EAElement, String> elementURIs,
+                      Map<EAAttribute, String> attributeURIs, Map<EAConnector, String> connectorURIs,
+                      Map<EAAttribute, String> instanceURIs, Map<EAConnector, EAPackage> definingPackages) {
             this.packageURIs = packageURIs;
             this.elementURIs = elementURIs;
             this.attributeURIs = attributeURIs;
             this.connectorURIs = connectorURIs;
+            this.instanceURIs = instanceURIs;
             this.definingPackages = definingPackages;
         }
     }

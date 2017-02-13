@@ -1,25 +1,24 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
-import com.github.informatievlaanderen.oslo_ea_to_rdf.SortedOutputModel;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
-import com.google.common.base.Charsets;
-import com.google.common.collect.*;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.RDFNode;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.DEFINITON;
 import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.LABEL;
@@ -49,10 +48,12 @@ public class Converter {
     private Multimap<String, EAPackage> nameToPackages;
     private Multimap<String, EAElement> nameToElements;
     private Multimap<String, EADiagram> nameToDiagrams;
+    private OutputHandler outputHandler;
 
-    public Converter(EARepository repo, List<String> mandatoryLanguages) {
+    public Converter(EARepository repo, List<String> mandatoryLanguages, OutputHandler outputHandler) {
         this.repo = repo;
         this.languages = mandatoryLanguages;
+        this.outputHandler = outputHandler;
 
         ImmutableListMultimap.Builder<String, EAPackage> pBuilder = ImmutableListMultimap.builder();
         ImmutableListMultimap.Builder<String, EAElement> eBuilder = ImmutableListMultimap.builder();
@@ -70,51 +71,18 @@ public class Converter {
         nameToElements = eBuilder.build();
     }
 
-    public void convertDiagramToFile(Path baseModelPath, String diagramName, Path outputFile) throws ConversionException {
-        Collection<EADiagram> diagrams = nameToDiagrams.get(diagramName);
-        if (diagrams.size() > 1)
-            throw new ConversionException("Multiple diagrams share the name \"" + diagramName + "\" - cannot continue.");
-        else if (diagrams.isEmpty())
-            throw new ConversionException("Diagram not found: " + diagramName + ".");
-
-        EADiagram diagram = diagrams.iterator().next();
-
-
-        Model model = convertDiagram(diagram);
-
-        // Read the starting model
-        if (baseModelPath != null) {
-            try (Reader reader = Files.newBufferedReader(baseModelPath)) {
-                model.read(reader, null, "TTL");
-            } catch (IOException e) {
-                throw new ConversionException(e);
-            }
-        }
-
-        try (Writer w = Files.newBufferedWriter(outputFile, Charsets.UTF_8)) {
-            model.write(w, "TTL");
-        } catch (IOException e) {
-            throw new ConversionException(e);
-        }
-    }
-
-    public Model convertDiagram(EADiagram diagram) {
+    public void convertDiagram(EADiagram diagram) {
         UriAssigner.Result uris = new UriAssigner().assignURIs(repo.getPackages(), nameToPackages);
 
-        Model model = new SortedOutputModel();
-
         // Prefixes
-        model.setNsPrefix("rdf", RDF.uri);
-        model.setNsPrefix("rdfs", RDFS.uri);
-        model.setNsPrefix("owl", OWL.NS);
-        for (EAPackage eaPackage : uris.packageURIs.keySet()) {
-            String prefix = Util.getOptionalTag(eaPackage, TagNames.PACKAGE_BASE_URI_ABBREVIATION, null);
-            if (prefix != null)
-                model.setNsPrefix(prefix, uris.packageURIs.get(eaPackage));
-        }
+        //for (EAPackage eaPackage : uris.packageURIs.keySet()) {
+        //    String prefix = Util.getOptionalTag(eaPackage, TagNames.PACKAGE_BASE_URI_ABBREVIATION, null);
+        //    if (prefix != null)
+        //        model.setNsPrefix(prefix, uris.packageURIs.get(eaPackage));
+        //}
 
         // Convert package
-        Resource packageResource = convertPackage(model, diagram.getPackage(), uris.packageURIs);
+        Resource packageResource = convertPackage(diagram.getPackage(), uris.packageURIs);
 
         // Convert elements.
         for (DiagramElement diagramElement : diagram.getElements()) {
@@ -135,7 +103,7 @@ public class Converter {
                 continue;
             }
 
-            convertElement(model, diagramElement, uris.elementURIs, packageResource);
+            convertElement(diagramElement, uris.elementURIs, uris.instanceURIs, packageResource);
         }
 
         // Convert connectors.
@@ -167,7 +135,7 @@ public class Converter {
                     }
                 }
 
-                convertConnector(model, dConnector, uris.elementURIs, uris.connectorURIs, packageResource);
+                convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, packageResource);
             }
         }
 
@@ -206,11 +174,11 @@ public class Converter {
                     continue;
                 }
 
-                convertAttribute(model, attribute, nameToElements, uris.elementURIs, uris.attributeURIs, packageResource);
+                convertAttribute(attribute, nameToElements, uris.elementURIs, uris.attributeURIs, packageResource);
             }
         }
 
-        // Convert enums
+        // Convert enum values
         for (DiagramElement diagramElement : diagram.getElements()) {
             // Skip enum attributes
             EAElement element = diagramElement.getReferencedElement();
@@ -236,85 +204,94 @@ public class Converter {
                 continue;
             }
 
-            convertEnumeration(model, element, uris.elementURIs, uris.attributeURIs, packageResource);
+            convertEnumerationValues(element, uris.elementURIs, uris.instanceURIs, packageResource);
         }
-
-        return model;
     }
 
-    private Resource convertPackage(Model model, EAPackage aPackage, Map<EAPackage, String> packageURIs) {
-        Resource packResource = model.createResource(packageURIs.get(aPackage), OWL.Ontology);
-        model.add(packResource, model.createProperty("http://purl.org/vocab/vann/preferredNamespaceUri"), packageURIs.get(aPackage));
-
+    private Resource convertPackage(EAPackage aPackage, Map<EAPackage, String> packageURIs) {
+        Resource packResource = ResourceFactory.createResource(packageURIs.get(aPackage));
         String prefix = Util.getOptionalTag(aPackage, TagNames.PACKAGE_BASE_URI_ABBREVIATION, null);
-        if (prefix != null)
-            model.add(packResource, model.createProperty("http://purl.org/vocab/vann/preferredNamespacePrefix"), prefix);
+
+        outputHandler.handleOntology(
+                aPackage,
+                packResource,
+                prefix
+        );
 
         return packResource;
     }
 
-    private void convertEnumeration(Model model, EAElement element, Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs, Resource packageResource) {
-        Resource elementRes = model.createResource(elementURIs.get(element));
-
+    private void convertEnumerationValues(EAElement element, Map<EAElement, String> elementURIs,
+                                          Map<EAAttribute, String> instanceURIs, Resource ontology) {
+        Resource elementRes = ResourceFactory.createResource(elementURIs.get(element));
         List<? extends EAAttribute> attributes = element.getAttributes();
-        List<RDFNode> attributeResources = Lists.transform(attributes, a -> model.createResource(attributeURIs.get(a)));
-
-        if (attributeResources.isEmpty())
-            LOGGER.warn("No possible values defined for enumeration \"{}\".", Util.getFullName(element));
-        model.add(elementRes, OWL.oneOf, model.createList(attributeResources.iterator()));
 
         for (EAAttribute attribute : attributes) {
-            Resource attResource = model.createResource(attributeURIs.get(attribute));
-
-            model.add(attResource, RDF.type, elementRes);
-            model.add(attResource, RDFS.isDefinedBy, packageResource);
+            Resource attResource = ResourceFactory.createResource(instanceURIs.get(attribute));
 
             // Label
-            for (String lang : languages)
-                model.add(attResource, RDFS.label, Util.getMandatoryTag(attribute, addLang(LABEL, lang), attribute.getName()), lang);
+            List<Literal> labels = languages.stream()
+                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(LABEL, lang), attribute.getName()), lang))
+                    .collect(Collectors.toList());
 
             // Definition
-            for (String lang : languages)
-                model.add(attResource, RDFS.comment, Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), attribute.getName()), lang);
+            List<Literal> definitions = languages.stream()
+                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), attribute.getName()), lang))
+                    .collect(Collectors.toList());
+
+            outputHandler.handleInstance(element, attResource, ontology, elementRes, labels, definitions);
         }
     }
 
-    private void convertAttribute(Model model, EAAttribute attribute, Multimap<String, EAElement> elementIndex,
+    private void convertAttribute(EAAttribute attribute, Multimap<String, EAElement> elementIndex,
                                   Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs,
-                                  Resource packageResource) {
-        Resource attResource = model.createResource(attributeURIs.get(attribute));
+                                  Resource ontology) {
+        Property attResource = ResourceFactory.createProperty(attributeURIs.get(attribute));
+
+        Resource domain = ResourceFactory.createResource(elementURIs.get(attribute.getElement()));
+        Resource range = null;
+        Resource propertyType;
 
         // Type and range
         if (DATATYPES.containsKey(attribute.getType())){
-            model.add(attResource, RDF.type, OWL.DatatypeProperty);
-            model.add(attResource, RDFS.range, DATATYPES.get(attribute.getType()));
+            propertyType = OWL.DatatypeProperty;
+            range = DATATYPES.get(attribute.getType());
         } else if (elementIndex.containsKey(attribute.getType())) {
             if (elementIndex.get(attribute.getType()).size() > 1)
                 LOGGER.warn("Ambiguous data type \"{}\" for attribute \"{}\".", attribute.getType(), Util.getFullName(attribute));
-            EAElement range = elementIndex.get(attribute.getType()).iterator().next();
-            model.add(attResource, RDF.type, OWL.ObjectProperty);
-            model.add(attResource, RDFS.range, model.createResource(elementURIs.get(range)));
+            propertyType = OWL.ObjectProperty;
+            range = ResourceFactory.createResource(elementURIs.get(elementIndex.get(attribute.getType()).iterator().next()));
         } else {
-            model.add(attResource, RDF.type, RDF.Property);
+            propertyType = RDF.Property;
             LOGGER.warn("Missing data type for attribute \"{}\".", Util.getFullName(attribute));
         }
 
-        // Domain
-        model.add(attResource, RDFS.domain, elementURIs.get(attribute.getElement()));
-
-        model.add(attResource, RDFS.isDefinedBy, packageResource);
-
         // Label
-        for (String lang : languages)
-            model.add(attResource, RDFS.label, Util.getMandatoryTag(attribute, addLang(LABEL, lang), attribute.getName()), lang);
+        List<Literal> labels = languages.stream()
+                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(LABEL, lang), attribute.getName()), lang))
+                .collect(Collectors.toList());
 
         // Definition
-        for (String lang : languages)
-            model.add(attResource, RDFS.comment, Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), attribute.getName()), lang);
+        List<Literal> definitions = languages.stream()
+                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), attribute.getName()), lang))
+                .collect(Collectors.toList());
 
         // Subproperty
-        for (String superProperty : attribute.getTags().get(TagNames.SUBPROPERTY_OF))
-            model.add(attResource, RDFS.subPropertyOf, superProperty);
+        List<Resource> superProperties = attribute.getTags().get(TagNames.SUBPROPERTY_OF).stream()
+                .map(ResourceFactory::createResource)
+                .collect(Collectors.toList());
+
+        outputHandler.handleProperty(
+                OutputHandler.PropertySource.from(attribute),
+                attResource,
+                ontology,
+                propertyType,
+                domain,
+                range,
+                labels,
+                definitions,
+                superProperties
+        );
     }
 
     private String addLang(String tagName, String lang) {
@@ -324,70 +301,95 @@ public class Converter {
             return tagName + "-" + lang;
     }
 
-    private void convertConnector(Model model, DiagramConnector dConnector,
+    private void convertConnector(DiagramConnector dConnector,
                                   Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
-                                  Resource packageResource) {
+                                  Resource ontology) {
         EAConnector connector = dConnector.getReferencedConnector();
-        Resource connResource = model.createResource(connectorURIs.get(connector), OWL.ObjectProperty);
+        Resource connResource = ResourceFactory.createResource(connectorURIs.get(connector));
 
         EAElement source = dConnector.getSource().getReferencedElement();
         EAElement target = dConnector.getDestination().getReferencedElement();
-        Resource sourceRes = model.createResource(elementURIs.get(source));
-        Resource targetRes = model.createResource(elementURIs.get(target));
+        Resource sourceRes = ResourceFactory.createResource(elementURIs.get(source));
+        Resource targetRes = ResourceFactory.createResource(elementURIs.get(target));
 
         if (connector.getAssociationClass() != null)
             LOGGER.warn("Ignoring association class for connector \"{}\" - association classes are not supported.", Util.getFullName(connector));
 
         if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType())) {
             if (connector.getDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
-                model.add(sourceRes, RDFS.subClassOf, targetRes);
+                outputHandler.handleSubclassing(sourceRes, targetRes);
             } else if (connector.getDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
-                model.add(targetRes, RDFS.subClassOf, sourceRes);
+                outputHandler.handleSubclassing(targetRes, sourceRes);
             } else {
                 LOGGER.error("Generalization connector \"{}\" does not specify a direction - skipping.", Util.getFullName(connector));
             }
         } else if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
-            model.add(connResource, RDFS.isDefinedBy, packageResource);
-
             // Label
-            for (String lang : languages)
-                model.add(connResource, RDFS.label, Util.getMandatoryTag(connector, addLang(LABEL, lang), connector.getName()), lang);
+            List<Literal> labels = languages.stream()
+                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(LABEL, lang), connector.getName()), lang))
+                    .collect(Collectors.toList());
 
             // Definition
-            for (String lang : languages)
-                model.add(connResource, RDFS.comment, Util.getMandatoryTag(connector, addLang(DEFINITON, lang), connector.getName()), lang);
+            List<Literal> definitions = languages.stream()
+                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(DEFINITON, lang), connector.getName()), lang))
+                    .collect(Collectors.toList());
 
             // Subproperty
-            for (String superProperty : connector.getTags().get(TagNames.SUBPROPERTY_OF))
-                model.add(connResource, RDFS.subPropertyOf, superProperty);
+            List<Resource> superProperties = connector.getTags().get(TagNames.SUBPROPERTY_OF).stream()
+                    .map(ResourceFactory::createResource)
+                    .collect(Collectors.toList());
 
+            Resource domain = null;
+            Resource range = null;
             // Range and domain
             if (dConnector.getLabelDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
-                model.add(connResource, RDFS.domain, sourceRes);
-                model.add(connResource, RDFS.range, targetRes);
+                domain = sourceRes;
+                range = targetRes;
             } else if (dConnector.getLabelDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
-                model.add(connResource, RDFS.domain, targetRes);
-                model.add(connResource, RDFS.range, sourceRes);
+                domain = targetRes;
+                range = sourceRes;
             } else {
-                LOGGER.error("Connector \"{}\" has no specified direction - skipping domain/range.", Util.getFullName(connector));
+                LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", Util.getFullName(connector));
             }
+
+            outputHandler.handleProperty(
+                    OutputHandler.PropertySource.from(dConnector),
+                    connResource,
+                    ontology,
+                    OWL.ObjectProperty,
+                    domain,
+                    range,
+                    labels,
+                    definitions,
+                    superProperties);
         } else {
             LOGGER.error("Unsupported connector type for \"{}\" - skipping.", Util.getFullName(connector));
         }
     }
 
-    private void convertElement(Model model, DiagramElement diagramElement, Map<EAElement, String> elementURIs, RDFNode packageUri) {
+    private void convertElement(DiagramElement diagramElement, Map<EAElement, String> elementURIs,
+                                Map<EAAttribute, String> instanceURIs, Resource ontology) {
         EAElement element = diagramElement.getReferencedElement();
-        Resource classEntity = model.createResource(elementURIs.get(element), OWL.Class);
-
-        model.add(classEntity, RDFS.isDefinedBy, packageUri);
+        Resource classEntity = ResourceFactory.createResource(elementURIs.get(element));
 
         // Label
-        for (String lang : languages)
-            model.add(classEntity, RDFS.label, Util.getMandatoryTag(element, addLang(LABEL, lang), element.getName()), lang);
+        List<Literal> labels = languages.stream()
+                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(element, addLang(LABEL, lang), element.getName()), lang))
+                .collect(Collectors.toList());
 
         // Definition
-        for (String lang : languages)
-            model.add(classEntity, RDFS.comment, Util.getMandatoryTag(element, addLang(DEFINITON, lang), element.getName()), lang);
+        List<Literal> definitions = languages.stream()
+                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(element, addLang(DEFINITON, lang), element.getName()), lang))
+                .collect(Collectors.toList());
+
+        List<Resource> allowedValues = null;
+        if (element.getType().equals(EAElement.Type.ENUMERATION)) {
+            List<? extends EAAttribute> attributes = element.getAttributes();
+            allowedValues = Lists.transform(attributes, a -> ResourceFactory.createResource(instanceURIs.get(a)));
+            if (allowedValues.isEmpty())
+                LOGGER.warn("No possible values defined for enumeration \"{}\".", Util.getFullName(element));
+        }
+
+        outputHandler.handleClass(diagramElement, classEntity, ontology, labels, definitions, allowedValues);
     }
 }

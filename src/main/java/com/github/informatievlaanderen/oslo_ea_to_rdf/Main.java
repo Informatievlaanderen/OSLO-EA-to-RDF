@@ -6,16 +6,22 @@ import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ConversionException;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Converter;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RDFOutputHandler;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EADiagram;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EARepository;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryRepositoryBuilder;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Entry class for command line.
@@ -56,19 +62,31 @@ public class Main {
                 List<String> languages = convertArgs.mandatoryLanguages;
                 if (convertArgs.includeNoLanguageAttribute)
                     languages.add("");
-                new Converter(repo, MoreObjects.firstNonNull(convertArgs.mandatoryLanguages, Collections.emptyList()))
-                        .convertDiagramToFile(
-                                convertArgs.base != null ? convertArgs.base.toPath() : null,
-                                convertArgs.diagramName,
-                                convertArgs.outputFile.toPath());
+                RDFOutputHandler rdfOutputHandler = new RDFOutputHandler();
+                if (convertArgs.base != null)
+                    rdfOutputHandler.addToModel(convertArgs.base.toPath());
+                new Converter(repo, MoreObjects.firstNonNull(convertArgs.mandatoryLanguages, Collections.emptyList()), rdfOutputHandler)
+                        .convertDiagram(findByName(repo, convertArgs.diagramName));
+                rdfOutputHandler.writeToFile(convertArgs.outputFile.toPath());
             } else {
                 jCommander.usage();
             }
         } catch (SQLException e) {
             LOGGER.error("An error occurred while reading the EA model.", e);
-        } catch (ConversionException e) {
+        } catch (ConversionException | IOException e) {
             LOGGER.error("An error occurred during conversion.",  e);
         }
+    }
+
+    private static EADiagram findByName(EARepository repo, String name) throws ConversionException {
+        Objects.requireNonNull(name);
+        Collection<EADiagram> diagrams = Collections2.filter(repo.getDiagrams(), diagram -> name.equals(diagram.getName()));
+        if (diagrams.size() > 1)
+            throw new ConversionException("Multiple diagrams share the name \"" + name + "\" - cannot continue.");
+        else if (diagrams.isEmpty())
+            throw new ConversionException("Diagram not found: " + name + ".");
+
+        return diagrams.iterator().next();
     }
 
     private static class Args {
