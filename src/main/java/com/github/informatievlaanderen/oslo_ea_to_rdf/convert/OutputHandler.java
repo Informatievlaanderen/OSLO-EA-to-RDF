@@ -23,19 +23,13 @@ public interface OutputHandler {
      * @param sourceElement the EA element from which the class was deduced.
      * @param clazz the resource representing the class
      * @param ontology the ontology in which this class is defined
+     * @param parentClasses parent classes of this class
      * @param labels labels for the class
      * @param definitions definitions for the class
      * @param allowedValues nullable, an optional list of valid values that restricts the class
      */
-    void handleClass(DiagramElement sourceElement, Resource clazz, Resource ontology, List<Literal> labels,
-                     List<Literal> definitions, List<Resource> allowedValues);
-
-    /**
-     * Handles a subclass definition
-     * @param childClass child resource
-     * @param parentClass parent resource
-     */
-    void handleSubclassing(Resource childClass, Resource parentClass);
+    void handleClass(DiagramElement sourceElement, Resource clazz, Resource ontology, List<Resource> parentClasses,
+                     List<Literal> labels, List<Literal> definitions, List<Resource> allowedValues);
 
     /**
      * Handles the definition of a property.

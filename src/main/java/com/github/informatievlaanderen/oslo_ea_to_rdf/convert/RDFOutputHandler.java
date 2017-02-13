@@ -63,21 +63,19 @@ public class RDFOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleClass(DiagramElement sourceElement, Resource clazz, Resource ontology, List<Literal> labels,
+    public void handleClass(DiagramElement sourceElement, Resource clazz, Resource ontology,
+                            List<Resource> parentClasses, List<Literal> labels,
                             List<Literal> definitions, List<Resource> allowedValues) {
         model.add(clazz, RDF.type, OWL.Class);
         model.add(clazz, RDFS.isDefinedBy, ontology);
+        for (Resource parent : parentClasses)
+            model.add(clazz, RDFS.subClassOf, parent);
         for (Literal label : labels)
             model.add(clazz, RDFS.label, label);
         for (Literal definition : definitions)
             model.add(clazz, RDFS.comment, definition);
         if (allowedValues != null)
             model.add(clazz, OWL.oneOf, model.createList(allowedValues.iterator()));
-    }
-
-    @Override
-    public void handleSubclassing(Resource childClass, Resource parentClass) {
-        model.add(childClass, RDFS.subClassOf, parentClass);
     }
 
     @Override

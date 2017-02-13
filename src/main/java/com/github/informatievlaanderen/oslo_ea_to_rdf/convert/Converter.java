@@ -15,6 +15,7 @@ import org.apache.jena.vocabulary.XSD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,10 @@ public class Converter {
 
                 EAConnector connector = dConnector.getReferencedConnector();
 
+                // Inheritance was handled during element processing
+                if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
+                    continue;
+
                 // Skip if marked as ignore.
                 if (Boolean.valueOf(Util.getOptionalTag(connector, TagNames.IGNORE, "false"))) {
                     LOGGER.info("Skipping connector \"{}\" since it is marked as ignored.", Util.getFullName(connector));
@@ -127,12 +132,10 @@ public class Converter {
                     continue;
                 }
 
-                if (!EAConnector.TYPE_GENERALIZATION.equals(connector.getType())) {
-                    // Do not convert if the connector has an explicit URI defined, it is already defined somewhere else
-                    if (Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null) != null) {
-                        LOGGER.info("Skipping connector \"{}\" since it has an explicit URI defined.", Util.getFullName(connector));
-                        continue;
-                    }
+                // Do not convert if the connector has an explicit URI defined, it is already defined somewhere else
+                if (Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null) != null) {
+                    LOGGER.info("Skipping connector \"{}\" since it has an explicit URI defined.", Util.getFullName(connector));
+                    continue;
                 }
 
                 convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, packageResource);
@@ -315,15 +318,7 @@ public class Converter {
         if (connector.getAssociationClass() != null)
             LOGGER.warn("Ignoring association class for connector \"{}\" - association classes are not supported.", Util.getFullName(connector));
 
-        if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType())) {
-            if (connector.getDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
-                outputHandler.handleSubclassing(sourceRes, targetRes);
-            } else if (connector.getDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
-                outputHandler.handleSubclassing(targetRes, sourceRes);
-            } else {
-                LOGGER.error("Generalization connector \"{}\" does not specify a direction - skipping.", Util.getFullName(connector));
-            }
-        } else if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
+        if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
             // Label
             List<Literal> labels = languages.stream()
                     .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(LABEL, lang), connector.getName()), lang))
@@ -390,6 +385,24 @@ public class Converter {
                 LOGGER.warn("No possible values defined for enumeration \"{}\".", Util.getFullName(element));
         }
 
-        outputHandler.handleClass(diagramElement, classEntity, ontology, labels, definitions, allowedValues);
+        List<Resource> parentClasses = new ArrayList<>();
+
+        for (DiagramConnector diagramConnector : diagramElement.getConnectors()) {
+            EAConnector connector = diagramConnector.getReferencedConnector();
+            if (!EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
+                continue;
+
+            if (connector.getDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
+                if (connector.getSource().equals(element))
+                    parentClasses.add(ResourceFactory.createResource(elementURIs.get(connector.getDestination())));
+            } else if (connector.getDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
+                if (connector.getDestination().equals(element))
+                    parentClasses.add(ResourceFactory.createResource(elementURIs.get(connector.getSource())));
+            } else {
+                LOGGER.error("Generalization connector \"{}\" does not specify a direction - skipping.", Util.getFullName(connector));
+            }
+        }
+
+        outputHandler.handleClass(diagramElement, classEntity, ontology, parentClasses, labels, definitions, allowedValues);
     }
 }
