@@ -17,11 +17,14 @@ Building requires Maven and Java (JDK) to be installed.
     cd target
     java -jar <jarfile> --help
 
-Typical usage:
+Typical usage (for more options/commands, use `--help`):
 
     # Converts a diagram in an EA project to a RDF ontology (in the Turtle format)
     # Any ERROR or WARNING log statements should be adressed before using the generated ontology.
     java -jar <jarfile> convert --diagram <diagramName> --lang en,nl,fr --input <EA project file> --output <turtle output file>
+    
+    # Converts a diagram in a tab separated value file listing labels, definitions and more.
+    java -jar <jarfile> tsv --diagram <diagramName> --lang en,nl,fr --input <EA project file> --output <turtle output file>
 
 ## Conversion Conventions
 

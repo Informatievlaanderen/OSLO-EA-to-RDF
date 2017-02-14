@@ -8,6 +8,8 @@ import java.util.List;
 
 /**
  * A class that receives the results of a conversion and does something appropriate with it.
+ *
+ * @author Dieter De Paepe
  */
 public interface OutputHandler {
     /**
@@ -56,7 +58,7 @@ public interface OutputHandler {
      * @param labels the labels of the instance
      * @param definitions the definitions of the instance
      */
-    void handleInstance(EAElement source, Resource instance, Resource ontology, Resource clazz, List<Literal> labels,
+    void handleInstance(EAAttribute source, Resource instance, Resource ontology, Resource clazz, List<Literal> labels,
                         List<Literal> definitions);
 
     class PropertySource {

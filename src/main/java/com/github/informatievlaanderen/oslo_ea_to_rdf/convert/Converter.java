@@ -48,7 +48,6 @@ public class Converter {
     private List<String> languages;
     private Multimap<String, EAPackage> nameToPackages;
     private Multimap<String, EAElement> nameToElements;
-    private Multimap<String, EADiagram> nameToDiagrams;
     private OutputHandler outputHandler;
 
     public Converter(EARepository repo, List<String> mandatoryLanguages, OutputHandler outputHandler) {
@@ -58,17 +57,13 @@ public class Converter {
 
         ImmutableListMultimap.Builder<String, EAPackage> pBuilder = ImmutableListMultimap.builder();
         ImmutableListMultimap.Builder<String, EAElement> eBuilder = ImmutableListMultimap.builder();
-        ImmutableListMultimap.Builder<String, EADiagram> dBuilder = ImmutableListMultimap.builder();
 
         for (EAPackage eaPackage : repo.getPackages()) {
             pBuilder.put(eaPackage.getName(), eaPackage);
-            for (EADiagram eaDiagram : eaPackage.getDiagrams())
-                dBuilder.put(eaDiagram.getName(), eaDiagram);
             for (EAElement element : eaPackage.getElements())
                 eBuilder.put(element.getName(), element);
         }
         nameToPackages = pBuilder.build();
-        nameToDiagrams = dBuilder.build();
         nameToElements = eBuilder.build();
     }
 
@@ -242,7 +237,7 @@ public class Converter {
                     .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), attribute.getName()), lang))
                     .collect(Collectors.toList());
 
-            outputHandler.handleInstance(element, attResource, ontology, elementRes, labels, definitions);
+            outputHandler.handleInstance(attribute, attResource, ontology, elementRes, labels, definitions);
         }
     }
 

@@ -2,7 +2,7 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.SortedOutputModel;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.DiagramElement;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAAttribute;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
 import com.google.common.base.Charsets;
 import org.apache.jena.rdf.model.*;
@@ -19,6 +19,8 @@ import java.util.List;
 
 /**
  * Class that aggregates the conversion results in a RDF model.
+ *
+ * @author Dieter De Paepe
  */
 public class RDFOutputHandler implements OutputHandler {
     private Model model;
@@ -96,7 +98,7 @@ public class RDFOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleInstance(EAElement source, Resource instance, Resource ontology, Resource clazz, List<Literal> labels, List<Literal> definitions) {
+    public void handleInstance(EAAttribute source, Resource instance, Resource ontology, Resource clazz, List<Literal> labels, List<Literal> definitions) {
         model.add(instance, RDF.type, clazz);
         model.add(instance, RDFS.isDefinedBy, ontology);
         for (Literal label : labels)

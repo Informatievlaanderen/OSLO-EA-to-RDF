@@ -4,19 +4,23 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TSVOutputHandler;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ConversionException;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Converter;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RDFOutputHandler;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EADiagram;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EARepository;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryRepositoryBuilder;
+import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,8 +41,10 @@ public class Main {
         jCommander.setProgramName("java -jar <jarfile>");
         ListArgs listArgs = new ListArgs();
         jCommander.addCommand("list", listArgs);
-        ConvertDiagramArgs convertArgs = new ConvertDiagramArgs();
-        jCommander.addCommand("convert", convertArgs);
+        ConvertDiagramToRDFArgs convertRDFArgs = new ConvertDiagramToRDFArgs();
+        jCommander.addCommand("convert", convertRDFArgs);
+        ConvertDiagramToTSVArgs convertTSVArgs = new ConvertDiagramToTSVArgs();
+        jCommander.addCommand("tsv", convertTSVArgs);
 
         try {
             jCommander.parse(rawArgs);
@@ -58,16 +64,27 @@ public class Main {
                 EARepository repo = new MemoryRepositoryBuilder().build(listArgs.eaFile);
                 new StructurePrinter().execute(repo, listArgs.printElements);
             } else if ("convert".equals(jCommander.getParsedCommand())) {
-                EARepository repo  = new MemoryRepositoryBuilder().build(convertArgs.eaFile);
-                List<String> languages = convertArgs.mandatoryLanguages;
-                if (convertArgs.includeNoLanguageAttribute)
+                EARepository repo  = new MemoryRepositoryBuilder().build(convertRDFArgs.eaFile);
+                List<String> languages = convertRDFArgs.mandatoryLanguages;
+                if (convertRDFArgs.includeNoLanguageAttribute)
                     languages.add("");
                 RDFOutputHandler rdfOutputHandler = new RDFOutputHandler();
-                if (convertArgs.base != null)
-                    rdfOutputHandler.addToModel(convertArgs.base.toPath());
-                new Converter(repo, MoreObjects.firstNonNull(convertArgs.mandatoryLanguages, Collections.emptyList()), rdfOutputHandler)
-                        .convertDiagram(findByName(repo, convertArgs.diagramName));
-                rdfOutputHandler.writeToFile(convertArgs.outputFile.toPath());
+                if (convertRDFArgs.base != null)
+                    rdfOutputHandler.addToModel(convertRDFArgs.base.toPath());
+                new Converter(repo, MoreObjects.firstNonNull(convertRDFArgs.mandatoryLanguages, Collections.emptyList()), rdfOutputHandler)
+                        .convertDiagram(findByName(repo, convertRDFArgs.diagramName));
+                rdfOutputHandler.writeToFile(convertRDFArgs.outputFile.toPath());
+            } else if ("tsv".equals(jCommander.getParsedCommand())) {
+                EARepository repo = new MemoryRepositoryBuilder().build(convertTSVArgs.eaFile);
+                List<String> languages = convertTSVArgs.mandatoryLanguages;
+                if (convertTSVArgs.includeNoLanguageAttribute)
+                    languages.add("");
+
+                try (BufferedWriter writer = Files.newBufferedWriter(convertTSVArgs.outputFile.toPath(), Charsets.UTF_8)) {
+                    TSVOutputHandler tsvOutputHandler = new TSVOutputHandler(writer, languages);
+                    new Converter(repo, MoreObjects.firstNonNull(convertTSVArgs.mandatoryLanguages, Collections.emptyList()), tsvOutputHandler)
+                            .convertDiagram(findByName(repo, convertTSVArgs.diagramName));
+                }
             } else {
                 jCommander.usage();
             }
@@ -104,12 +121,30 @@ public class Main {
     }
 
     @Parameters(commandDescription = "Convert a diagram from an EA file to a RDF turtle file.")
-    private static class ConvertDiagramArgs {
+    private static class ConvertDiagramToRDFArgs {
         @Parameter(names = {"-i", "--input"}, required = true, description = "The EA project file.")
         File eaFile;
 
         @Parameter(names = {"-b", "--base"}, required = false, description = "Turtle file containing starting statements.")
         File base;
+
+        @Parameter(names = {"-d", "--diagram"}, required = true, description = "The name of the diagram to convert.")
+        String diagramName;
+
+        @Parameter(names = {"-o", "--output"}, required = true, description = "Output file name.")
+        File outputFile;
+
+        @Parameter(names = {"--lang"}, variableArity = true, description = "The languages to be read from the model.")
+        List<String> mandatoryLanguages;
+
+        @Parameter(names = {"--includeNoLang"}, description = "Also generate string properties without language tag.")
+        boolean includeNoLanguageAttribute;
+    }
+
+    @Parameters(commandDescription = "Create a TSV table of all term information.")
+    private static class ConvertDiagramToTSVArgs {
+        @Parameter(names = {"-i", "--input"}, required = true, description = "The EA project file.")
+        File eaFile;
 
         @Parameter(names = {"-d", "--diagram"}, required = true, description = "The name of the diagram to convert.")
         String diagramName;
