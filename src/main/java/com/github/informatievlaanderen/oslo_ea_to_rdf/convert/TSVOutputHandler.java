@@ -40,7 +40,8 @@ public class TSVOutputHandler implements OutputHandler {
         for (String language : languages)
             write("Definition" + (language == null ? "" : " (" + language + ")"));
 
-        write("URI");
+        write("namespace");
+        write("localname");
         write("type");
         write("domain");
         write("range");
@@ -62,6 +63,7 @@ public class TSVOutputHandler implements OutputHandler {
             write("");
 
         write(ontology.getNameSpace());
+        write(ontology.getLocalName());
         write(OWL.Ontology.getURI());
         write("");
         write("");
@@ -83,7 +85,8 @@ public class TSVOutputHandler implements OutputHandler {
         for (String language : languages)
             write(findLiteral(definitions, language));
 
-        write(clazz.getURI());
+        write(clazz.getNameSpace());
+        write(clazz.getLocalName());
         write(RDFS.Class.getURI());
         write("");
         write("");
@@ -123,7 +126,8 @@ public class TSVOutputHandler implements OutputHandler {
         for (String language : languages)
             write(findLiteral(definitions, language));
 
-        write(property.getURI());
+        write(property.getNameSpace());
+        write(property.getLocalName());
         write(propertyType.getURI());
         write(domain != null ? domain.getURI() : "");
         write(range != null ? range.getURI() : "");
@@ -145,6 +149,7 @@ public class TSVOutputHandler implements OutputHandler {
         for (String language : languages)
             write(findLiteral(definitions, language));
 
+        write(instance.getNameSpace());
         write(instance.getURI());
         write(clazz.getURI());
         write("");
