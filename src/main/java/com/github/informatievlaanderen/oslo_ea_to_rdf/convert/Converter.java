@@ -15,10 +15,7 @@ import org.apache.jena.vocabulary.XSD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.DEFINITON;
@@ -103,38 +100,41 @@ public class Converter {
         }
 
         // Convert connectors.
-        for (DiagramElement diagramElement : diagram.getElements()) {
-            for (DiagramConnector dConnector : diagramElement.getConnectors()) {
-                // Skip if the connector is hidden in the diagram.
-                if (dConnector.isHidden())
-                    continue;
+        Set<DiagramConnector> connectors = new HashSet<>();
+        for (DiagramElement diagramElement : diagram.getElements())
+            for (DiagramConnector dConnector : diagramElement.getConnectors())
+                connectors.add(dConnector);
 
-                EAConnector connector = dConnector.getReferencedConnector();
+        for (DiagramConnector dConnector : connectors) {
+            // Skip if the connector is hidden in the diagram.
+            if (dConnector.isHidden())
+                continue;
 
-                // Inheritance was handled during element processing
-                if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
-                    continue;
+            EAConnector connector = dConnector.getReferencedConnector();
 
-                // Skip if marked as ignore.
-                if (Boolean.valueOf(Util.getOptionalTag(connector, TagNames.IGNORE, "false"))) {
-                    LOGGER.info("Skipping connector \"{}\" since it is marked as ignored.", Util.getFullName(connector));
-                    continue;
-                }
+            // Inheritance was handled during element processing
+            if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
+                continue;
 
-                EAPackage definingPackage = uris.definingPackages.get(connector);
-                if (!diagram.getPackage().equals(definingPackage)) {
-                    LOGGER.info("Skipping connector \"{}\" since it is defined in another package.", Util.getFullName(connector));
-                    continue;
-                }
-
-                // Do not convert if the connector has an explicit URI defined, it is already defined somewhere else
-                if (Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null) != null) {
-                    LOGGER.info("Skipping connector \"{}\" since it has an explicit URI defined.", Util.getFullName(connector));
-                    continue;
-                }
-
-                convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, ontology);
+            // Skip if marked as ignore.
+            if (Boolean.valueOf(Util.getOptionalTag(connector, TagNames.IGNORE, "false"))) {
+                LOGGER.info("Skipping connector \"{}\" since it is marked as ignored.", Util.getFullName(connector));
+                continue;
             }
+
+            EAPackage definingPackage = uris.definingPackages.get(connector);
+            if (!diagram.getPackage().equals(definingPackage)) {
+                LOGGER.info("Skipping connector \"{}\" since it is defined in another package.", Util.getFullName(connector));
+                continue;
+            }
+
+            // Do not convert if the connector has an explicit URI defined, it is already defined somewhere else
+            if (Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null) != null) {
+                LOGGER.info("Skipping connector \"{}\" since it has an explicit URI defined.", Util.getFullName(connector));
+                continue;
+            }
+
+            convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, ontology);
         }
 
         // Convert non-enum attributes.
