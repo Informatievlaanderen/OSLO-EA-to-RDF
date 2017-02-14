@@ -78,7 +78,7 @@ public class Converter {
         //}
 
         // Convert package
-        Resource packageResource = convertPackage(diagram.getPackage(), uris.packageURIs);
+        Resource ontology = convertPackage(diagram.getPackage(), uris.ontologyURIs);
 
         // Convert elements.
         for (DiagramElement diagramElement : diagram.getElements()) {
@@ -99,7 +99,7 @@ public class Converter {
                 continue;
             }
 
-            convertElement(diagramElement, uris.elementURIs, uris.instanceURIs, packageResource);
+            convertElement(diagramElement, uris.elementURIs, uris.instanceURIs, ontology);
         }
 
         // Convert connectors.
@@ -133,7 +133,7 @@ public class Converter {
                     continue;
                 }
 
-                convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, packageResource);
+                convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, ontology);
             }
         }
 
@@ -172,7 +172,7 @@ public class Converter {
                     continue;
                 }
 
-                convertAttribute(attribute, nameToElements, uris.elementURIs, uris.attributeURIs, packageResource);
+                convertAttribute(attribute, nameToElements, uris.elementURIs, uris.attributeURIs, ontology);
             }
         }
 
@@ -202,21 +202,21 @@ public class Converter {
                 continue;
             }
 
-            convertEnumerationValues(element, uris.elementURIs, uris.instanceURIs, packageResource);
+            convertEnumerationValues(element, uris.elementURIs, uris.instanceURIs, ontology);
         }
     }
 
-    private Resource convertPackage(EAPackage aPackage, Map<EAPackage, String> packageURIs) {
-        Resource packResource = ResourceFactory.createResource(packageURIs.get(aPackage));
+    private Resource convertPackage(EAPackage aPackage, Map<EAPackage, String> ontologyURIs) {
+        Resource ontology = ResourceFactory.createResource(ontologyURIs.get(aPackage));
         String prefix = Util.getOptionalTag(aPackage, TagNames.PACKAGE_BASE_URI_ABBREVIATION, null);
 
         outputHandler.handleOntology(
                 aPackage,
-                packResource,
+                ontology,
                 prefix
         );
 
-        return packResource;
+        return ontology;
     }
 
     private void convertEnumerationValues(EAElement element, Map<EAElement, String> elementURIs,

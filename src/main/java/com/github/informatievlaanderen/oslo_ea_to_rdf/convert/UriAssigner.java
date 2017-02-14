@@ -11,6 +11,7 @@ import java.util.*;
 
 import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.LOCALNAME;
 import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.PACKAGE_BASE_URI;
+import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.PACKAGE_ONTOLOGY_URI;
 
 /**
  * Functionality to assign URIs to all components from an EA repository.
@@ -22,13 +23,14 @@ public class UriAssigner {
 
     public Result assignURIs(Iterable<EAPackage> packages, Multimap<String, EAPackage> nameToPackages) {
         Map<EAPackage, String> packageURIs = new HashMap<>();
+        Map<EAPackage, String> ontologyURIs = new HashMap<>();
         Map<EAElement, String> elementURIs = new HashMap<>();
         Map<EAAttribute, String> attributeURIs = new HashMap<>();
         Map<EAAttribute, String> instanceURIs = new HashMap<>();
         Map<EAConnector, String> connectorURIs = new HashMap<>();
         Map<EAConnector, EAPackage> definingPackages = new HashMap<>();
 
-        assignNonConnectorURIs(packages, packageURIs, elementURIs, attributeURIs, instanceURIs);
+        assignNonConnectorURIs(packages, packageURIs, ontologyURIs, elementURIs, attributeURIs, instanceURIs);
 
         // A connector can reference a package as its defining package, meaning it takes on the base URI of that package.
         // This means connectors need to be handled after all package names are assigned an URI.
@@ -113,25 +115,27 @@ public class UriAssigner {
             }
         }
 
-        return new Result(packageURIs, elementURIs, attributeURIs, connectorURIs, instanceURIs, definingPackages);
+        return new Result(packageURIs, ontologyURIs, elementURIs, attributeURIs, connectorURIs, instanceURIs, definingPackages);
     }
 
     private void assignNonConnectorURIs(Iterable<EAPackage> packages, Map<EAPackage, String> packageURIs,
-                                        Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs,
-                                        Map<EAAttribute, String> instanceURIs) {
+                                        Map<EAPackage, String> ontologyURIs, Map<EAElement, String> elementURIs,
+                                        Map<EAAttribute, String> attributeURIs, Map<EAAttribute, String> instanceURIs) {
         for (EAPackage eaPackage : packages) {
             if (Boolean.valueOf(Util.getOptionalTag(eaPackage, TagNames.IGNORE, "false")))
                 continue;
 
-            String packageURI = Util.getMandatoryTag(eaPackage, PACKAGE_BASE_URI, "http://fixme.com");
+            String packageURI = Util.getMandatoryTag(eaPackage, PACKAGE_BASE_URI, "http://fixme.com#");
+            String ontologyURI = Util.getOptionalTag(eaPackage, PACKAGE_ONTOLOGY_URI, packageURI.substring(0, packageURI.length() - 1));
             packageURIs.put(eaPackage, packageURI);
+            ontologyURIs.put(eaPackage, ontologyURI);
 
             for (EAElement element : eaPackage.getElements()) {
                 if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false")))
                     continue;
 
                 String localName = Util.getOptionalTag(element, LOCALNAME, element.getName());
-                String elementURI = Util.getOptionalTag(element, TagNames.EXPLICIT_URI, packageURI + "#" + localName);
+                String elementURI = Util.getOptionalTag(element, TagNames.EXPLICIT_URI, packageURI + localName);
 
                 elementURIs.put(element, elementURI);
 
@@ -143,10 +147,10 @@ public class UriAssigner {
 
                     if (element.getType() == EAElement.Type.ENUMERATION) {
                         String attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI,
-                                packageURI + "/" + Util.getOptionalTag(element, LOCALNAME, element.getName()) + "/" + localName);
+                                ontologyURI + "/" + Util.getOptionalTag(element, LOCALNAME, element.getName()) + "/" + localName);
                         instanceURIs.put(attribute, attributeURI);
                     } else {
-                        String attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, packageURI + "#" + localName);
+                        String attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, packageURI + localName);
                         attributeURIs.put(attribute, attributeURI);
                     }
 
@@ -217,7 +221,7 @@ public class UriAssigner {
                             LOGGER.error("Connector \"{}\" does not have a name, it will be ignored.", Util.getFullName(connector));
                             continue;
                         }
-                        connectorURI = packageURI + "#" + localName;
+                        connectorURI = packageURI + localName;
                     }
 
                     connectorURIs.put(connector, connectorURI);
@@ -235,9 +239,13 @@ public class UriAssigner {
 
     public static class Result {
         /**
-         * For each package (= ontology), the corresponding URI to be used.
+         * For each package (= ontology), the corresponding base URI to be used for the defined terms.
          */
         public final Map<EAPackage, String> packageURIs;
+        /**
+         * For each package, the URI of the corresponding owl:Ontology.
+         */
+        public final Map<EAPackage, String> ontologyURIs;
         /**
          * For each element, the corresponding URI to be used.
          */
@@ -260,10 +268,11 @@ public class UriAssigner {
          */
         public final Map<EAConnector, EAPackage> definingPackages;
 
-        public Result(Map<EAPackage, String> packageURIs, Map<EAElement, String> elementURIs,
+        public Result(Map<EAPackage, String> packageURIs, Map<EAPackage, String> ontologyURISs, Map<EAElement, String> elementURIs,
                       Map<EAAttribute, String> attributeURIs, Map<EAConnector, String> connectorURIs,
                       Map<EAAttribute, String> instanceURIs, Map<EAConnector, EAPackage> definingPackages) {
             this.packageURIs = packageURIs;
+            this.ontologyURIs = ontologyURISs;
             this.elementURIs = elementURIs;
             this.attributeURIs = attributeURIs;
             this.connectorURIs = connectorURIs;

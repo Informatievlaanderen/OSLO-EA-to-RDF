@@ -15,6 +15,7 @@ public class TagNames {
     public static final String DEFINING_PACKAGE = "package";
     public static final String SUBPROPERTY_OF = "parentURI";
     public static final String PACKAGE_BASE_URI_ABBREVIATION = "baseURIabbrev";
+    public static final String PACKAGE_ONTOLOGY_URI = "ontologyURI";
 
     private TagNames() {}
 }

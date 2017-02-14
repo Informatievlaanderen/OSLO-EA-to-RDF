@@ -45,11 +45,13 @@ A package is mapped to an `owl:Ontology`, each element specified in the ontology
 
 Tags:
 
-- `baseURI`: The base URI for each element defined in this package (eg: `http://example.org/ns`).
+- `baseURI`: The base URI for each element defined in this package (eg: `http://example.org/ns#`).
 - (optional) `baseURIabbrev`: The preferred abbreviated form of the `baseURI`,
  used to generate the [preferred namespace prefix](http://vocab.org/vann/#preferredNamespacePrefix)
  as well as turtle prefixes. (Eg: `ex`)
-- (optional) `ignore`: A boolean flag that will make the tool ignore this package and anything defined inside it. (Eg: `true`) 
+- (optional) `ignore`: A boolean flag that will make the tool ignore this package and anything defined inside it. (Eg: `true`)
+- (optional) `ontologyURI`: The URI of the corresponding `owl:Ontology`. Defaults to `baseURI` minus the last character
+ (eg: `http://example.org/ns`).
 
 ### Class, DataType & Enumeration
 
