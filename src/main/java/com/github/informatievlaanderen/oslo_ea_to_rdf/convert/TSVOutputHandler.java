@@ -109,10 +109,10 @@ public class TSVOutputHandler implements OutputHandler {
             write("");
             write(source.connector.getReferencedConnector().getName());
             write("");
-            if (EAConnector.Direction.SOURCE_TO_DEST.equals(source.connector.getReferencedConnector().getDirection())) {
+            if (EAConnector.Direction.SOURCE_TO_DEST.equals(source.connector.getLabelDirection())) {
                 write(source.connector.getReferencedConnector().getSource().getName());
                 write(source.connector.getReferencedConnector().getDestination().getName());
-            } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(source.connector.getReferencedConnector().getDirection())) {
+            } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(source.connector.getLabelDirection())) {
                 write(source.connector.getReferencedConnector().getDestination().getName());
                 write(source.connector.getReferencedConnector().getSource().getName());
             } else {
