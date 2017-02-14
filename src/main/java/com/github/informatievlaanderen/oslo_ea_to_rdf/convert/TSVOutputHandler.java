@@ -159,17 +159,25 @@ public class TSVOutputHandler implements OutputHandler {
 
     private List<EAElement> findParents(DiagramElement child) {
         return child.getConnectors().stream()
-                .map(conn -> {
-                    if (!EAConnector.TYPE_GENERALIZATION.equals(conn.getReferencedConnector().getType())
-                            || Boolean.valueOf(Util.getOptionalTag(conn.getReferencedConnector(), TagNames.IGNORE, "false"))
-                            || conn.isHidden()
-                            || EAConnector.Direction.BIDIRECTIONAL.equals(conn.getReferencedConnector().getDirection())
-                            || EAConnector.Direction.UNSPECIFIED.equals(conn.getReferencedConnector().getDirection()))
+                .map(dConn -> {
+                    EAConnector conn = dConn.getReferencedConnector();
+                    if (!EAConnector.TYPE_GENERALIZATION.equals(conn.getType())
+                            || Boolean.valueOf(Util.getOptionalTag(conn, TagNames.IGNORE, "false"))
+                            || dConn.isHidden()
+                            || EAConnector.Direction.BIDIRECTIONAL.equals(conn.getDirection())
+                            || EAConnector.Direction.UNSPECIFIED.equals(conn.getDirection()))
                         return null;
-                    if (EAConnector.Direction.SOURCE_TO_DEST.equals(conn.getReferencedConnector().getDirection()))
-                        return conn.getReferencedConnector().getDestination();
-                    else
-                        return conn.getReferencedConnector().getSource();
+                    if (EAConnector.Direction.SOURCE_TO_DEST.equals(conn.getDirection())) {
+                        if (child.getReferencedElement().equals(conn.getSource()))
+                            return conn.getDestination();
+                        else
+                            return null;
+                    } else {
+                        if (child.getReferencedElement().equals(conn.getDestination()))
+                            return conn.getSource();
+                        else
+                            return null;
+                    }
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
