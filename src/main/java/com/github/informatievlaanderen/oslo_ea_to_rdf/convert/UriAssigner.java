@@ -184,7 +184,7 @@ public class UriAssigner {
                     EAPackage definingPackage = null;
                     String packageName = Util.getOptionalTag(connector, TagNames.DEFINING_PACKAGE, null);
                     Collection<EAPackage> connectionPackage = nameToPackages.get(packageName);
-                    if (connectionPackage.size() > 2) {
+                    if (connectionPackage.size() >= 2) {
                         LOGGER.warn("Ambiguous package name specified for connector \"{}\", it matches multiple packages in the project.", Util.getFullName(connector));
                         definingPackage = connectionPackage.iterator().next();
                     } else if (connectionPackage.size() == 1) {
