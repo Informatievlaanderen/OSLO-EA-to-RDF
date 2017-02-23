@@ -229,12 +229,12 @@ public class Converter {
 
             // Label
             List<Literal> labels = languages.stream()
-                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(LABEL, lang), attribute.getName()), lang))
+                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(LABEL, lang), "TODO"), lang))
                     .collect(Collectors.toList());
 
             // Definition
             List<Literal> definitions = languages.stream()
-                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), attribute.getName()), lang))
+                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), "TODO"), lang))
                     .collect(Collectors.toList());
 
             outputHandler.handleInstance(attribute, attResource, ontology, elementRes, labels, definitions);
@@ -266,12 +266,12 @@ public class Converter {
 
         // Label
         List<Literal> labels = languages.stream()
-                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(LABEL, lang), attribute.getName()), lang))
+                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(LABEL, lang), "TODO"), lang))
                 .collect(Collectors.toList());
 
         // Definition
         List<Literal> definitions = languages.stream()
-                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), attribute.getName()), lang))
+                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), "TODO"), lang))
                 .collect(Collectors.toList());
 
         // Subproperty
@@ -316,12 +316,12 @@ public class Converter {
         if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
             // Label
             List<Literal> labels = languages.stream()
-                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(LABEL, lang), connector.getName()), lang))
+                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(LABEL, lang), "TODO"), lang))
                     .collect(Collectors.toList());
 
             // Definition
             List<Literal> definitions = languages.stream()
-                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(DEFINITON, lang), connector.getName()), lang))
+                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(DEFINITON, lang), "TODO"), lang))
                     .collect(Collectors.toList());
 
             // Subproperty
@@ -364,12 +364,12 @@ public class Converter {
 
         // Label
         List<Literal> labels = languages.stream()
-                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(element, addLang(LABEL, lang), element.getName()), lang))
+                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(element, addLang(LABEL, lang), "TODO"), lang))
                 .collect(Collectors.toList());
 
         // Definition
         List<Literal> definitions = languages.stream()
-                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(element, addLang(DEFINITON, lang), element.getName()), lang))
+                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(element, addLang(DEFINITON, lang), "TODO"), lang))
                 .collect(Collectors.toList());
 
         List<Resource> allowedValues = null;
