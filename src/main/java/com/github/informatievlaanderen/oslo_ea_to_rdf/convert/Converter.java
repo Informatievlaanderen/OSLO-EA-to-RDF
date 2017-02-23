@@ -56,9 +56,14 @@ public class Converter {
         ImmutableListMultimap.Builder<String, EAElement> eBuilder = ImmutableListMultimap.builder();
 
         for (EAPackage eaPackage : repo.getPackages()) {
+            if (Boolean.valueOf(Util.getOptionalTag(eaPackage, TagNames.IGNORE, "false")))
+                continue;
             pBuilder.put(eaPackage.getName(), eaPackage);
-            for (EAElement element : eaPackage.getElements())
+            for (EAElement element : eaPackage.getElements()) {
+                if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false")))
+                    continue;
                 eBuilder.put(element.getName(), element);
+            }
         }
         nameToPackages = pBuilder.build();
         nameToElements = eBuilder.build();
@@ -79,24 +84,22 @@ public class Converter {
 
         // Convert elements.
         for (DiagramElement diagramElement : diagram.getElements()) {
-            if (Boolean.valueOf(Util.getOptionalTag(diagramElement.getReferencedElement(), TagNames.IGNORE, "false"))) {
-                LOGGER.info("Skipping class \"{}\" since it is marked as ignored.", Util.getFullName(diagramElement.getReferencedElement()));
+            EAElement element = diagramElement.getReferencedElement();
+            if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false"))) {
+                LOGGER.info("Skipping class \"{}\" since it is marked as ignored.", Util.getFullName(element));
                 continue;
             }
 
-            // Do not convert elements from other packages (ontologies)
-            if (!diagramElement.getReferencedElement().getPackage().equals(diagram.getPackage())) {
-                LOGGER.info("Skipping class \"{}\" since it is defined in a different package.", Util.getFullName(diagramElement.getReferencedElement()));
-                continue;
-            }
+            boolean currentPackageTerm = element.getPackage().equals(diagram.getPackage());
+            boolean customURI = Util.getOptionalTag(element, TagNames.EXPLICIT_URI, null) != null;
+            boolean refersToThisPackage = diagram.getPackage().getName().equals(Util.getOptionalTag(element, TagNames.DEFINING_PACKAGE, element.getPackage().getName()));
+            Scope scope = Scope.NOTHING;
+            if (currentPackageTerm && !customURI)
+                scope = Scope.FULL_DEFINITON;
+            else if (customURI && refersToThisPackage)
+                scope = Scope.TRANSLATIONS_ONLY;
 
-            // Do not convert if the element has an explicit URI defined, it is already defined somewhere else
-            if (Util.getOptionalTag(diagramElement.getReferencedElement(), TagNames.EXPLICIT_URI, null) != null) {
-                LOGGER.info("Skipping class \"{}\" since it has an explicit URI defined.", Util.getFullName(diagramElement.getReferencedElement()));
-                continue;
-            }
-
-            convertElement(diagramElement, uris.elementURIs, uris.instanceURIs, ontology);
+            convertElement(diagramElement, uris.elementURIs, uris.instanceURIs, ontology, scope);
         }
 
         // Convert connectors.
@@ -123,18 +126,15 @@ public class Converter {
             }
 
             EAPackage definingPackage = uris.definingPackages.get(connector);
-            if (!diagram.getPackage().equals(definingPackage)) {
-                LOGGER.info("Skipping connector \"{}\" since it is defined in another package.", Util.getFullName(connector));
-                continue;
-            }
+            boolean currentPackageTerm = diagram.getPackage().equals(definingPackage);
+            boolean externalTerm = Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null) != null;
+            Scope scope = Scope.NOTHING;
+            if (!externalTerm && currentPackageTerm)
+                scope = Scope.FULL_DEFINITON;
+            else if (externalTerm && currentPackageTerm)
+                scope = Scope.TRANSLATIONS_ONLY;
 
-            // Do not convert if the connector has an explicit URI defined, it is already defined somewhere else
-            if (Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null) != null) {
-                LOGGER.info("Skipping connector \"{}\" since it has an explicit URI defined.", Util.getFullName(connector));
-                continue;
-            }
-
-            convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, ontology);
+            convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, ontology, scope);
         }
 
         // Convert non-enum attributes.
@@ -150,29 +150,22 @@ public class Converter {
                 continue;
             }
 
-            // Skip if the element is defined in another package
-            if (!element.getPackage().equals(diagram.getPackage())) {
-                // No need for logging, this was already mentioned when the element processed
-                // LOGGER.info("Skipping attributes of \"{}\" since that class is defined in another package.", Util.getFullName(diagramElement.getReferencedElement()));
-                continue;
-            }
-
-            // Do not skip if the element has an external URI - it should be possible to define extra properties on existing elements
-
             for (EAAttribute attribute : element.getAttributes()) {
-                // Do not convert if the connector has an explicit URI defined, it is already defined somewhere else
-                if (Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, null) != null) {
-                    LOGGER.info("Skipping attribute \"{}\" since it has an explicit URI defined.", Util.getFullName(attribute));
-                    continue;
-                }
-
                 // Skip if marked as ignore.
                 if (!uris.attributeURIs.containsKey(attribute)) {
                     LOGGER.info("Skipping attribute \"{}\" since it is marked as ignored.", Util.getFullName(attribute));
                     continue;
                 }
 
-                convertAttribute(attribute, nameToElements, uris.elementURIs, uris.attributeURIs, ontology);
+                String definingPackageName = Util.getOptionalTag(attribute, TagNames.DEFINING_PACKAGE, attribute.getElement().getPackage().getName());
+                boolean currentPackageTerm = diagram.getPackage().getName().equals(definingPackageName);
+                boolean externalTerm = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, null) != null;
+                Scope scope = Scope.NOTHING;
+                if (!externalTerm && currentPackageTerm)
+                    scope = Scope.FULL_DEFINITON;
+                else if (externalTerm && currentPackageTerm)
+                    scope = Scope.TRANSLATIONS_ONLY;
+                convertAttribute(attribute, nameToElements, uris.elementURIs, uris.attributeURIs, ontology, scope);
             }
         }
 
@@ -189,20 +182,7 @@ public class Converter {
                 continue;
             }
 
-            // Skip if the element is defined in another package
-            if (!element.getPackage().equals(diagram.getPackage())) {
-                // No need for logging, this was already mentioned when the element processed
-                // LOGGER.info("Skipping enum values of \"{}\" since that class is defined in another package.", Util.getFullName(diagramElement.getReferencedElement()));
-                continue;
-            }
-
-            // Skip if the element has an external URI - enums shouldn't be adjusted
-            if (Util.getOptionalTag(element, TagNames.EXPLICIT_URI, null) != null) {
-                LOGGER.info("Skipping enum values of \"{}\" since it has an explicit URI defined.", Util.getFullName(element));
-                continue;
-            }
-
-            convertEnumerationValues(element, uris.elementURIs, uris.instanceURIs, ontology);
+            convertEnumerationValues(diagram.getPackage(), element, uris.elementURIs, uris.instanceURIs, ontology);
         }
     }
 
@@ -219,7 +199,7 @@ public class Converter {
         return ontology;
     }
 
-    private void convertEnumerationValues(EAElement element, Map<EAElement, String> elementURIs,
+    private void convertEnumerationValues(EAPackage activePackage, EAElement element, Map<EAElement, String> elementURIs,
                                           Map<EAAttribute, String> instanceURIs, Resource ontology) {
         Resource elementRes = ResourceFactory.createResource(elementURIs.get(element));
         List<? extends EAAttribute> attributes = element.getAttributes();
@@ -237,13 +217,22 @@ public class Converter {
                     .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), "TODO"), lang))
                     .collect(Collectors.toList());
 
-            outputHandler.handleInstance(attribute, attResource, ontology, elementRes, labels, definitions);
+            String definingPackageName = Util.getOptionalTag(attribute, TagNames.DEFINING_PACKAGE, attribute.getElement().getPackage().getName());
+            boolean currentPackageTerm = activePackage.getName().equals(definingPackageName);
+            boolean customURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, null) != null;
+            Scope scope = Scope.NOTHING;
+            if (!customURI && currentPackageTerm)
+                scope = Scope.FULL_DEFINITON;
+            else if (customURI && currentPackageTerm)
+                scope = Scope.TRANSLATIONS_ONLY;
+
+            outputHandler.handleInstance(attribute, attResource, scope, ontology, elementRes, labels, definitions);
         }
     }
 
     private void convertAttribute(EAAttribute attribute, Multimap<String, EAElement> elementIndex,
                                   Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs,
-                                  Resource ontology) {
+                                  Resource ontology, Scope scope) {
         Property attResource = ResourceFactory.createProperty(attributeURIs.get(attribute));
 
         Resource domain = ResourceFactory.createResource(elementURIs.get(attribute.getElement()));
@@ -282,6 +271,7 @@ public class Converter {
         outputHandler.handleProperty(
                 OutputHandler.PropertySource.from(attribute),
                 attResource,
+                scope,
                 ontology,
                 propertyType,
                 domain,
@@ -301,7 +291,7 @@ public class Converter {
 
     private void convertConnector(DiagramConnector dConnector,
                                   Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
-                                  Resource ontology) {
+                                  Resource ontology, Scope scope) {
         EAConnector connector = dConnector.getReferencedConnector();
         Resource connResource = ResourceFactory.createResource(connectorURIs.get(connector));
 
@@ -345,6 +335,7 @@ public class Converter {
             outputHandler.handleProperty(
                     OutputHandler.PropertySource.from(dConnector),
                     connResource,
+                    scope,
                     ontology,
                     OWL.ObjectProperty,
                     domain,
@@ -358,7 +349,7 @@ public class Converter {
     }
 
     private void convertElement(DiagramElement diagramElement, Map<EAElement, String> elementURIs,
-                                Map<EAAttribute, String> instanceURIs, Resource ontology) {
+                                Map<EAAttribute, String> instanceURIs, Resource ontology, Scope scope) {
         EAElement element = diagramElement.getReferencedElement();
         Resource classEntity = ResourceFactory.createResource(elementURIs.get(element));
 
@@ -398,6 +389,6 @@ public class Converter {
             }
         }
 
-        outputHandler.handleClass(diagramElement, classEntity, ontology, parentClasses, labels, definitions, allowedValues);
+        outputHandler.handleClass(diagramElement, classEntity, scope, ontology, parentClasses, labels, definitions, allowedValues);
     }
 }

@@ -159,7 +159,9 @@ public class UriAssigner {
         }
     }
 
-    private void assignConnectorURIs(Iterable<EAPackage> packages, Multimap<String, EAPackage> nameToPackages, Map<EAPackage, String> packageURIs, Map<EAConnector, String> connectorURIs, Map<EAConnector, EAPackage> definingPackages) {
+    private void assignConnectorURIs(Iterable<EAPackage> packages, Multimap<String, EAPackage> nameToPackages,
+                                     Map<EAPackage, String> packageURIs, Map<EAConnector, String> connectorURIs,
+                                     Map<EAConnector, EAPackage> definingPackages) {
         for (EAPackage eaPackage : packages) {
             if (Boolean.valueOf(Util.getOptionalTag(eaPackage, TagNames.IGNORE, "false")))
                 continue;

@@ -40,6 +40,7 @@ public class TSVOutputHandler implements OutputHandler {
         for (String language : languages)
             write("Definition" + (language == null ? "" : " (" + language + ")"));
 
+        write("external term");
         write("namespace");
         write("localname");
         write("type");
@@ -62,6 +63,7 @@ public class TSVOutputHandler implements OutputHandler {
         for (String language : languages)
             write("");
 
+        write("");
         write(ontology.getNameSpace());
         write(ontology.getLocalName());
         write(OWL.Ontology.getURI());
@@ -71,7 +73,9 @@ public class TSVOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleClass(DiagramElement sourceElement, Resource clazz, Resource ontology, List<Resource> parentClasses, List<Literal> labels, List<Literal> definitions, List<Resource> allowedValues) {
+    public void handleClass(DiagramElement sourceElement, Resource clazz, Scope scope,
+                            Resource ontology, List<Resource> parentClasses, List<Literal> labels,
+                            List<Literal> definitions, List<Resource> allowedValues) {
         write(sourceElement.getReferencedElement().getType().toString());
         write(sourceElement.getReferencedElement().getPackage().getName());
         write(sourceElement.getReferencedElement().getName());
@@ -85,6 +89,7 @@ public class TSVOutputHandler implements OutputHandler {
         for (String language : languages)
             write(findLiteral(definitions, language));
 
+        write(String.valueOf(scope != Scope.FULL_DEFINITON));
         write(clazz.getNameSpace());
         write(clazz.getLocalName());
         write(RDFS.Class.getURI());
@@ -94,9 +99,9 @@ public class TSVOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleProperty(PropertySource source, Resource property, Resource ontology, Resource propertyType,
-                               Resource domain, Resource range, List<Literal> labels, List<Literal> definitions,
-                               List<Resource> superProperties) {
+    public void handleProperty(PropertySource source, Resource property, Scope scope,
+                               Resource ontology, Resource propertyType, Resource domain, Resource range,
+                               List<Literal> labels, List<Literal> definitions, List<Resource> superProperties) {
         if (source.attribute != null) {
             write("attribute");
             write(source.attribute.getElement().getPackage().getName());
@@ -126,6 +131,7 @@ public class TSVOutputHandler implements OutputHandler {
         for (String language : languages)
             write(findLiteral(definitions, language));
 
+        write(Boolean.toString(scope != Scope.FULL_DEFINITON));
         write(property.getNameSpace());
         write(property.getLocalName());
         write(propertyType.getURI());
@@ -135,8 +141,8 @@ public class TSVOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleInstance(EAAttribute source, Resource instance, Resource ontology, Resource clazz,
-                               List<Literal> labels, List<Literal> definitions) {
+    public void handleInstance(EAAttribute source, Resource instance, Scope scope,
+                               Resource ontology, Resource clazz, List<Literal> labels, List<Literal> definitions) {
         write("attribute");
         write(source.getElement().getPackage().getName());
         write(source.getName());
@@ -149,6 +155,7 @@ public class TSVOutputHandler implements OutputHandler {
         for (String language : languages)
             write(findLiteral(definitions, language));
 
+        write(Boolean.toString(scope != Scope.FULL_DEFINITON));
         write(instance.getNameSpace());
         write(instance.getURI());
         write(clazz.getURI());

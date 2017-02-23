@@ -24,19 +24,22 @@ public interface OutputHandler {
      * Handles the definition of a class.
      * @param sourceElement the EA element from which the class was deduced.
      * @param clazz the resource representing the class
+     * @param scope hint on how to handle this element in output
      * @param ontology the ontology in which this class is defined
      * @param parentClasses parent classes of this class
      * @param labels labels for the class
      * @param definitions definitions for the class
      * @param allowedValues nullable, an optional list of valid values that restricts the class
      */
-    void handleClass(DiagramElement sourceElement, Resource clazz, Resource ontology, List<Resource> parentClasses,
-                     List<Literal> labels, List<Literal> definitions, List<Resource> allowedValues);
+    void handleClass(DiagramElement sourceElement, Resource clazz, Scope scope, Resource ontology,
+                     List<Resource> parentClasses, List<Literal> labels, List<Literal> definitions,
+                     List<Resource> allowedValues);
 
     /**
      * Handles the definition of a property.
      * @param source the source EA element
      * @param property the resource representing the property
+     * @param scope hint on how to handle this property in the output
      * @param ontology the ontology in which the property is defined
      * @param propertyType the type of the property (owl:Property, owl:ObjectProperty, owl:DataProperty)
      * @param domain nullable, domain of the property
@@ -45,21 +48,22 @@ public interface OutputHandler {
      * @param definitions definitions of the property
      * @param superProperties all super properties of this property
      */
-    void handleProperty(PropertySource source, Resource property, Resource ontology, Resource propertyType, Resource domain,
-                              Resource range, List<Literal> labels, List<Literal> definitions,
-                              List<Resource> superProperties);
+    void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
+                        Resource propertyType, Resource domain, Resource range, List<Literal> labels,
+                        List<Literal> definitions, List<Resource> superProperties);
 
     /**
      * Handles the definition of an instance of a class.
      * @param source the source EA element
      * @param instance the resource representing the instance
+     * @param scope hint on how to handle this property in the output
      * @param ontology the ontology in which the instance is defined
      * @param clazz the class of which this instance is an instance
      * @param labels the labels of the instance
      * @param definitions the definitions of the instance
      */
-    void handleInstance(EAAttribute source, Resource instance, Resource ontology, Resource clazz, List<Literal> labels,
-                        List<Literal> definitions);
+    void handleInstance(EAAttribute source, Resource instance, Scope scope, Resource ontology,
+                        Resource clazz, List<Literal> labels, List<Literal> definitions);
 
     class PropertySource {
         public final DiagramConnector connector;

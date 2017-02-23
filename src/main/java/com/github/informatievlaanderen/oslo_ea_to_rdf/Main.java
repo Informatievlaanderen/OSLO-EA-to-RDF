@@ -22,10 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Entry class for command line.
@@ -68,7 +65,9 @@ public class Main {
                 List<String> languages = convertRDFArgs.mandatoryLanguages;
                 if (convertRDFArgs.includeNoLanguageAttribute)
                     languages.add("");
-                RDFOutputHandler rdfOutputHandler = new RDFOutputHandler();
+                List<String> externalTermLanguages = new ArrayList<>(languages);
+                externalTermLanguages.retainAll(convertRDFArgs.externalTermLanguages);
+                RDFOutputHandler rdfOutputHandler = new RDFOutputHandler(externalTermLanguages);
                 if (convertRDFArgs.base != null)
                     rdfOutputHandler.addToModel(convertRDFArgs.base.toPath());
                 new Converter(repo, MoreObjects.firstNonNull(convertRDFArgs.mandatoryLanguages, Collections.emptyList()), rdfOutputHandler)
@@ -136,6 +135,9 @@ public class Main {
 
         @Parameter(names = {"--lang"}, variableArity = true, description = "The languages to be read from the model.")
         List<String> mandatoryLanguages;
+
+        @Parameter(names = {"--extlang"}, variableArity = true, description = "The languages to be outputted for reused terms (subset of --lang).")
+        List<String> externalTermLanguages;
 
         @Parameter(names = {"--includeNoLang"}, description = "Also generate string properties without language tag.")
         boolean includeNoLanguageAttribute;
