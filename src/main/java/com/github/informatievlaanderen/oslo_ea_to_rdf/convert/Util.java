@@ -43,7 +43,9 @@ public class Util {
 
     public static String getFullName(EAConnector connector) {
         return getFullName(connector.getSource())
-                + ":" + MoreObjects.firstNonNull(connector.getName(), connector.getGuid());
+                + ":" + MoreObjects.firstNonNull(
+                        connector.getName(),
+                        "(" + connector.getSource().getName() + " -> " + connector.getDestination().getName() + ")");
     }
 
 
