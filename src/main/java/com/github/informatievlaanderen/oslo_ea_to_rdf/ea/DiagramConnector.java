@@ -34,7 +34,7 @@ public interface DiagramConnector {
 
     /**
      * Gets the direction of the arrow of the label for this connector.
-     * @return a direction
+     * @return a direction, never {@code null}
      */
     EAConnector.Direction getLabelDirection();
 
