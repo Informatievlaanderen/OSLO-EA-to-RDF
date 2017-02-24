@@ -1,10 +1,7 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
@@ -70,7 +67,8 @@ public class Converter {
     }
 
     public void convertDiagram(EADiagram diagram) {
-        UriAssigner.Result uris = new UriAssigner().assignURIs(repo.getPackages(), nameToPackages);
+        Map<EAConnector, EAConnector.Direction> connectorDirections = indexDirections(diagram);
+        UriAssigner.Result uris = new UriAssigner().assignURIs(repo.getPackages(), nameToPackages, connectorDirections);
 
         // Prefixes
         //for (EAPackage eaPackage : uris.packageURIs.keySet()) {
@@ -125,16 +123,7 @@ public class Converter {
                 continue;
             }
 
-            EAPackage definingPackage = uris.definingPackages.get(connector);
-            boolean currentPackageTerm = diagram.getPackage().equals(definingPackage);
-            boolean externalTerm = Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null) != null;
-            Scope scope = Scope.NOTHING;
-            if (!externalTerm && currentPackageTerm)
-                scope = Scope.FULL_DEFINITON;
-            else if (externalTerm && currentPackageTerm)
-                scope = Scope.TRANSLATIONS_ONLY;
-
-            convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, ontology, scope);
+            convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, uris.definingPackages, ontology, diagram.getPackage());
         }
 
         // Convert non-enum attributes.
@@ -184,6 +173,21 @@ public class Converter {
 
             convertEnumerationValues(diagram.getPackage(), element, uris.elementURIs, uris.instanceURIs, ontology);
         }
+    }
+
+    /**
+     * Creates a mapping of all connectors in the given diagram to their label direction.
+     */
+    private Map<EAConnector, EAConnector.Direction> indexDirections(EADiagram diagram) {
+        Set<DiagramConnector> connectors = diagram.getElements().stream()
+                .flatMap(o -> o.getConnectors().stream())
+                .collect(Collectors.toSet());
+
+        ImmutableMap.Builder<EAConnector, EAConnector.Direction> builder = ImmutableMap.builder();
+        for (DiagramConnector connector : connectors) {
+            builder.put(connector.getReferencedConnector(), connector.getLabelDirection());
+        }
+        return builder.build();
     }
 
     private Resource convertPackage(EAPackage aPackage, Map<EAPackage, String> ontologyURIs) {
@@ -291,60 +295,75 @@ public class Converter {
 
     private void convertConnector(DiagramConnector dConnector,
                                   Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
-                                  Resource ontology, Scope scope) {
-        EAConnector connector = dConnector.getReferencedConnector();
-        Resource connResource = ResourceFactory.createResource(connectorURIs.get(connector));
+                                  Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
+        EAConnector bareConnector = dConnector.getReferencedConnector();
+        for (EAConnector connector : Util.extractAssociationElement(bareConnector, dConnector.getLabelDirection())) {
+            String uriref = connectorURIs.get(connector);
+            if (uriref == null)
+                continue;
 
-        EAElement source = dConnector.getSource().getReferencedElement();
-        EAElement target = dConnector.getDestination().getReferencedElement();
-        Resource sourceRes = ResourceFactory.createResource(elementURIs.get(source));
-        Resource targetRes = ResourceFactory.createResource(elementURIs.get(target));
+            Resource connResource = ResourceFactory.createResource(uriref);
 
-        if (connector.getAssociationClass() != null)
-            LOGGER.warn("Ignoring association class for connector \"{}\" - association classes are not supported.", Util.getFullName(connector));
+            EAElement source = connector.getSource();
+            EAElement target = connector.getDestination();
+            Resource sourceRes = ResourceFactory.createResource(elementURIs.get(source));
+            Resource targetRes = ResourceFactory.createResource(elementURIs.get(target));
 
-        if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
-            // Label
-            List<Literal> labels = languages.stream()
-                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(LABEL, lang), "TODO"), lang))
-                    .collect(Collectors.toList());
+            if (connector.getAssociationClass() != null)
+                throw new AssertionError("Association class should not be present.");
 
-            // Definition
-            List<Literal> definitions = languages.stream()
-                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(DEFINITON, lang), "TODO"), lang))
-                    .collect(Collectors.toList());
+            if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
+                // Label
+                List<Literal> labels = languages.stream()
+                        .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(LABEL, lang), "TODO"), lang))
+                        .collect(Collectors.toList());
 
-            // Subproperty
-            List<Resource> superProperties = connector.getTags().get(TagNames.SUBPROPERTY_OF).stream()
-                    .map(ResourceFactory::createResource)
-                    .collect(Collectors.toList());
+                // Definition
+                List<Literal> definitions = languages.stream()
+                        .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(DEFINITON, lang), "TODO"), lang))
+                        .collect(Collectors.toList());
 
-            Resource domain = null;
-            Resource range = null;
-            // Range and domain
-            if (dConnector.getLabelDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
-                domain = sourceRes;
-                range = targetRes;
-            } else if (dConnector.getLabelDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
-                domain = targetRes;
-                range = sourceRes;
+                // Subproperty
+                List<Resource> superProperties = connector.getTags().get(TagNames.SUBPROPERTY_OF).stream()
+                        .map(ResourceFactory::createResource)
+                        .collect(Collectors.toList());
+
+                Resource domain = null;
+                Resource range = null;
+                // Range and domain
+                if (dConnector.getLabelDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
+                    domain = sourceRes;
+                    range = targetRes;
+                } else if (dConnector.getLabelDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
+                    domain = targetRes;
+                    range = sourceRes;
+                } else {
+                    LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", Util.getFullName(connector));
+                }
+
+                EAPackage definingPackage = definingPackages.get(connector);
+                boolean currentPackageTerm = convertedPackage.equals(definingPackage);
+                boolean externalTerm = Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null) != null;
+                Scope scope = Scope.NOTHING;
+                if (!externalTerm && currentPackageTerm)
+                    scope = Scope.FULL_DEFINITON;
+                else if (externalTerm && currentPackageTerm)
+                    scope = Scope.TRANSLATIONS_ONLY;
+
+                outputHandler.handleProperty(
+                        OutputHandler.PropertySource.from(dConnector),
+                        connResource,
+                        scope,
+                        ontology,
+                        OWL.ObjectProperty,
+                        domain,
+                        range,
+                        labels,
+                        definitions,
+                        superProperties);
             } else {
-                LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", Util.getFullName(connector));
+                LOGGER.error("Unsupported connector type for \"{}\" - skipping.", Util.getFullName(connector));
             }
-
-            outputHandler.handleProperty(
-                    OutputHandler.PropertySource.from(dConnector),
-                    connResource,
-                    scope,
-                    ontology,
-                    OWL.ObjectProperty,
-                    domain,
-                    range,
-                    labels,
-                    definitions,
-                    superProperties);
-        } else {
-            LOGGER.error("Unsupported connector type for \"{}\" - skipping.", Util.getFullName(connector));
         }
     }
 

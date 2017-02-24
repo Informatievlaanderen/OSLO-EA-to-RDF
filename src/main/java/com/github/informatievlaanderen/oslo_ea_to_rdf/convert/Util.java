@@ -1,14 +1,17 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.NormalizedEAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAAttribute;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -151,5 +154,31 @@ public class Util {
         } else {
             return values.get(0);
         }
+    }
+
+    /**
+     * Converts a connector in one or two connectors so that the resulting connectors do not have any association
+     * class.
+     * @param conn connector that may have an association class
+     * @param direction direction of the connector, determines which end is source and destination for extracting the
+     *                  tags from a connector with an association class
+     * @return two connectors that do not have an association class, or the original connector
+     */
+    public static Collection<EAConnector> extractAssociationElement(EAConnector conn, EAConnector.Direction direction) {
+        if (conn.getAssociationClass() == null)
+            return Collections.singleton(conn);
+
+        String tagPrefix1 = TagNames.ASSOCIATION_SOURCE_PREFIX;
+        String tagPrefix2 = TagNames.ASSOCIATION_DEST_PREFIX;
+
+        if (direction == EAConnector.Direction.DEST_TO_SOURCE) {
+            tagPrefix1 = TagNames.ASSOCIATION_DEST_PREFIX;
+            tagPrefix2 = TagNames.ASSOCIATION_SOURCE_PREFIX;
+        }
+
+        return Arrays.asList(
+            new NormalizedEAConnector(conn, NormalizedEAConnector.ConnectionPart.SOURCE_TO_ASSOCIATION, tagPrefix1),
+            new NormalizedEAConnector(conn, NormalizedEAConnector.ConnectionPart.ASSOCIATION_TO_DESTINATION, tagPrefix2)
+        );
     }
 }

@@ -21,7 +21,8 @@ import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.PA
 public class UriAssigner {
     private final Logger LOGGER = LoggerFactory.getLogger(UriAssigner.class);
 
-    public Result assignURIs(Iterable<EAPackage> packages, Multimap<String, EAPackage> nameToPackages) {
+    public Result assignURIs(Iterable<EAPackage> packages, Multimap<String, EAPackage> nameToPackages,
+                             Map<EAConnector, EAConnector.Direction> connectorDirections) {
         Map<EAPackage, String> packageURIs = new HashMap<>();
         Map<EAPackage, String> ontologyURIs = new HashMap<>();
         Map<EAElement, String> elementURIs = new HashMap<>();
@@ -34,7 +35,7 @@ public class UriAssigner {
 
         // A connector can reference a package as its defining package, meaning it takes on the base URI of that package.
         // This means connectors need to be handled after all package names are assigned an URI.
-        assignConnectorURIs(packages, nameToPackages, packageURIs, connectorURIs, definingPackages);
+        assignConnectorURIs(packages, nameToPackages, packageURIs, connectorURIs, definingPackages, connectorDirections);
 
         // Build indexes for packages and elements
         ListMultimap<String, EAPackage> packageIndex = Multimaps.index(packageURIs.keySet(), packageURIs::get);
@@ -161,7 +162,8 @@ public class UriAssigner {
 
     private void assignConnectorURIs(Iterable<EAPackage> packages, Multimap<String, EAPackage> nameToPackages,
                                      Map<EAPackage, String> packageURIs, Map<EAConnector, String> connectorURIs,
-                                     Map<EAConnector, EAPackage> definingPackages) {
+                                     Map<EAConnector, EAPackage> definingPackages, Map<EAConnector, EAConnector.Direction> connectorDirections) {
+        Set<EAConnector> normalisedConnectors = new HashSet<>();
         for (EAPackage eaPackage : packages) {
             if (Boolean.valueOf(Util.getOptionalTag(eaPackage, TagNames.IGNORE, "false")))
                 continue;
@@ -171,64 +173,63 @@ public class UriAssigner {
                     continue;
 
                 for (EAConnector connector : element.getConnectors()) {
-                    if (Boolean.valueOf(Util.getOptionalTag(connector, TagNames.IGNORE, "false")))
-                        continue;
-
-                    // Inheritance related connectors don't get an URI
-                    if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
-                        continue;
-
-                    // Don't process connectors twice
-                    if (connectorURIs.containsKey(connector))
-                        continue;
-
-                    // Determine in which package (= ontology) this connector (= property) is defined
-                    EAPackage definingPackage = null;
-                    String packageName = Util.getOptionalTag(connector, TagNames.DEFINING_PACKAGE, null);
-                    Collection<EAPackage> connectionPackage = nameToPackages.get(packageName);
-                    if (connectionPackage.size() >= 2) {
-                        LOGGER.warn("Ambiguous package name specified for connector \"{}\", it matches multiple packages in the project.", Util.getFullName(connector));
-                        definingPackage = connectionPackage.iterator().next();
-                    } else if (connectionPackage.size() == 1) {
-                        definingPackage = connectionPackage.iterator().next();
-                    } else {
-                        EAPackage srcPackage = connector.getSource().getPackage();
-                        EAPackage dstPackage = connector.getDestination().getPackage();
-                        if (srcPackage.equals(dstPackage)) {
-                            definingPackage = srcPackage;
-                            LOGGER.info("Assuming connector \"{}\" belongs to package \"{}\" based on source and target definition.", Util.getFullName(connector), definingPackage.getName());
-                        }
-                    }
-
-                    if (definingPackage == null) {
-                        LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", Util.getFullName(connector));
-                        continue;
-                    }
-
-                    String packageURI = packageURIs.get(definingPackage);
-                    if (packageURI == null) {
-                        LOGGER.warn("Connector \"{}\" is defined on an ignored package (but isn't ignored itself), it will be ignored.", Util.getFullName(connector));
-                        continue;
-                    }
-
-                    definingPackages.put(connector, definingPackage);
-
-                    if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
-                        continue;
-
-                    String localName = Util.getOptionalTag(connector, LOCALNAME, connector.getName());
-                    String connectorURI = Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null);
-                    if (connectorURI == null) {
-                        if (localName == null) {
-                            LOGGER.error("Connector \"{}\" does not have a name, it will be ignored.", Util.getFullName(connector));
-                            continue;
-                        }
-                        connectorURI = packageURI + localName;
-                    }
-
-                    connectorURIs.put(connector, connectorURI);
+                    normalisedConnectors.addAll(Util.extractAssociationElement(connector, connectorDirections.get(connector)));
                 }
             }
+        }
+
+        for (EAConnector connector : normalisedConnectors) {
+            if (Boolean.valueOf(Util.getOptionalTag(connector, TagNames.IGNORE, "false")))
+                continue;
+
+            // Inheritance related connectors don't get an URI
+            if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
+                continue;
+
+            // Determine in which package (= ontology) this connector (= property) is defined
+            EAPackage definingPackage = null;
+            String packageName = Util.getOptionalTag(connector, TagNames.DEFINING_PACKAGE, null);
+            Collection<EAPackage> connectionPackage = nameToPackages.get(packageName);
+            if (connectionPackage.size() >= 2) {
+                LOGGER.warn("Ambiguous package name specified for connector \"{}\", it matches multiple packages in the project.", Util.getFullName(connector));
+                definingPackage = connectionPackage.iterator().next();
+            } else if (connectionPackage.size() == 1) {
+                definingPackage = connectionPackage.iterator().next();
+            } else {
+                EAPackage srcPackage = connector.getSource().getPackage();
+                EAPackage dstPackage = connector.getDestination().getPackage();
+                if (srcPackage.equals(dstPackage)) {
+                    definingPackage = srcPackage;
+                    LOGGER.info("Assuming connector \"{}\" belongs to package \"{}\" based on source and target definition.", Util.getFullName(connector), definingPackage.getName());
+                }
+            }
+
+            if (definingPackage == null) {
+                LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", Util.getFullName(connector));
+                continue;
+            }
+
+            String packageURI = packageURIs.get(definingPackage);
+            if (packageURI == null) {
+                LOGGER.warn("Connector \"{}\" is defined on an non existing package, it will be ignored.", Util.getFullName(connector));
+                continue;
+            }
+
+            if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
+                continue;
+
+            String localName = Util.getOptionalTag(connector, LOCALNAME, connector.getName());
+            String connectorURI = Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null);
+            if (connectorURI == null) {
+                if (localName == null) {
+                    LOGGER.error("Connector \"{}\" does not have a name, it will be ignored.", Util.getFullName(connector));
+                    continue;
+                }
+                connectorURI = packageURI + localName;
+            }
+
+            definingPackages.put(connector, definingPackage);
+            connectorURIs.put(connector, connectorURI);
         }
     }
 

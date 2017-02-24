@@ -17,5 +17,8 @@ public class TagNames {
     public static final String PACKAGE_BASE_URI_ABBREVIATION = "baseURIabbrev";
     public static final String PACKAGE_ONTOLOGY_URI = "ontologyURI";
 
+    public static final String ASSOCIATION_SOURCE_PREFIX = "source-";
+    public static final String ASSOCIATION_DEST_PREFIX = "target-";
+
     private TagNames() {}
 }

@@ -107,6 +107,8 @@ The type of the attribute will be mapped to a class in the project (as an `owl:O
 
 A generalization connector will be converted into a `rdfs:subClassOf` triple.
 An association or aggregation connector will be converted into a `owl:ObjectProperty`.
+Properties follow the direction of the label associated with the connector, _not the direction of
+connector_.
 
 Connectors can be defined between elements from different packages, so it is not always clear to
 which package (= ontology) they belong.
@@ -159,3 +161,16 @@ The full definition will be included in RDF if:
 Translation labels will be outputted if:
 - there is a `uri` tag present
 - the `package` tag (or its default value) refers to the package being exported
+
+## Association Classes
+
+In UML, connectors can have a association class to identify information being tracked on the association between
+2 classes. In RDF this is represented by simply having the association class being put in the middle of the
+connecting property, effectively forming 2 separate properties instead of one.
+Since a connector with an association class will result in 2 different RDF properties,
+there is a need to differentiate between the tags supplied to the connector.
+
+Any connector that has an association class should prefix all tags with `source-` or `target-`.
+Tags of the first form (eg: `source-label-en`) will relate to the property connecting the starting element
+with the association class. Likewise, the second form will relate to the property connecting the association class
+with the ending element. Starting and ending element are defined by the direction of the label of the connector.
