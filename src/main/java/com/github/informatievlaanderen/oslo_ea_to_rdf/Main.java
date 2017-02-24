@@ -137,7 +137,7 @@ public class Main {
         List<String> mandatoryLanguages;
 
         @Parameter(names = {"--extlang"}, variableArity = true, description = "The languages to be outputted for reused terms (subset of --lang).")
-        List<String> externalTermLanguages;
+        List<String> externalTermLanguages = Collections.emptyList();
 
         @Parameter(names = {"--includeNoLang"}, description = "Also generate string properties without language tag.")
         boolean includeNoLanguageAttribute;
