@@ -4,6 +4,8 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.*;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.shared.InvalidPropertyURIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -152,9 +154,13 @@ public class UriAssigner {
                         instanceURIs.put(attribute, attributeURI);
                     } else {
                         String attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, packageURI + localName);
-                        attributeURIs.put(attribute, attributeURI);
+                        try {
+                            ResourceFactory.createProperty(attributeURI);
+                            attributeURIs.put(attribute, attributeURI);
+                        } catch (InvalidPropertyURIException e) {
+                            LOGGER.error("Invalid property URI \"{}\", will ignore attribute {}.", attributeURI, Util.getFullName(attribute));
+                        }
                     }
-
                 }
             }
         }
@@ -228,8 +234,13 @@ public class UriAssigner {
                 connectorURI = packageURI + localName;
             }
 
-            definingPackages.put(connector, definingPackage);
-            connectorURIs.put(connector, connectorURI);
+            try {
+                ResourceFactory.createProperty(connectorURI);
+                definingPackages.put(connector, definingPackage);
+                connectorURIs.put(connector, connectorURI);
+            } catch (InvalidPropertyURIException e) {
+                LOGGER.error("Invalid property URI \"{}\", will ignore connector {}.", connectorURI, Util.getFullName(connector));
+            }
         }
     }
 

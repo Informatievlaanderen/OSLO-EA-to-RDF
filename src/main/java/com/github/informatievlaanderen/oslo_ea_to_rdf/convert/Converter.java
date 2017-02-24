@@ -237,6 +237,9 @@ public class Converter {
     private void convertAttribute(EAAttribute attribute, Multimap<String, EAElement> elementIndex,
                                   Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs,
                                   Resource ontology, Scope scope) {
+        if (!attributeURIs.containsKey(attribute))
+            return;
+
         Property attResource = ResourceFactory.createProperty(attributeURIs.get(attribute));
 
         Resource domain = ResourceFactory.createResource(elementURIs.get(attribute.getElement()));
@@ -298,11 +301,10 @@ public class Converter {
                                   Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
         EAConnector bareConnector = dConnector.getReferencedConnector();
         for (EAConnector connector : Util.extractAssociationElement(bareConnector, dConnector.getLabelDirection())) {
-            String uriref = connectorURIs.get(connector);
-            if (uriref == null)
+            if (!connectorURIs.containsKey(connector))
                 continue;
 
-            Resource connResource = ResourceFactory.createResource(uriref);
+            Resource connResource = ResourceFactory.createResource(connectorURIs.get(connector));
 
             EAElement source = connector.getSource();
             EAElement target = connector.getDestination();
