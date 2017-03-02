@@ -66,6 +66,8 @@ and some metadata that should be specified. This metadata is presented in the fo
 assigned to the elements in the EA project. The configuration specified when running the tool
 determines how these tags are converted into RDF.
 
+The specific tags used for the OSLO project are listed [here](OSLO-configuration.md).
+
 ### Package
 
 A package is mapped to an `owl:Ontology`, each element specified in the ontology is assumed to be specified in the ontology.
