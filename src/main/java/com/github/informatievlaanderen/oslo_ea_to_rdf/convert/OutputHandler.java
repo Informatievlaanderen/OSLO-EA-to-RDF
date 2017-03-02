@@ -1,7 +1,6 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
-import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 
 import java.util.List;
@@ -17,8 +16,9 @@ public interface OutputHandler {
      * @param sourcePackage the EA element from which the ontology was deduced
      * @param ontology the resource representing the ontology
      * @param prefix the preferred prefix, nullable
+     * @param baseURI the namespace of any terms defined in this ontology
      */
-    void handleOntology(EAPackage sourcePackage, Resource ontology, String prefix);
+    void handleOntology(EAPackage sourcePackage, Resource ontology, String prefix, String baseURI);
 
     /**
      * Handles the definition of a class.

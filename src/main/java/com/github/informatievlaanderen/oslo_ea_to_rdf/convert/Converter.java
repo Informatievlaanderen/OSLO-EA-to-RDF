@@ -73,7 +73,7 @@ public class Converter {
         //}
 
         // Convert package
-        Resource ontology = convertPackage(diagram.getPackage(), uris.ontologyURIs);
+        Resource ontology = convertPackage(diagram.getPackage(), uris.ontologyURIs, uris.packageURIs);
 
         // Convert elements.
         for (DiagramElement diagramElement : diagram.getElements()) {
@@ -185,14 +185,16 @@ public class Converter {
         return builder.build();
     }
 
-    private Resource convertPackage(EAPackage aPackage, Map<EAPackage, String> ontologyURIs) {
+    private Resource convertPackage(EAPackage aPackage, Map<EAPackage, String> ontologyURIs, Map<EAPackage, String> baseURIs) {
         Resource ontology = ResourceFactory.createResource(ontologyURIs.get(aPackage));
         String prefix = Util.getOptionalTag(aPackage, TagNames.PACKAGE_BASE_URI_ABBREVIATION, null);
+        String baseUri = baseURIs.get(aPackage);
 
         outputHandler.handleOntology(
                 aPackage,
                 ontology,
-                prefix
+                prefix,
+                baseUri
         );
 
         return ontology;

@@ -5,8 +5,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
@@ -92,7 +90,7 @@ public class TSVOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleOntology(EAPackage sourcePackage, Resource ontology, String prefix) {
+    public void handleOntology(EAPackage sourcePackage, Resource ontology, String prefix, String baseURI) {
         write("Package");
         write("");
         write(sourcePackage.getName());

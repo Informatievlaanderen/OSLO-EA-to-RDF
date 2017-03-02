@@ -4,7 +4,6 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.SortedOutputModel;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.Collections2;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
@@ -15,7 +14,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -60,11 +58,11 @@ public class RDFOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleOntology(EAPackage sourcePackage, Resource ontology, String prefix) {
+    public void handleOntology(EAPackage sourcePackage, Resource ontology, String prefix, String baseURI) {
         model.add(ontology, RDF.type, OWL.Ontology);
         model.add(ontology, model.createProperty("http://purl.org/vocab/vann/preferredNamespaceUri"), ontology.getURI());
         if (prefix != null) {
-            model.setNsPrefix(prefix, ontology.getURI());
+            model.setNsPrefix(prefix, baseURI);
             model.add(ontology, model.createProperty("http://purl.org/vocab/vann/preferredNamespacePrefix"), prefix);
         }
     }
