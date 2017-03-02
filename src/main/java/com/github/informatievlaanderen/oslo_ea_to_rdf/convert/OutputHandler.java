@@ -27,13 +27,10 @@ public interface OutputHandler {
      * @param scope hint on how to handle this element in output
      * @param ontology the ontology in which this class is defined
      * @param parentClasses parent classes of this class
-     * @param labels labels for the class
-     * @param definitions definitions for the class
      * @param allowedValues nullable, an optional list of valid values that restricts the class
      */
-    void handleClass(DiagramElement sourceElement, Resource clazz, Scope scope, Resource ontology,
-                     List<Resource> parentClasses, List<Literal> labels, List<Literal> definitions,
-                     List<Resource> allowedValues);
+    void handleClass(EAElement sourceElement, Resource clazz, Scope scope, Resource ontology,
+                     List<Resource> parentClasses, List<Resource> allowedValues);
 
     /**
      * Handles the definition of a property.
@@ -44,13 +41,10 @@ public interface OutputHandler {
      * @param propertyType the type of the property (owl:Property, owl:ObjectProperty, owl:DataProperty)
      * @param domain nullable, domain of the property
      * @param range nullable, range of the property
-     * @param labels labels of the property
-     * @param definitions definitions of the property
      * @param superProperties all super properties of this property
      */
     void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
-                        Resource propertyType, Resource domain, Resource range, List<Literal> labels,
-                        List<Literal> definitions, List<Resource> superProperties);
+                        Resource propertyType, Resource domain, Resource range, List<Resource> superProperties);
 
     /**
      * Handles the definition of an instance of a class.
@@ -59,22 +53,20 @@ public interface OutputHandler {
      * @param scope hint on how to handle this property in the output
      * @param ontology the ontology in which the instance is defined
      * @param clazz the class of which this instance is an instance
-     * @param labels the labels of the instance
-     * @param definitions the definitions of the instance
      */
     void handleInstance(EAAttribute source, Resource instance, Scope scope, Resource ontology,
-                        Resource clazz, List<Literal> labels, List<Literal> definitions);
+                        Resource clazz);
 
     class PropertySource {
-        public final DiagramConnector connector;
+        public final EAConnector connector;
         public final EAAttribute attribute;
 
-        private PropertySource(DiagramConnector connector, EAAttribute attribute) {
+        private PropertySource(EAConnector connector, EAAttribute attribute) {
             this.connector = connector;
             this.attribute = attribute;
         }
 
-        public static PropertySource from(DiagramConnector conn) {
+        public static PropertySource from(EAConnector conn) {
             return new PropertySource(conn, null);
         }
 

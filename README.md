@@ -20,25 +20,51 @@ Building requires Maven and Java (JDK) to be installed.
 Typical usage (for more options/commands, use `--help`):
 
     # Converts a diagram in an EA project to a RDF ontology (in the Turtle format).
-    # Newly defined elements will use 3 languages. Existing terms will get 2 translations.
     # Any ERROR or WARNING log statements should be adressed before using the generated ontology.
-    java -jar <jarfile> convert --diagram <diagramName> --lang en,nl,fr --extlang nl,fr --input <EA project file> --output <turtle output file>
+    java -jar <jarfile> convert --diagram <diagramName> --config <configFile> --input <EA project file> --output <turtle output file>
     
-    # Converts a diagram in a tab separated value file listing labels, definitions and more.
-    java -jar <jarfile> tsv --diagram <diagramName> --lang en,nl,fr --input <EA project file> --output <turtle output file>
+    # Converts a diagram in a tab separated value file listing the hierarchy, datatypes and more.
+    java -jar <jarfile> tsv --diagram <diagramName> --config <configFile> --input <EA project file> --output <turtle output file>
+
+Example config file:
+
+    # Newly defined terms will have a "nl"-typed label and comment. Existing terms will only get a "nl" translations.
+    # The "mandatory" key determines whether the tool warns for missing values.
+    {
+      prefixes: {
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+    	owl: "http://www.w3.org/2002/07/owl#"
+      },
+      internalMappings: [
+        {
+    	  tag: "label-nl",
+    	  property: "http://www.w3.org/2000/01/rdf-schema#label",
+    	  mandatory: true,
+    	  lang: "nl"
+    	},
+    	{
+    	  tag: "definition-nl",
+    	  property: "http://www.w3.org/2000/01/rdf-schema#comment",
+    	  mandatory: true,
+    	  lang: "nl"
+    	}
+      ],
+      externalMappings: [
+        {
+    	  tag: "label-nl",
+    	  property: "http://www.w3.org/2000/01/rdf-schema#label",
+    	  lang: "nl"
+    	}
+      ]
+    }
 
 ## Conversion Conventions
 
 Due to the mismatch between UML and RDF, there are some constraints that must be followed
 and some metadata that should be specified. This metadata is presented in the form of tags
-assigned to the elements in the EA project.
-
-Some RDF property values can (and should be) defined in multiple languages.
-When starting the converter, a number of languages can be specified,
-which the tool will use to look for the different translations of the properties.
-For example, the [rdfs:label](https://www.w3.org/2000/01/rdf-schema#label) property value
-is extracted from the tag `label`. In case the tool is specified to look for
-the languages `en` and `nl`, it will look for the tags `label-en` and `label-nl`.
+assigned to the elements in the EA project. The configuration specified when running the tool
+determines how these tags are converted into RDF.
 
 ### Package
 
@@ -62,8 +88,6 @@ Enumerations are restricted to one of the specified values using `owl:oneOf`.
 
 Tags:
 
-- `label(-XX)`: The label for the class, in the specified language.
-- `definition(-XX)` The definition for the class, in the specified language.
 - (optional) `ignore`: A boolean flag that will make the tool ignore this element and its attributes (eg: `true`).
 - (optional) `name`: The string used to complete the URI for this element.
  If not specified, the name of the class/datatype will be used.
@@ -80,8 +104,6 @@ Attributes are mapped to `rdf:Property`, `owl:DatatypeProperty` or `owl:ObjectPr
 
 Tags:
 
-- `label(-XX)`: The label for the property, in the specified language.
-- `definition(-XX)` The definition for the property, in the specified language.
 - (optional) `ignore`: A boolean flag that will make the tool ignore this property (eg: `true`).
 - (optional) `name`: The string used to complete the URI for this element.
 If not specified, the name of the attribute will be used. (Eg: `canine-name`.)
@@ -115,8 +137,6 @@ which package (= ontology) they belong.
 
 Tags:
 
-- `label(-XX)`: The label for the property, in the specified language.
-- `definition(-XX)` The definition for the property, in the specified language.
 - `package`: the name of the package (representing an ontology)that should define this
 property. Defaults to guessing this based on the connected elements.
 [More details below.](#specifying-packages)
@@ -138,27 +158,31 @@ ontology. On the other hand, we could want to include additional translations of
 
 Each section below describes what gets exported to the RDF file
 when running this tool. There are 3 options:
-- the full definition, this includes everything we know about the element (including labels);
-- translation labels for externally defined terms, as specified using the `--extlang` flag;
-- nothing at all
+- An internal, active term: the term is defined by us, in the diagram being exported.
+ This means all information should be outputted. This uses the `internalMapping` from the configuration.
+- An external term: the term is externally defined and reused by us, we may want to add some
+additional information to it, such as a translation.
+ This uses the `externalMapping` from the configuration.
+- An internal, nonactive term: the term is defined by us, but in a different diagram.
+ In this case nothing will be outputted.
 
 ### Class, Datatype & Enumeration
 
-The full definition will be included in RDF if:
+The term is seen as an internal, active term when:
 - there is no `uri` tag present
 - the element is defined in the package being exported
 
-Translation labels will be outputted if:
+It is considered an external term when:
 - there is a `uri` tag present
 - the `package` tag (or its default value) refers to the package being exported
 
 ### Attributes & Connectors
 
-The full definition will be included in RDF if:
+The term is seen as an internal, active term when:
 - there is no `uri` tag present
 - the `package` tag (or its default value) refers to the package being exported
 
-Translation labels will be outputted if:
+It is considered an external term when:
 - there is a `uri` tag present
 - the `package` tag (or its default value) refers to the package being exported
 

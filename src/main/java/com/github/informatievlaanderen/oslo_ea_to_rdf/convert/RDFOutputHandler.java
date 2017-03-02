@@ -1,10 +1,9 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.SortedOutputModel;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.DiagramElement;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAAttribute;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 import com.google.common.base.Charsets;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Collections2;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
@@ -18,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class that aggregates the conversion results in a RDF model.
@@ -26,15 +26,15 @@ import java.util.List;
  */
 public class RDFOutputHandler implements OutputHandler {
     private Model model;
-    private List<String> existingTermLangs;
+    private TagHelper tagHelper;
 
-    public RDFOutputHandler(List<String> existingTermLangs) {
-        this.existingTermLangs = existingTermLangs;
+    public RDFOutputHandler(Map<String, Resource> prefixes, TagHelper tagHelper) {
+        this.tagHelper = tagHelper;
 
         model = new SortedOutputModel();
-        model.setNsPrefix("rdf", RDF.uri);
-        model.setNsPrefix("rdfs", RDFS.uri);
-        model.setNsPrefix("owl", OWL.NS);
+        for (Map.Entry<String, Resource> entry : prefixes.entrySet()) {
+            model.setNsPrefix(entry.getKey(), entry.getValue().getURI());
+        }
     }
 
     /**
@@ -70,9 +70,8 @@ public class RDFOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleClass(DiagramElement sourceElement, Resource clazz, Scope scope, Resource ontology,
-                            List<Resource> parentClasses, List<Literal> labels,
-                            List<Literal> definitions, List<Resource> allowedValues) {
+    public void handleClass(EAElement sourceElement, Resource clazz, Scope scope, Resource ontology,
+                            List<Resource> parentClasses, List<Resource> allowedValues) {
         if (scope == Scope.NOTHING)
             return;
 
@@ -83,21 +82,16 @@ public class RDFOutputHandler implements OutputHandler {
                 model.add(clazz, RDFS.subClassOf, parent);
             if (allowedValues != null)
                 model.add(clazz, OWL.oneOf, model.createList(allowedValues.iterator()));
-        } else {
-            labels = new ArrayList<>(Collections2.filter(labels, l -> existingTermLangs.contains(l.getLanguage())));
-            definitions = new ArrayList<>(Collections2.filter(definitions, l -> existingTermLangs.contains(l.getLanguage())));
         }
 
-        for (Literal label : labels)
-            model.add(clazz, RDFS.label, label);
-        for (Literal definition : definitions)
-            model.add(clazz, RDFS.comment, definition);
+        for (TagData tag : tagHelper.getTagDataFor(sourceElement, scope)) {
+            model.add(clazz, tag.getProperty(), tag.getValue());
+        }
     }
 
     @Override
     public void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
-                               Resource propertyType, Resource domain, Resource range, List<Literal> labels,
-                               List<Literal> definitions, List<Resource> superProperties) {
+                               Resource propertyType, Resource domain, Resource range, List<Resource> superProperties) {
         if (scope == Scope.NOTHING)
             return;
 
@@ -110,35 +104,26 @@ public class RDFOutputHandler implements OutputHandler {
                 model.add(property, RDFS.range, range);
             for (Resource superProperty : superProperties)
                 model.add(property, RDFS.subPropertyOf, superProperty);
-        } else {
-            labels = new ArrayList<>(Collections2.filter(labels, l -> existingTermLangs.contains(l.getLanguage())));
-            definitions = new ArrayList<>(Collections2.filter(definitions, l -> existingTermLangs.contains(l.getLanguage())));
         }
 
-        for (Literal label : labels)
-            model.add(property, RDFS.label, label);
-        for (Literal definition : definitions)
-            model.add(property, RDFS.comment, definition);
-
+        for (TagData tag : tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), scope)) {
+            model.add(property, tag.getProperty(), tag.getValue());
+        }
     }
 
     @Override
     public void handleInstance(EAAttribute source, Resource instance, Scope scope, Resource ontology,
-                               Resource clazz, List<Literal> labels, List<Literal> definitions) {
+                               Resource clazz) {
         if (scope == Scope.NOTHING)
             return;
 
         if (scope == Scope.FULL_DEFINITON) {
             model.add(instance, RDF.type, clazz);
             model.add(instance, RDFS.isDefinedBy, ontology);
-        } else {
-            labels = new ArrayList<>(Collections2.filter(labels, l -> existingTermLangs.contains(l.getLanguage())));
-            definitions = new ArrayList<>(Collections2.filter(definitions, l -> existingTermLangs.contains(l.getLanguage())));
         }
 
-        for (Literal label : labels)
-            model.add(instance, RDFS.label, label);
-        for (Literal definition : definitions)
-            model.add(instance, RDFS.comment, definition);
+        for (TagData tag : tagHelper.getTagDataFor(source, scope)) {
+            model.add(instance, tag.getProperty(), tag.getValue());
+        }
     }
 }

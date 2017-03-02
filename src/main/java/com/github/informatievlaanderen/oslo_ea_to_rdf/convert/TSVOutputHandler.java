@@ -2,8 +2,10 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
@@ -11,6 +13,7 @@ import org.apache.jena.vocabulary.RDFS;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -21,12 +24,18 @@ import java.util.stream.Collectors;
  * @author Dieter De Paepe
  */
 public class TSVOutputHandler implements OutputHandler {
-    private List<String> languages;
-    private BufferedWriter writer;
+    private final static Joiner JOINER = Joiner.on(", ");
 
-    public TSVOutputHandler(BufferedWriter writer, List<String> languages) throws IOException {
+    private BufferedWriter writer;
+    private TagHelper tagHelper;
+    private EADiagram diagram;
+    private List<String> tagNames;
+
+    public TSVOutputHandler(BufferedWriter writer, TagHelper tagHelper, EADiagram diagram) throws IOException {
         this.writer = writer;
-        this.languages = languages;
+        this.tagHelper = tagHelper;
+        this.diagram = diagram;
+        this.tagNames = tagHelper.getTagNamesFor(Scope.FULL_DEFINITON);
 
         write("EA-Type");
         write("EA-Package");
@@ -35,10 +44,9 @@ public class TSVOutputHandler implements OutputHandler {
         write("EA-Domain");
         write("EA-Range");
 
-        for (String language : languages)
-            write("Label" + (language == null ? "" : " (" + language + ")"));
-        for (String language : languages)
-            write("Definition" + (language == null ? "" : " (" + language + ")"));
+        for (String tagName : tagNames) {
+            write(tagName);
+        }
 
         write("external term");
         write("namespace");
@@ -47,6 +55,40 @@ public class TSVOutputHandler implements OutputHandler {
         write("domain");
         write("range");
         writeNl("parent");
+    }
+
+    private DiagramElement findInDiagram(EAElement element) {
+        for (DiagramElement diagramElement : diagram.getElements()) {
+            if (diagramElement.getReferencedElement().equals(element))
+                return diagramElement;
+        }
+        return null;
+    }
+
+    private DiagramConnector findInDiagram(EAConnector connector) {
+        for (DiagramElement element : diagram.getElements()) {
+            for (DiagramConnector rawConnector : element.getConnectors()) {
+                for (EAConnector conn : Util.extractAssociationElement(rawConnector.getReferencedConnector(), rawConnector.getLabelDirection())) {
+                    if (connector.equals(conn))
+                        return rawConnector;
+                }
+            }
+        }
+        return null;
+    }
+
+    private List<String> extactTagValues(List<TagData> tagData) {
+        List<String> result = new ArrayList<>();
+
+        for (String tagName : tagNames) {
+            String s = tagData.stream()
+                    .filter(t -> tagName.equals(t.getOriginTag()))
+                    .findFirst()
+                    .map(t -> t.getValue().getString())
+                    .orElse("");
+            result.add(s);
+        }
+        return result;
     }
 
     @Override
@@ -58,10 +100,9 @@ public class TSVOutputHandler implements OutputHandler {
         write("");
         write("");
 
-        for (String language : languages)
+        for (String s : tagHelper.getTagNamesFor(Scope.FULL_DEFINITON)) {
             write("");
-        for (String language : languages)
-            write("");
+        }
 
         write("");
         write(ontology.getNameSpace());
@@ -73,21 +114,19 @@ public class TSVOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleClass(DiagramElement sourceElement, Resource clazz, Scope scope,
-                            Resource ontology, List<Resource> parentClasses, List<Literal> labels,
-                            List<Literal> definitions, List<Resource> allowedValues) {
-        write(sourceElement.getReferencedElement().getType().toString());
-        write(sourceElement.getReferencedElement().getPackage().getName());
-        write(sourceElement.getReferencedElement().getName());
-        write(Joiner.on(", ").join(Iterables.transform(findParents(sourceElement), EAElement::getName)));
+    public void handleClass(EAElement sourceElement, Resource clazz, Scope scope,
+                            Resource ontology, List<Resource> parentClasses, List<Resource> allowedValues) {
+        write(sourceElement.getType().toString());
+        write(sourceElement.getPackage().getName());
+        write(sourceElement.getName());
+
+        write(JOINER.join(findParents(findInDiagram(sourceElement))));
         write("");
         write("");
 
-        for (String language : languages)
-            write(findLiteral(labels, language));
-
-        for (String language : languages)
-            write(findLiteral(definitions, language));
+        for (String tag : extactTagValues(tagHelper.getTagDataFor(sourceElement, Scope.FULL_DEFINITON))) {
+            write(tag);
+        }
 
         write(String.valueOf(scope != Scope.FULL_DEFINITON));
         write(clazz.getNameSpace());
@@ -95,13 +134,13 @@ public class TSVOutputHandler implements OutputHandler {
         write(RDFS.Class.getURI());
         write("");
         write("");
-        writeNl(Joiner.on(", ").join(parentClasses));
+        writeNl(JOINER.join(parentClasses));
     }
 
     @Override
     public void handleProperty(PropertySource source, Resource property, Scope scope,
                                Resource ontology, Resource propertyType, Resource domain, Resource range,
-                               List<Literal> labels, List<Literal> definitions, List<Resource> superProperties) {
+                               List<Resource> superProperties) {
         if (source.attribute != null) {
             write("attribute");
             write(source.attribute.getElement().getPackage().getName());
@@ -112,24 +151,24 @@ public class TSVOutputHandler implements OutputHandler {
         } else {
             write("connector");
             write("");
-            write(source.connector.getReferencedConnector().getName());
+            write(source.connector.getName());
             write("");
-            if (EAConnector.Direction.SOURCE_TO_DEST.equals(source.connector.getLabelDirection())) {
-                write(source.connector.getReferencedConnector().getSource().getName());
-                write(source.connector.getReferencedConnector().getDestination().getName());
-            } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(source.connector.getLabelDirection())) {
-                write(source.connector.getReferencedConnector().getDestination().getName());
-                write(source.connector.getReferencedConnector().getSource().getName());
+            DiagramConnector dConnector = findInDiagram(source.connector);
+            if (EAConnector.Direction.SOURCE_TO_DEST.equals(dConnector.getLabelDirection())) {
+                write(source.connector.getSource().getName());
+                write(source.connector.getDestination().getName());
+            } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(dConnector.getLabelDirection())) {
+                write(source.connector.getDestination().getName());
+                write(source.connector.getSource().getName());
             } else {
                 write("");
                 write("");
             }
         }
 
-        for (String language : languages)
-            write(findLiteral(labels, language));
-        for (String language : languages)
-            write(findLiteral(definitions, language));
+        for (String tag : extactTagValues(tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), Scope.FULL_DEFINITON))) {
+            write(tag);
+        }
 
         write(Boolean.toString(scope != Scope.FULL_DEFINITON));
         write(property.getNameSpace());
@@ -137,12 +176,12 @@ public class TSVOutputHandler implements OutputHandler {
         write(propertyType.getURI());
         write(domain != null ? domain.getURI() : "");
         write(range != null ? range.getURI() : "");
-        writeNl(Joiner.on(", ").join(Iterables.transform(superProperties, Resource::getURI)));
+        writeNl(JOINER.join(Iterables.transform(superProperties, Resource::getURI)));
     }
 
     @Override
     public void handleInstance(EAAttribute source, Resource instance, Scope scope,
-                               Resource ontology, Resource clazz, List<Literal> labels, List<Literal> definitions) {
+                               Resource ontology, Resource clazz) {
         write("attribute");
         write(source.getElement().getPackage().getName());
         write(source.getName());
@@ -150,10 +189,9 @@ public class TSVOutputHandler implements OutputHandler {
         write(source.getElement().getName());
         write("");
 
-        for (String language : languages)
-            write(findLiteral(labels, language));
-        for (String language : languages)
-            write(findLiteral(definitions, language));
+        for (String tag : extactTagValues(tagHelper.getTagDataFor(source, Scope.FULL_DEFINITON))) {
+            write(tag);
+        }
 
         write(Boolean.toString(scope != Scope.FULL_DEFINITON));
         write(instance.getNameSpace());
@@ -188,14 +226,6 @@ public class TSVOutputHandler implements OutputHandler {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-    }
-
-    private String findLiteral(List<Literal> list, String lang) {
-        for (Literal literal : list) {
-            if (lang.equals(literal.getLanguage()))
-                return literal.getString();
-        }
-        return "";
     }
 
     private void write(String s) {

@@ -7,7 +7,7 @@ import com.google.common.collect.ListMultimap;
  *
  * @author Dieter De Paepe
  */
-public interface EAAttribute {
+public interface EAAttribute extends EAObject {
     /**
      * Returns the element in which this attribute is declared.
      * @return the element containing this attribute
@@ -15,32 +15,8 @@ public interface EAAttribute {
     EAElement getElement();
 
     /**
-     * Returns the GUID for this attribute.
-     * @return the GUID
-     */
-    String getGuid();
-
-    /**
-     * Returns the name for this attribute.
-     * @return the name, or {@code null}
-     */
-    String getName();
-
-    /**
-     * Returns the notes for this attribute.
-     * @return the notes, or {@code null}
-     */
-    String getNotes();
-
-    /**
      * Returns the data type for this attribute.
      * @return the type, or {@code null}
      */
     String getType();
-
-    /**
-     * Get the tags for this attribute.
-     * @return an immutable multimap
-     */
-    ListMultimap<String, String> getTags();
 }

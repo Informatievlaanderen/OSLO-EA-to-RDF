@@ -15,9 +15,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.DEFINITON;
-import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.LABEL;
-
 /**
  * Conversion functionality.
  *
@@ -39,14 +36,12 @@ public class Converter {
     private final Logger LOGGER = LoggerFactory.getLogger(Converter.class);
 
     private EARepository repo;
-    private List<String> languages;
     private Multimap<String, EAPackage> nameToPackages;
     private Multimap<String, EAElement> nameToElements;
     private OutputHandler outputHandler;
 
-    public Converter(EARepository repo, List<String> mandatoryLanguages, OutputHandler outputHandler) {
+    public Converter(EARepository repo, OutputHandler outputHandler) {
         this.repo = repo;
-        this.languages = mandatoryLanguages;
         this.outputHandler = outputHandler;
 
         ImmutableListMultimap.Builder<String, EAPackage> pBuilder = ImmutableListMultimap.builder();
@@ -211,16 +206,6 @@ public class Converter {
         for (EAAttribute attribute : attributes) {
             Resource attResource = ResourceFactory.createResource(instanceURIs.get(attribute));
 
-            // Label
-            List<Literal> labels = languages.stream()
-                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(LABEL, lang), "TODO"), lang))
-                    .collect(Collectors.toList());
-
-            // Definition
-            List<Literal> definitions = languages.stream()
-                    .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), "TODO"), lang))
-                    .collect(Collectors.toList());
-
             String definingPackageName = Util.getOptionalTag(attribute, TagNames.DEFINING_PACKAGE, attribute.getElement().getPackage().getName());
             boolean currentPackageTerm = activePackage.getName().equals(definingPackageName);
             boolean customURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, null) != null;
@@ -230,7 +215,7 @@ public class Converter {
             else if (customURI && currentPackageTerm)
                 scope = Scope.TRANSLATIONS_ONLY;
 
-            outputHandler.handleInstance(attribute, attResource, scope, ontology, elementRes, labels, definitions);
+            outputHandler.handleInstance(attribute, attResource, scope, ontology, elementRes);
         }
     }
 
@@ -260,16 +245,6 @@ public class Converter {
             LOGGER.warn("Missing data type for attribute \"{}\".", Util.getFullName(attribute));
         }
 
-        // Label
-        List<Literal> labels = languages.stream()
-                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(LABEL, lang), "TODO"), lang))
-                .collect(Collectors.toList());
-
-        // Definition
-        List<Literal> definitions = languages.stream()
-                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(attribute, addLang(DEFINITON, lang), "TODO"), lang))
-                .collect(Collectors.toList());
-
         // Subproperty
         List<Resource> superProperties = attribute.getTags().get(TagNames.SUBPROPERTY_OF).stream()
                 .map(ResourceFactory::createResource)
@@ -283,17 +258,8 @@ public class Converter {
                 propertyType,
                 domain,
                 range,
-                labels,
-                definitions,
                 superProperties
         );
-    }
-
-    private String addLang(String tagName, String lang) {
-        if (lang.isEmpty())
-            return tagName;
-        else
-            return tagName + "-" + lang;
     }
 
     private void convertConnector(DiagramConnector dConnector,
@@ -315,16 +281,6 @@ public class Converter {
                 throw new AssertionError("Association class should not be present.");
 
             if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
-                // Label
-                List<Literal> labels = languages.stream()
-                        .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(LABEL, lang), "TODO"), lang))
-                        .collect(Collectors.toList());
-
-                // Definition
-                List<Literal> definitions = languages.stream()
-                        .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(connector, addLang(DEFINITON, lang), "TODO"), lang))
-                        .collect(Collectors.toList());
-
                 // Subproperty
                 List<Resource> superProperties = connector.getTags().get(TagNames.SUBPROPERTY_OF).stream()
                         .map(ResourceFactory::createResource)
@@ -353,15 +309,13 @@ public class Converter {
                     scope = Scope.TRANSLATIONS_ONLY;
 
                 outputHandler.handleProperty(
-                        OutputHandler.PropertySource.from(dConnector),
+                        OutputHandler.PropertySource.from(connector),
                         connResource,
                         scope,
                         ontology,
                         OWL.ObjectProperty,
                         domain,
                         range,
-                        labels,
-                        definitions,
                         superProperties);
             } else {
                 LOGGER.error("Unsupported connector type for \"{}\" - skipping.", Util.getFullName(connector));
@@ -373,16 +327,6 @@ public class Converter {
                                 Map<EAAttribute, String> instanceURIs, Resource ontology, Scope scope) {
         EAElement element = diagramElement.getReferencedElement();
         Resource classEntity = ResourceFactory.createResource(elementURIs.get(element));
-
-        // Label
-        List<Literal> labels = languages.stream()
-                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(element, addLang(LABEL, lang), "TODO"), lang))
-                .collect(Collectors.toList());
-
-        // Definition
-        List<Literal> definitions = languages.stream()
-                .map(lang -> ResourceFactory.createLangLiteral(Util.getMandatoryTag(element, addLang(DEFINITON, lang), "TODO"), lang))
-                .collect(Collectors.toList());
 
         List<Resource> allowedValues = null;
         if (element.getType().equals(EAElement.Type.ENUMERATION)) {
@@ -410,6 +354,6 @@ public class Converter {
             }
         }
 
-        outputHandler.handleClass(diagramElement, classEntity, scope, ontology, parentClasses, labels, definitions, allowedValues);
+        outputHandler.handleClass(element, classEntity, scope, ontology, parentClasses, allowedValues);
     }
 }

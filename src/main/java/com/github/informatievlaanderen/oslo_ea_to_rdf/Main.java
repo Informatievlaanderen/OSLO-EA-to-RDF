@@ -4,22 +4,29 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TSVOutputHandler;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ConversionException;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Converter;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RDFOutputHandler;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.*;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.Configuration;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.InvalidConfigurationException;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.PropertyTypeAdapter;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.ResourceTypeAdapter;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EADiagram;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EARepository;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryRepositoryBuilder;
 import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Collections2;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.*;
@@ -61,28 +68,23 @@ public class Main {
                 EARepository repo = new MemoryRepositoryBuilder().build(listArgs.eaFile);
                 new StructurePrinter().execute(repo, listArgs.printElements);
             } else if ("convert".equals(jCommander.getParsedCommand())) {
+                Configuration config = loadConfig(convertRDFArgs.config);
                 EARepository repo  = new MemoryRepositoryBuilder().build(convertRDFArgs.eaFile);
-                List<String> languages = convertRDFArgs.mandatoryLanguages;
-                if (convertRDFArgs.includeNoLanguageAttribute)
-                    languages.add("");
-                List<String> externalTermLanguages = new ArrayList<>(languages);
-                externalTermLanguages.retainAll(convertRDFArgs.externalTermLanguages);
-                RDFOutputHandler rdfOutputHandler = new RDFOutputHandler(externalTermLanguages);
+                RDFOutputHandler rdfOutputHandler = new RDFOutputHandler(config.getPrefixes(), new TagHelper(config));
                 if (convertRDFArgs.base != null)
                     rdfOutputHandler.addToModel(convertRDFArgs.base.toPath());
-                new Converter(repo, MoreObjects.firstNonNull(convertRDFArgs.mandatoryLanguages, Collections.emptyList()), rdfOutputHandler)
+                new Converter(repo, rdfOutputHandler)
                         .convertDiagram(findByName(repo, convertRDFArgs.diagramName));
                 rdfOutputHandler.writeToFile(convertRDFArgs.outputFile.toPath());
             } else if ("tsv".equals(jCommander.getParsedCommand())) {
+                Configuration config = loadConfig(convertTSVArgs.config);
                 EARepository repo = new MemoryRepositoryBuilder().build(convertTSVArgs.eaFile);
-                List<String> languages = convertTSVArgs.mandatoryLanguages;
-                if (convertTSVArgs.includeNoLanguageAttribute)
-                    languages.add("");
 
                 try (BufferedWriter writer = Files.newBufferedWriter(convertTSVArgs.outputFile.toPath(), Charsets.UTF_8)) {
-                    TSVOutputHandler tsvOutputHandler = new TSVOutputHandler(writer, languages);
-                    new Converter(repo, MoreObjects.firstNonNull(convertTSVArgs.mandatoryLanguages, Collections.emptyList()), tsvOutputHandler)
-                            .convertDiagram(findByName(repo, convertTSVArgs.diagramName));
+                    EADiagram diagram = findByName(repo, convertTSVArgs.diagramName);
+                    TSVOutputHandler tsvOutputHandler = new TSVOutputHandler(writer, new TagHelper(config), diagram);
+                    new Converter(repo, tsvOutputHandler)
+                            .convertDiagram(diagram);
                 }
             } else {
                 jCommander.usage();
@@ -91,6 +93,8 @@ public class Main {
             LOGGER.error("An error occurred while reading the EA model.", e);
         } catch (ConversionException | IOException e) {
             LOGGER.error("An error occurred during conversion.",  e);
+        } catch (InvalidConfigurationException e) {
+            LOGGER.error("Invalid configuration specified.", e);
         }
     }
 
@@ -103,6 +107,21 @@ public class Main {
             throw new ConversionException("Diagram not found: " + name + ".");
 
         return diagrams.iterator().next();
+    }
+
+    private static Configuration loadConfig(File configFile) throws InvalidConfigurationException {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Resource.class, new ResourceTypeAdapter())
+                .registerTypeAdapter(Property.class, new PropertyTypeAdapter())
+                .create();
+        try (Reader r = Files.newBufferedReader(configFile.toPath())) {
+            Configuration configuration = gson.fromJson(r, Configuration.class);
+            if (configuration == null)
+                throw new InvalidConfigurationException("Empty configuration file.");
+            return configuration;
+        } catch (JsonSyntaxException | IOException e) {
+            throw new InvalidConfigurationException(e);
+        }
     }
 
     private static class Args {
@@ -127,20 +146,14 @@ public class Main {
         @Parameter(names = {"-b", "--base"}, required = false, description = "Turtle file containing starting statements.")
         File base;
 
+        @Parameter(names = {"-c", "--config"}, required = true, description = "JSON configuration file for mappings.")
+        File config;
+
         @Parameter(names = {"-d", "--diagram"}, required = true, description = "The name of the diagram to convert.")
         String diagramName;
 
         @Parameter(names = {"-o", "--output"}, required = true, description = "Output file name.")
         File outputFile;
-
-        @Parameter(names = {"--lang"}, variableArity = true, description = "The languages to be read from the model.")
-        List<String> mandatoryLanguages;
-
-        @Parameter(names = {"--extlang"}, variableArity = true, description = "The languages to be outputted for reused terms (subset of --lang).")
-        List<String> externalTermLanguages = Collections.emptyList();
-
-        @Parameter(names = {"--includeNoLang"}, description = "Also generate string properties without language tag.")
-        boolean includeNoLanguageAttribute;
     }
 
     @Parameters(commandDescription = "Create a TSV table of all term information.")
@@ -154,10 +167,7 @@ public class Main {
         @Parameter(names = {"-o", "--output"}, required = true, description = "Output file name.")
         File outputFile;
 
-        @Parameter(names = {"--lang"}, variableArity = true, description = "The languages to be read from the model.")
-        List<String> mandatoryLanguages;
-
-        @Parameter(names = {"--includeNoLang"}, description = "Also generate string properties without language tag.")
-        boolean includeNoLanguageAttribute;
+        @Parameter(names = {"-c", "--config"}, required = true, description = "JSON configuration file for mappings.")
+        File config;
     }
 }

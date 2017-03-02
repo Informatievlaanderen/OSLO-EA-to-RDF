@@ -11,25 +11,7 @@ import java.util.List;
  *
  * @author Dieter De Paepe
  */
-public interface EAElement {
-    /**
-     * Gets the name of the element.
-     * @return the name, or {@code null}
-     */
-    String getName();
-
-    /**
-     * Gets the notes of this elements.
-     * @return the notes, or {@code null}
-     */
-    String getNotes();
-
-    /**
-     * Gets the GUID of this element.
-     * @return the GUID, or {@code null}
-     */
-    String getGuid();
-
+public interface EAElement extends EAObject {
     /**
      * Gets the primary stereotype for this element.
      * @return the stereotype, or {@code null}
@@ -41,12 +23,6 @@ public interface EAElement {
      * @return the type
      */
     Type getType();
-
-    /**
-     * Gets the tags linked to this element.
-     * @return an unmodifiable map
-     */
-    ListMultimap<String, String> getTags();
 
     /**
      * Gets the package in which this element is defined.

@@ -7,28 +7,16 @@ import com.google.common.collect.ListMultimap;
  *
  * @author Dieter De Paepe
  */
-public interface EAConnector {
+public interface EAConnector extends EAObject {
     public static final String TYPE_AGGREGATION = "Aggregation";
     public static final String TYPE_ASSOCIATION = "Association";
     public static final String TYPE_GENERALIZATION = "Generalization";
-
-    /**
-     * Gets the name for this connector.
-     * @return the name, or {@code null}
-     */
-    String getName();
 
     /**
      * Gets the direction defined for this connector.
      * @return the direction
      */
     Direction getDirection();
-
-    /**
-     * Gets the notes for this connector.
-     * @return the notes, or {@code null}
-     */
-    String getNotes();
 
     /**
      * Gets the typing of this connector.
@@ -67,18 +55,6 @@ public interface EAConnector {
      * @return the element, or {@code null}
      */
     EAElement getAssociationClass();
-
-    /**
-     * Gets the GUID for this connector.
-     * @return the GUID
-     */
-    String getGuid();
-
-    /**
-     * Gets the tags for this connector.
-     * @return an unmodifiable multimap
-     */
-    ListMultimap<String, String> getTags();
 
 
     enum Direction {
