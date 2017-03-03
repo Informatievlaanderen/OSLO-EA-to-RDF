@@ -129,36 +129,31 @@ public class UriAssigner {
                 continue;
 
             String packageURI = Util.getMandatoryTag(eaPackage, PACKAGE_BASE_URI, "http://fixme.com#");
-            String ontologyURI = Util.getOptionalTag(eaPackage, PACKAGE_ONTOLOGY_URI, packageURI.substring(0, packageURI.length() - 1));
+            String namespace = packageURI.substring(0, packageURI.length() - 1);
+            String ontologyURI = Util.getOptionalTag(eaPackage, PACKAGE_ONTOLOGY_URI, namespace);
             packageURIs.put(eaPackage, packageURI);
-            ontologyURIs.put(eaPackage, ontologyURI);
+            ontologyURIs.put(eaPackage,ontologyURI);
 
             for (EAElement element : eaPackage.getElements()) {
                 if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false")))
                     continue;
 
-                String localName = Util.getOptionalTag(element, LOCALNAME, element.getName());
-                String elementURI = Util.getOptionalTag(element, TagNames.EXPLICIT_URI, packageURI + localName);
-
-                elementURIs.put(element, elementURI);
+                elementURIs.put(element, extractURI(element, packageURI));
 
                 for (EAAttribute attribute : element.getAttributes()) {
                     if (Boolean.valueOf(Util.getOptionalTag(attribute, TagNames.IGNORE, "false")))
                         continue;
 
-                    localName = Util.getOptionalTag(attribute, LOCALNAME, attribute.getName());
-
                     if (element.getType() == EAElement.Type.ENUMERATION) {
-                        String attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI,
-                                ontologyURI + "/" + Util.getOptionalTag(element, LOCALNAME, element.getName()) + "/" + localName);
-                        instanceURIs.put(attribute, attributeURI);
+                        String instanceNamespace = namespace + "/" + Util.getOptionalTag(element, LOCALNAME, element.getName()) + "/";
+                        instanceURIs.put(attribute, extractURI(attribute, instanceNamespace));
                     } else {
-                        String attributeURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, packageURI + localName);
+                        String uri = extractURI(attribute, packageURI);
                         try {
-                            ResourceFactory.createProperty(attributeURI);
-                            attributeURIs.put(attribute, attributeURI);
+                            ResourceFactory.createProperty(uri);
+                            attributeURIs.put(attribute, uri);
                         } catch (InvalidPropertyURIException e) {
-                            LOGGER.error("Invalid property URI \"{}\", will ignore attribute {}.", attributeURI, Util.getFullName(attribute));
+                            LOGGER.error("Invalid property URI \"{}\", will ignore attribute {}.", uri, Util.getFullName(attribute));
                         }
                     }
                 }
@@ -244,11 +239,33 @@ public class UriAssigner {
         }
     }
 
+    private String extractURI(EAObject element, String packageURI) {
+        String temp = Util.getOptionalTag(element, TagNames.EXPLICIT_URI, null);
+        if (temp != null)
+            return temp;
+
+        temp = Util.getOptionalTag(element, TagNames.EXPLICIT_URI, null);
+        if (temp != null)
+            return packageURI + temp;
+        else
+            return packageURI + element.getName();
+    }
+
     private String findUniqueKey(String startKey, Set<String> claimedKeys) {
         int counter = 1;
         while (claimedKeys.contains(startKey + "-" + counter))
             counter++;
         return startKey + "-" + counter;
+    }
+
+    private static class ChosenURI {
+        public final String uri;
+        public final boolean locked;
+
+        public ChosenURI(String uri, boolean locked) {
+            this.uri = uri;
+            this.locked = locked;
+        }
     }
 
     public static class Result {
