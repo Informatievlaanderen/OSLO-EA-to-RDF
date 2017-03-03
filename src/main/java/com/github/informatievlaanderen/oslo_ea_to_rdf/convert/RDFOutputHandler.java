@@ -25,9 +25,11 @@ import java.util.Map;
 public class RDFOutputHandler implements OutputHandler {
     private Model model;
     private TagHelper tagHelper;
+    private boolean forceFullOutput;
 
-    public RDFOutputHandler(Map<String, Resource> prefixes, TagHelper tagHelper) {
+    public RDFOutputHandler(Map<String, Resource> prefixes, TagHelper tagHelper, boolean fullOutput) {
         this.tagHelper = tagHelper;
+        this.forceFullOutput = fullOutput;
 
         model = new SortedOutputModel();
         for (Map.Entry<String, Resource> entry : prefixes.entrySet()) {
@@ -70,12 +72,14 @@ public class RDFOutputHandler implements OutputHandler {
     @Override
     public void handleClass(EAElement sourceElement, Resource clazz, Scope scope, Resource ontology,
                             List<Resource> parentClasses, List<Resource> allowedValues) {
-        if (scope == Scope.NOTHING)
+        if (!forceFullOutput && scope == Scope.NOTHING)
             return;
 
-        if (scope == Scope.FULL_DEFINITON) {
-            model.add(clazz, RDF.type, OWL.Class);
+        if (scope == Scope.FULL_DEFINITON)
             model.add(clazz, RDFS.isDefinedBy, ontology);
+
+        if (forceFullOutput || scope == Scope.FULL_DEFINITON) {
+            model.add(clazz, RDF.type, OWL.Class);
             for (Resource parent : parentClasses)
                 model.add(clazz, RDFS.subClassOf, parent);
             if (allowedValues != null)
@@ -90,12 +94,15 @@ public class RDFOutputHandler implements OutputHandler {
     @Override
     public void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
                                Resource propertyType, Resource domain, Resource range, List<Resource> superProperties) {
-        if (scope == Scope.NOTHING)
+        if (!forceFullOutput && scope == Scope.NOTHING)
             return;
 
-        if (scope == Scope.FULL_DEFINITON) {
-            model.add(property, RDF.type, propertyType);
+        if (scope == Scope.FULL_DEFINITON)
             model.add(property, RDFS.isDefinedBy, ontology);
+
+        if (forceFullOutput || scope == Scope.FULL_DEFINITON) {
+            model.add(property, RDF.type, propertyType);
+
             if (domain != null)
                 model.add(property, RDFS.domain, domain);
             if (range != null)
@@ -112,12 +119,14 @@ public class RDFOutputHandler implements OutputHandler {
     @Override
     public void handleInstance(EAAttribute source, Resource instance, Scope scope, Resource ontology,
                                Resource clazz) {
-        if (scope == Scope.NOTHING)
+        if (!forceFullOutput && scope == Scope.NOTHING)
             return;
 
-        if (scope == Scope.FULL_DEFINITON) {
-            model.add(instance, RDF.type, clazz);
+        if (scope == Scope.FULL_DEFINITON)
             model.add(instance, RDFS.isDefinedBy, ontology);
+
+        if (forceFullOutput || scope == Scope.FULL_DEFINITON) {
+            model.add(instance, RDF.type, clazz);
         }
 
         for (TagData tag : tagHelper.getTagDataFor(source, scope)) {

@@ -70,7 +70,7 @@ public class Main {
             } else if ("convert".equals(jCommander.getParsedCommand())) {
                 Configuration config = loadConfig(convertRDFArgs.config);
                 EARepository repo  = new MemoryRepositoryBuilder().build(convertRDFArgs.eaFile);
-                RDFOutputHandler rdfOutputHandler = new RDFOutputHandler(config.getPrefixes(), new TagHelper(config));
+                RDFOutputHandler rdfOutputHandler = new RDFOutputHandler(config.getPrefixes(), new TagHelper(config), convertRDFArgs.fullOutput);
                 if (convertRDFArgs.base != null)
                     rdfOutputHandler.addToModel(convertRDFArgs.base.toPath());
                 new Converter(repo, rdfOutputHandler)
@@ -151,6 +151,9 @@ public class Main {
 
         @Parameter(names = {"-d", "--diagram"}, required = true, description = "The name of the diagram to convert.")
         String diagramName;
+
+        @Parameter(names = {"-f", "--full"}, required = false, description = "Provide full output for each term, regardless whether they are internal or external. Default: false.")
+        boolean fullOutput = false;
 
         @Parameter(names = {"-o", "--output"}, required = true, description = "Output file name.")
         File outputFile;
