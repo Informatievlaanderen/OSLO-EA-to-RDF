@@ -107,6 +107,7 @@ Attributes are mapped to `rdf:Property`, `owl:DatatypeProperty` or `owl:ObjectPr
 Tags:
 
 - (optional) `ignore`: A boolean flag that will make the tool ignore this property (eg: `true`).
+- (optional) `domain`: The URI of the domain for this property (overriding the automatically derived one).
 - (optional) `name`: The string used to complete the URI for this element.
 If not specified, the name of the attribute will be used. (Eg: `canine-name`.)
 - (optional) `package`: The name of the package (representing an ontology) that should define this
@@ -114,6 +115,8 @@ property. Defaults to the package of the class/datatype/enumeration in which thi
 specified. [More details below.](#specifying-packages)
 - (optional) `parentURI`: the full URI of any property this property should be a subProperty of.
 (Eg: `https://www.w3.org/2000/01/rdf-schema#label`)
+- (optional) `range`: The URI of the range for this property (overriding the automatically derived one).
+Use of this tag will result in a `owl:ObjectProperty` being generated.
 - (optional) `uri`: The complete URI to use, this will take preference over the `baseURI`/`name` combo.
 Eg: `http://example.org/ns/special#canine-name`.
 
@@ -142,11 +145,13 @@ Tags:
 - `package`: the name of the package (representing an ontology)that should define this
 property. Defaults to guessing this based on the connected elements.
 [More details below.](#specifying-packages)
+- (optional) `domain`: The URI of the domain for this property (overriding the automatically derived one).
 - (optional) `ignore`: A boolean flag that will make the tool ignore this property (eg: `true`).
 - (optional) `name`: The string used to complete the URI for this element.
 If not specified, the name of the attribute will be used. (Eg: `petPicture`.)
 - (optional) `parentURI`: the full URI of any property this property should be a subProperty of.
 (Eg: `http://xmlns.com/foaf/spec/#term_depiction`)
+- (optional) `range`: The URI of the range for this property (overriding the automatically derived one).
 - (optional) `uri`: The complete URI to use, this will take preference over the `baseURI`/`name` combo.
 Eg: `http://example.org/ns/special#petPicture`.
 

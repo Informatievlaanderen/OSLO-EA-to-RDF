@@ -12,6 +12,8 @@ public class TagNames {
     public static final String IGNORE = "ignore";
     public static final String DEFINING_PACKAGE = "package";
     public static final String SUBPROPERTY_OF = "parentURI";
+    public static final String DOMAIN = "domain";
+    public static final String RANGE = "range";
     public static final String PACKAGE_BASE_URI_ABBREVIATION = "baseURIabbrev";
     public static final String PACKAGE_ONTOLOGY_URI = "ontologyURI";
 

@@ -229,12 +229,24 @@ public class Converter {
 
         Property attResource = ResourceFactory.createProperty(attributeURIs.get(attribute));
 
-        Resource domain = ResourceFactory.createResource(elementURIs.get(attribute.getElement()));
+        Resource domain;
         Resource range = null;
         Resource propertyType;
 
+        String customDomain = Util.getOptionalTag(attribute, TagNames.DOMAIN, null);
+        if (customDomain == null) {
+            domain = ResourceFactory.createResource(elementURIs.get(attribute.getElement()));
+        } else {
+            domain = ResourceFactory.createResource(customDomain);
+        }
+
+        String customRange = Util.getOptionalTag(attribute, TagNames.RANGE, null);
+
         // Type and range
-        if (DATATYPES.containsKey(attribute.getType())){
+        if (customRange != null) {
+            propertyType = OWL.ObjectProperty;
+            range = ResourceFactory.createProperty(customRange);
+        } else if (DATATYPES.containsKey(attribute.getType())){
             propertyType = OWL.DatatypeProperty;
             range = DATATYPES.get(attribute.getType());
         } else if (elementIndex.containsKey(attribute.getType())) {
@@ -290,6 +302,10 @@ public class Converter {
 
                 Resource domain = null;
                 Resource range = null;
+
+                String customDomain = Util.getOptionalTag(connector, TagNames.DOMAIN, null);
+                String customRange = Util.getOptionalTag(connector, TagNames.RANGE, null);
+
                 // Range and domain
                 if (dConnector.getLabelDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
                     domain = sourceRes;
@@ -300,6 +316,11 @@ public class Converter {
                 } else {
                     LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", Util.getFullName(connector));
                 }
+
+                if (customDomain != null)
+                    domain = ResourceFactory.createResource(customDomain);
+                if (customRange != null)
+                    domain = ResourceFactory.createResource(customRange);
 
                 EAPackage definingPackage = definingPackages.get(connector);
                 boolean currentPackageTerm = convertedPackage.equals(definingPackage);
