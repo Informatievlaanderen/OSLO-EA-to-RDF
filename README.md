@@ -68,6 +68,8 @@ determines how these tags are converted into RDF.
 
 The specific tags used for the OSLO project are listed [here](OSLO-configuration.md).
 
+All tags listed below can be customised through the configuration, [see below](#builtin-tags).
+
 ### Package
 
 A package is mapped to an `owl:Ontology`, each element specified in the ontology is assumed to be specified in the ontology.
@@ -205,3 +207,31 @@ Any connector that has an association class should prefix all tags with `source-
 Tags of the first form (eg: `source-label-en`) will relate to the property connecting the starting element
 with the association class. Likewise, the second form will relate to the property connecting the association class
 with the ending element. Starting and ending element are defined by the direction of the label of the connector.
+
+## Builtin Tags
+
+All tags defined above can in fact be customised through the configuration.
+The snippet belows shows the format to use in the configuration and each default value.
+
+```
+{
+  prefixes: {
+    ...
+  },
+  builtinTags: {
+    LOCALNAME: "name",
+    EXTERNAL_URI: "uri",
+    IGNORE: "ignore",
+    DEFINING_PACKAGE: "package",
+    SUBPROPERTY_OF: "parentURI",
+    DOMAIN: "domain",
+    RANGE: "range",
+    PACKAGE_BASE_URI: "baseURI",
+    PACKAGE_BASE_URI_ABBREVIATION: "baseURIabbrev",
+    PACKAGE_ONTOLOGY_URI: "ontologyURI"
+  },
+  internalMappings: [
+    ...
+  ]
+}
+```

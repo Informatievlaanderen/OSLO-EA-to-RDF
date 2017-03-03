@@ -205,7 +205,7 @@ public class TSVOutputHandler implements OutputHandler {
                 .map(dConn -> {
                     EAConnector conn = dConn.getReferencedConnector();
                     if (!EAConnector.TYPE_GENERALIZATION.equals(conn.getType())
-                            || Boolean.valueOf(Util.getOptionalTag(conn, TagNames.IGNORE, "false"))
+                            || Boolean.valueOf(tagHelper.getOptionalTag(conn, Tag.IGNORE, "false"))
                             || dConn.isHidden()
                             || EAConnector.Direction.BIDIRECTIONAL.equals(conn.getDirection())
                             || EAConnector.Direction.UNSPECIFIED.equals(conn.getDirection()))

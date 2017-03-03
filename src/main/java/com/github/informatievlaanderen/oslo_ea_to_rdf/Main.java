@@ -70,10 +70,11 @@ public class Main {
             } else if ("convert".equals(jCommander.getParsedCommand())) {
                 Configuration config = loadConfig(convertRDFArgs.config);
                 EARepository repo  = new MemoryRepositoryBuilder().build(convertRDFArgs.eaFile);
-                RDFOutputHandler rdfOutputHandler = new RDFOutputHandler(config.getPrefixes(), new TagHelper(config), convertRDFArgs.fullOutput);
+                TagHelper tagHelper = new TagHelper(config);
+                RDFOutputHandler rdfOutputHandler = new RDFOutputHandler(config.getPrefixes(), tagHelper, convertRDFArgs.fullOutput);
                 if (convertRDFArgs.base != null)
                     rdfOutputHandler.addToModel(convertRDFArgs.base.toPath());
-                new Converter(repo, rdfOutputHandler)
+                new Converter(repo, tagHelper, rdfOutputHandler)
                         .convertDiagram(findByName(repo, convertRDFArgs.diagramName));
                 rdfOutputHandler.writeToFile(convertRDFArgs.outputFile.toPath());
             } else if ("tsv".equals(jCommander.getParsedCommand())) {
@@ -82,8 +83,9 @@ public class Main {
 
                 try (BufferedWriter writer = Files.newBufferedWriter(convertTSVArgs.outputFile.toPath(), Charsets.UTF_8)) {
                     EADiagram diagram = findByName(repo, convertTSVArgs.diagramName);
-                    TSVOutputHandler tsvOutputHandler = new TSVOutputHandler(writer, new TagHelper(config), diagram);
-                    new Converter(repo, tsvOutputHandler)
+                    TagHelper tagHelper = new TagHelper(config);
+                    TSVOutputHandler tsvOutputHandler = new TSVOutputHandler(writer, tagHelper, diagram);
+                    new Converter(repo, tagHelper, tsvOutputHandler)
                             .convertDiagram(diagram);
                 }
             } else {

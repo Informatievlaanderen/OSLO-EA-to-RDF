@@ -1,5 +1,6 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config;
 
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag;
 import org.apache.jena.rdf.model.Resource;
 
 import java.util.Collections;
@@ -15,13 +16,25 @@ import java.util.Map;
  */
 public class Configuration {
     private Map<String, Resource> prefixes;
+    private Map<Tag, String> builtinTags;
     private List<Mapping> internalMappings;
     private List<Mapping> externalMappings;
 
-    public Configuration(Map<String, Resource> prefixes, List<Mapping> internalMappings, List<Mapping> externalMappings) {
+    public Configuration(Map<String, Resource> prefixes, Map<Tag, String> builtinTags, List<Mapping> internalMappings, List<Mapping> externalMappings) {
         this.prefixes = prefixes;
+        this.builtinTags = builtinTags;
         this.internalMappings = internalMappings;
         this.externalMappings = externalMappings;
+    }
+
+    /**
+     * Gets the customised tag names for the tags used to construct the RDF graph.
+     * @return never {@code null}
+     */
+    public Map<Tag, String> getBuiltinTags() {
+        if (builtinTags == null)
+            return Collections.emptyMap();
+        return Collections.unmodifiableMap(builtinTags);
     }
 
     /**

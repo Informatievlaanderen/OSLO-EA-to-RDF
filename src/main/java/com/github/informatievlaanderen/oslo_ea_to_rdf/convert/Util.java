@@ -17,8 +17,6 @@ import java.util.List;
  * @author Dieter De Paepe
  */
 public class Util {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
-
     private Util() {}
 
     public static String getFullName(EAObject object) {
@@ -58,62 +56,6 @@ public class Util {
                         "(" + connector.getSource().getName() + " -> " + connector.getDestination().getName() + ")");
     }
 
-
-
-    public static String getMandatoryTag(EAObject pack, String key, String backup) {
-        List<String> values = pack.getTags().get(key);
-
-        if (values.isEmpty()) {
-            LOGGER.warn("Missing \"{}\" tag for \"{}\".", key, getFullName(pack));
-            return backup;
-        } else if (values.size() > 1) {
-            LOGGER.warn("Multiple occurrences of tag \"{}\" for \"{}\".", key, getFullName(pack));
-            return values.get(0);
-        } else {
-            return values.get(0);
-        }
-    }
-
-    public static String getMandatoryTag(EAPackage pack, String key, String backup) {
-        List<String> values = pack.getTags().get(key);
-
-        if (values.isEmpty()) {
-            LOGGER.warn("Missing \"{}\" tag for package \"{}\".", key, getFullName(pack));
-            return backup;
-        } else if (values.size() > 1) {
-            LOGGER.warn("Multiple occurrences of tag \"{}\" for package \"{}\".", key, getFullName(pack));
-            return values.get(0);
-        } else {
-            return values.get(0);
-        }
-    }
-
-    public static String getOptionalTag(EAObject pack, String key, String backup) {
-        List<String> values = pack.getTags().get(key);
-
-        if (values.isEmpty()) {
-            return backup;
-        } else if (values.size() > 1) {
-            LOGGER.warn("Multiple occurrences of tag \"{}\" for \"{}\".", key, getFullName(pack));
-            return values.get(0);
-        } else {
-            return values.get(0);
-        }
-    }
-
-    public static String getOptionalTag(EAPackage pack, String key, String backup) {
-        List<String> values = pack.getTags().get(key);
-
-        if (values.isEmpty()) {
-            return backup;
-        } else if (values.size() > 1) {
-            LOGGER.warn("Multiple occurrences of tag \"{}\" for package \"{}\".", key, getFullName(pack));
-            return values.get(0);
-        } else {
-            return values.get(0);
-        }
-    }
-
     /**
      * Converts a connector in one or two connectors so that the resulting connectors do not have any association
      * class.
@@ -126,12 +68,12 @@ public class Util {
         if (conn.getAssociationClass() == null)
             return Collections.singleton(conn);
 
-        String tagPrefix1 = TagNames.ASSOCIATION_SOURCE_PREFIX;
-        String tagPrefix2 = TagNames.ASSOCIATION_DEST_PREFIX;
+        String tagPrefix1 = Tag.ASSOCIATION_SOURCE_PREFIX;
+        String tagPrefix2 = Tag.ASSOCIATION_DEST_PREFIX;
 
         if (direction == EAConnector.Direction.DEST_TO_SOURCE) {
-            tagPrefix1 = TagNames.ASSOCIATION_DEST_PREFIX;
-            tagPrefix2 = TagNames.ASSOCIATION_SOURCE_PREFIX;
+            tagPrefix1 = Tag.ASSOCIATION_DEST_PREFIX;
+            tagPrefix2 = Tag.ASSOCIATION_SOURCE_PREFIX;
         }
 
         return Arrays.asList(

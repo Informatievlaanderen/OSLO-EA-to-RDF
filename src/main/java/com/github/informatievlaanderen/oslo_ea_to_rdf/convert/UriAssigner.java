@@ -2,7 +2,6 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.*;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.InvalidPropertyURIException;
@@ -11,9 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.LOCALNAME;
-import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.PACKAGE_BASE_URI;
-import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.PACKAGE_ONTOLOGY_URI;
+import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag.LOCALNAME;
+import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag.PACKAGE_BASE_URI;
+import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag.PACKAGE_ONTOLOGY_URI;
 
 /**
  * Functionality to assign URIs to all components from an EA repository.
@@ -22,6 +21,12 @@ import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagNames.PA
  */
 public class UriAssigner {
     private final Logger LOGGER = LoggerFactory.getLogger(UriAssigner.class);
+
+    private TagHelper tagHelper;
+
+    public UriAssigner(TagHelper tagHelper) {
+        this.tagHelper = tagHelper;
+    }
 
     public Result assignURIs(Iterable<EAPackage> packages, Multimap<String, EAPackage> nameToPackages,
                              Map<EAConnector, EAConnector.Direction> connectorDirections) {
@@ -125,27 +130,27 @@ public class UriAssigner {
                                         Map<EAPackage, String> ontologyURIs, Map<EAElement, String> elementURIs,
                                         Map<EAAttribute, String> attributeURIs, Map<EAAttribute, String> instanceURIs) {
         for (EAPackage eaPackage : packages) {
-            if (Boolean.valueOf(Util.getOptionalTag(eaPackage, TagNames.IGNORE, "false")))
+            if (Boolean.valueOf(tagHelper.getOptionalTag(eaPackage, Tag.IGNORE, "false")))
                 continue;
 
-            String packageURI = Util.getMandatoryTag(eaPackage, PACKAGE_BASE_URI, "http://fixme.com#");
+            String packageURI = tagHelper.getMandatoryTag(eaPackage, PACKAGE_BASE_URI, "http://fixme.com#");
             String namespace = packageURI.substring(0, packageURI.length() - 1);
-            String ontologyURI = Util.getOptionalTag(eaPackage, PACKAGE_ONTOLOGY_URI, namespace);
+            String ontologyURI = tagHelper.getOptionalTag(eaPackage, PACKAGE_ONTOLOGY_URI, namespace);
             packageURIs.put(eaPackage, packageURI);
             ontologyURIs.put(eaPackage,ontologyURI);
 
             for (EAElement element : eaPackage.getElements()) {
-                if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false")))
+                if (Boolean.valueOf(tagHelper.getOptionalTag(element, Tag.IGNORE, "false")))
                     continue;
 
                 elementURIs.put(element, extractURI(element, packageURI));
 
                 for (EAAttribute attribute : element.getAttributes()) {
-                    if (Boolean.valueOf(Util.getOptionalTag(attribute, TagNames.IGNORE, "false")))
+                    if (Boolean.valueOf(tagHelper.getOptionalTag(attribute, Tag.IGNORE, "false")))
                         continue;
 
                     if (element.getType() == EAElement.Type.ENUMERATION) {
-                        String instanceNamespace = namespace + "/" + Util.getOptionalTag(element, LOCALNAME, element.getName()) + "/";
+                        String instanceNamespace = namespace + "/" + tagHelper.getOptionalTag(element, LOCALNAME, element.getName()) + "/";
                         instanceURIs.put(attribute, extractURI(attribute, instanceNamespace));
                     } else {
                         String uri = extractURI(attribute, packageURI);
@@ -166,11 +171,11 @@ public class UriAssigner {
                                      Map<EAConnector, EAPackage> definingPackages, Map<EAConnector, EAConnector.Direction> connectorDirections) {
         Set<EAConnector> normalisedConnectors = new HashSet<>();
         for (EAPackage eaPackage : packages) {
-            if (Boolean.valueOf(Util.getOptionalTag(eaPackage, TagNames.IGNORE, "false")))
+            if (Boolean.valueOf(tagHelper.getOptionalTag(eaPackage, Tag.IGNORE, "false")))
                 continue;
 
             for (EAElement element : eaPackage.getElements()) {
-                if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false")))
+                if (Boolean.valueOf(tagHelper.getOptionalTag(element, Tag.IGNORE, "false")))
                     continue;
 
                 for (EAConnector connector : element.getConnectors()) {
@@ -180,7 +185,7 @@ public class UriAssigner {
         }
 
         for (EAConnector connector : normalisedConnectors) {
-            if (Boolean.valueOf(Util.getOptionalTag(connector, TagNames.IGNORE, "false")))
+            if (Boolean.valueOf(tagHelper.getOptionalTag(connector, Tag.IGNORE, "false")))
                 continue;
 
             // Inheritance related connectors don't get an URI
@@ -189,7 +194,7 @@ public class UriAssigner {
 
             // Determine in which package (= ontology) this connector (= property) is defined
             EAPackage definingPackage = null;
-            String packageName = Util.getOptionalTag(connector, TagNames.DEFINING_PACKAGE, null);
+            String packageName = tagHelper.getOptionalTag(connector, Tag.DEFINING_PACKAGE, null);
             Collection<EAPackage> connectionPackage = nameToPackages.get(packageName);
             if (connectionPackage.size() >= 2) {
                 LOGGER.warn("Ambiguous package name specified for connector \"{}\", it matches multiple packages in the project.", Util.getFullName(connector));
@@ -219,8 +224,8 @@ public class UriAssigner {
             if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
                 continue;
 
-            String localName = Util.getOptionalTag(connector, LOCALNAME, connector.getName());
-            String connectorURI = Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null);
+            String localName = tagHelper.getOptionalTag(connector, LOCALNAME, connector.getName());
+            String connectorURI = tagHelper.getOptionalTag(connector, Tag.EXTERNAL_URI, null);
             if (connectorURI == null) {
                 if (localName == null) {
                     LOGGER.error("Connector \"{}\" does not have a name, it will be ignored.", Util.getFullName(connector));
@@ -240,11 +245,11 @@ public class UriAssigner {
     }
 
     private String extractURI(EAObject element, String packageURI) {
-        String temp = Util.getOptionalTag(element, TagNames.EXPLICIT_URI, null);
+        String temp = tagHelper.getOptionalTag(element, Tag.EXTERNAL_URI, null);
         if (temp != null)
             return temp;
 
-        temp = Util.getOptionalTag(element, TagNames.EXPLICIT_URI, null);
+        temp = tagHelper.getOptionalTag(element, Tag.EXTERNAL_URI, null);
         if (temp != null)
             return packageURI + temp;
         else

@@ -2,7 +2,6 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 import com.google.common.collect.*;
-import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -36,23 +35,25 @@ public class Converter {
     private final Logger LOGGER = LoggerFactory.getLogger(Converter.class);
 
     private EARepository repo;
+    private TagHelper tagHelper;
     private Multimap<String, EAPackage> nameToPackages;
     private Multimap<String, EAElement> nameToElements;
     private OutputHandler outputHandler;
 
-    public Converter(EARepository repo, OutputHandler outputHandler) {
+    public Converter(EARepository repo, TagHelper tagHelper, OutputHandler outputHandler) {
         this.repo = repo;
+        this.tagHelper = tagHelper;
         this.outputHandler = outputHandler;
 
         ImmutableListMultimap.Builder<String, EAPackage> pBuilder = ImmutableListMultimap.builder();
         ImmutableListMultimap.Builder<String, EAElement> eBuilder = ImmutableListMultimap.builder();
 
         for (EAPackage eaPackage : repo.getPackages()) {
-            if (Boolean.valueOf(Util.getOptionalTag(eaPackage, TagNames.IGNORE, "false")))
+            if (Boolean.valueOf(tagHelper.getOptionalTag(eaPackage, Tag.IGNORE, "false")))
                 continue;
             pBuilder.put(eaPackage.getName(), eaPackage);
             for (EAElement element : eaPackage.getElements()) {
-                if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false")))
+                if (Boolean.valueOf(tagHelper.getOptionalTag(element, Tag.IGNORE, "false")))
                     continue;
                 eBuilder.put(element.getName(), element);
             }
@@ -63,11 +64,11 @@ public class Converter {
 
     public void convertDiagram(EADiagram diagram) {
         Map<EAConnector, EAConnector.Direction> connectorDirections = indexDirections(diagram);
-        UriAssigner.Result uris = new UriAssigner().assignURIs(repo.getPackages(), nameToPackages, connectorDirections);
+        UriAssigner.Result uris = new UriAssigner(tagHelper).assignURIs(repo.getPackages(), nameToPackages, connectorDirections);
 
         // Prefixes
         //for (EAPackage eaPackage : uris.packageURIs.keySet()) {
-        //    String prefix = Util.getOptionalTag(eaPackage, TagNames.PACKAGE_BASE_URI_ABBREVIATION, null);
+        //    String prefix = tagHelper.getOptionalTag(eaPackage, Tag.PACKAGE_BASE_URI_ABBREVIATION, null);
         //    if (prefix != null)
         //        model.setNsPrefix(prefix, uris.packageURIs.get(eaPackage));
         //}
@@ -78,14 +79,14 @@ public class Converter {
         // Convert elements.
         for (DiagramElement diagramElement : diagram.getElements()) {
             EAElement element = diagramElement.getReferencedElement();
-            if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false"))) {
+            if (Boolean.valueOf(tagHelper.getOptionalTag(element, Tag.IGNORE, "false"))) {
                 LOGGER.info("Skipping class \"{}\" since it is marked as ignored.", Util.getFullName(element));
                 continue;
             }
 
             boolean currentPackageTerm = element.getPackage().equals(diagram.getPackage());
-            boolean customURI = Util.getOptionalTag(element, TagNames.EXPLICIT_URI, null) != null;
-            boolean refersToThisPackage = diagram.getPackage().getName().equals(Util.getOptionalTag(element, TagNames.DEFINING_PACKAGE, element.getPackage().getName()));
+            boolean customURI = tagHelper.getOptionalTag(element, Tag.EXTERNAL_URI, null) != null;
+            boolean refersToThisPackage = diagram.getPackage().getName().equals(tagHelper.getOptionalTag(element, Tag.DEFINING_PACKAGE, element.getPackage().getName()));
             Scope scope = Scope.NOTHING;
             if (currentPackageTerm && !customURI)
                 scope = Scope.FULL_DEFINITON;
@@ -113,7 +114,7 @@ public class Converter {
                 continue;
 
             // Skip if marked as ignore.
-            if (Boolean.valueOf(Util.getOptionalTag(connector, TagNames.IGNORE, "false"))) {
+            if (Boolean.valueOf(tagHelper.getOptionalTag(connector, Tag.IGNORE, "false"))) {
                 LOGGER.info("Skipping connector \"{}\" since it is marked as ignored.", Util.getFullName(connector));
                 continue;
             }
@@ -129,7 +130,7 @@ public class Converter {
                 continue;
 
             // Skip if the element is set to ignore
-            if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false"))) {
+            if (Boolean.valueOf(tagHelper.getOptionalTag(element, Tag.IGNORE, "false"))) {
                 // No need for logging, this was already mentioned when the element was skipped
                 continue;
             }
@@ -141,9 +142,9 @@ public class Converter {
                     continue;
                 }
 
-                String definingPackageName = Util.getOptionalTag(attribute, TagNames.DEFINING_PACKAGE, attribute.getElement().getPackage().getName());
+                String definingPackageName = tagHelper.getOptionalTag(attribute, Tag.DEFINING_PACKAGE, attribute.getElement().getPackage().getName());
                 boolean currentPackageTerm = diagram.getPackage().getName().equals(definingPackageName);
-                boolean externalTerm = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, null) != null;
+                boolean externalTerm = tagHelper.getOptionalTag(attribute, Tag.EXTERNAL_URI, null) != null;
                 Scope scope = Scope.NOTHING;
                 if (!externalTerm && currentPackageTerm)
                     scope = Scope.FULL_DEFINITON;
@@ -161,7 +162,7 @@ public class Converter {
                 continue;
 
             // Skip if the element is set to ignore
-            if (Boolean.valueOf(Util.getOptionalTag(element, TagNames.IGNORE, "false"))) {
+            if (Boolean.valueOf(tagHelper.getOptionalTag(element, Tag.IGNORE, "false"))) {
                 // No need for logging, this was already mentioned when the element was skipped
                 continue;
             }
@@ -187,7 +188,7 @@ public class Converter {
 
     private Resource convertPackage(EAPackage aPackage, Map<EAPackage, String> ontologyURIs, Map<EAPackage, String> baseURIs) {
         Resource ontology = ResourceFactory.createResource(ontologyURIs.get(aPackage));
-        String prefix = Util.getOptionalTag(aPackage, TagNames.PACKAGE_BASE_URI_ABBREVIATION, null);
+        String prefix = tagHelper.getOptionalTag(aPackage, Tag.PACKAGE_BASE_URI_ABBREVIATION, null);
         String baseUri = baseURIs.get(aPackage);
 
         outputHandler.handleOntology(
@@ -208,9 +209,9 @@ public class Converter {
         for (EAAttribute attribute : attributes) {
             Resource attResource = ResourceFactory.createResource(instanceURIs.get(attribute));
 
-            String definingPackageName = Util.getOptionalTag(attribute, TagNames.DEFINING_PACKAGE, attribute.getElement().getPackage().getName());
+            String definingPackageName = tagHelper.getOptionalTag(attribute, Tag.DEFINING_PACKAGE, attribute.getElement().getPackage().getName());
             boolean currentPackageTerm = activePackage.getName().equals(definingPackageName);
-            boolean customURI = Util.getOptionalTag(attribute, TagNames.EXPLICIT_URI, null) != null;
+            boolean customURI = tagHelper.getOptionalTag(attribute, Tag.EXTERNAL_URI, null) != null;
             Scope scope = Scope.NOTHING;
             if (!customURI && currentPackageTerm)
                 scope = Scope.FULL_DEFINITON;
@@ -233,14 +234,14 @@ public class Converter {
         Resource range = null;
         Resource propertyType;
 
-        String customDomain = Util.getOptionalTag(attribute, TagNames.DOMAIN, null);
+        String customDomain = tagHelper.getOptionalTag(attribute, Tag.DOMAIN, null);
         if (customDomain == null) {
             domain = ResourceFactory.createResource(elementURIs.get(attribute.getElement()));
         } else {
             domain = ResourceFactory.createResource(customDomain);
         }
 
-        String customRange = Util.getOptionalTag(attribute, TagNames.RANGE, null);
+        String customRange = tagHelper.getOptionalTag(attribute, Tag.RANGE, null);
 
         // Type and range
         if (customRange != null) {
@@ -260,7 +261,9 @@ public class Converter {
         }
 
         // Subproperty
-        List<Resource> superProperties = attribute.getTags().get(TagNames.SUBPROPERTY_OF).stream()
+        List<Resource> superProperties = attribute.getTags()
+                .get(tagHelper.getTagKey(Tag.SUBPROPERTY_OF))
+                .stream()
                 .map(ResourceFactory::createResource)
                 .collect(Collectors.toList());
 
@@ -296,15 +299,17 @@ public class Converter {
 
             if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
                 // Subproperty
-                List<Resource> superProperties = connector.getTags().get(TagNames.SUBPROPERTY_OF).stream()
+                List<Resource> superProperties = connector.getTags()
+                        .get(tagHelper.getTagKey(Tag.SUBPROPERTY_OF))
+                        .stream()
                         .map(ResourceFactory::createResource)
                         .collect(Collectors.toList());
 
                 Resource domain = null;
                 Resource range = null;
 
-                String customDomain = Util.getOptionalTag(connector, TagNames.DOMAIN, null);
-                String customRange = Util.getOptionalTag(connector, TagNames.RANGE, null);
+                String customDomain = tagHelper.getOptionalTag(connector, Tag.DOMAIN, null);
+                String customRange = tagHelper.getOptionalTag(connector, Tag.RANGE, null);
 
                 // Range and domain
                 if (dConnector.getLabelDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
@@ -324,7 +329,7 @@ public class Converter {
 
                 EAPackage definingPackage = definingPackages.get(connector);
                 boolean currentPackageTerm = convertedPackage.equals(definingPackage);
-                boolean externalTerm = Util.getOptionalTag(connector, TagNames.EXPLICIT_URI, null) != null;
+                boolean externalTerm = tagHelper.getOptionalTag(connector, Tag.EXTERNAL_URI, null) != null;
                 Scope scope = Scope.NOTHING;
                 if (!externalTerm && currentPackageTerm)
                     scope = Scope.FULL_DEFINITON;
