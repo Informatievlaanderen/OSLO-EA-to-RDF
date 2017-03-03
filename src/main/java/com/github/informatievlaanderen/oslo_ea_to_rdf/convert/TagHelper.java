@@ -21,6 +21,11 @@ import java.util.stream.Collectors;
  */
 public class TagHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(TagHelper.class);
+    /**
+     * Tag value that indicates the tag note is to be used instead. This allows users to use text longer than
+     * the 256 characters allowed in the tag value.
+     */
+    public static final String USE_NOTE_VALUE = "NOTE";
 
     private Configuration config;
 
@@ -85,16 +90,19 @@ public class TagHelper {
     }
 
     public String getMandatoryTag(EAObject pack, String key, String backup) {
-        List<EATag> tags = pack.getTags().stream().filter(t -> key.equals(t.getKey())).collect(Collectors.toList());
+        List<String> tags = pack.getTags().stream()
+                .filter(t -> key.equals(t.getKey()))
+                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
+                .collect(Collectors.toList());
 
         if (tags.isEmpty()) {
             LOGGER.warn("Missing \"{}\" tag for \"{}\".", key, Util.getFullName(pack));
             return backup;
         } else if (tags.size() > 1) {
             LOGGER.warn("Multiple occurrences of tag \"{}\" for \"{}\".", key, Util.getFullName(pack));
-            return tags.get(0).getValue();
+            return tags.get(0);
         } else {
-            return tags.get(0).getValue();
+            return tags.get(0);
         }
     }
 
@@ -103,16 +111,19 @@ public class TagHelper {
     }
 
     public String getMandatoryTag(EAPackage pack, String key, String backup) {
-        List<EATag> tags = pack.getTags().stream().filter(t -> key.equals(t.getKey())).collect(Collectors.toList());
+        List<String> tags = pack.getTags().stream()
+                .filter(t -> key.equals(t.getKey()))
+                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
+                .collect(Collectors.toList());
 
         if (tags.isEmpty()) {
             LOGGER.warn("Missing \"{}\" tag for package \"{}\".", key, Util.getFullName(pack));
             return backup;
         } else if (tags.size() > 1) {
             LOGGER.warn("Multiple occurrences of tag \"{}\" for package \"{}\".", key, Util.getFullName(pack));
-            return tags.get(0).getValue();
+            return tags.get(0);
         } else {
-            return tags.get(0).getValue();
+            return tags.get(0);
         }
     }
 
@@ -138,15 +149,18 @@ public class TagHelper {
     }
 
     public String getOptionalTag(EAPackage pack, String key, String backup) {
-        List<EATag> values = pack.getTags().stream().filter(t -> key.equals(t.getKey())).collect(Collectors.toList());
+        List<String> values = pack.getTags().stream()
+                .filter(t -> key.equals(t.getKey()))
+                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
+                .collect(Collectors.toList());
 
         if (values.isEmpty()) {
             return backup;
         } else if (values.size() > 1) {
             LOGGER.warn("Multiple occurrences of tag \"{}\" for package \"{}\".", key, Util.getFullName(pack));
-            return values.get(0).getValue();
+            return values.get(0);
         } else {
-            return values.get(0).getValue();
+            return values.get(0);
         }
     }
 }

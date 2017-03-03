@@ -267,7 +267,8 @@ public class Converter {
         List<Resource> superProperties = attribute.getTags()
                 .stream()
                 .filter(t -> tagHelper.getTagKey(Tag.SUBPROPERTY_OF).equals(t.getKey()))
-                .map(tag -> ResourceFactory.createResource(tag.getValue()))
+                .map(tag -> TagHelper.USE_NOTE_VALUE.equals(tag.getValue()) ? tag.getNotes() : tag.getValue())
+                .map(ResourceFactory::createResource)
                 .collect(Collectors.toList());
 
         outputHandler.handleProperty(
@@ -305,7 +306,8 @@ public class Converter {
                 List<Resource> superProperties = connector.getTags()
                         .stream()
                         .filter(t -> tagHelper.getTagKey(Tag.SUBPROPERTY_OF).equals(t.getKey()))
-                        .map(tag -> ResourceFactory.createResource(tag.getValue()))
+                        .map(tag -> TagHelper.USE_NOTE_VALUE.equals(tag.getValue()) ? tag.getNotes() : tag.getValue())
+                        .map(ResourceFactory::createResource)
                         .collect(Collectors.toList());
 
                 Resource domain = null;
