@@ -3,9 +3,7 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EADiagram;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,7 +23,7 @@ class MemoryEAPackage implements EAPackage {
     private List<EAPackage> packages;
     private List<EAElement> elements;
     private List<EADiagram> diagrams;
-    private ListMultimap<String, String> tags;
+    private List<EATag> tags;
 
     MemoryEAPackage(String name, String guid, String stereoType, String notes, int objectID, int packageID) {
         this.name = name;
@@ -38,7 +36,7 @@ class MemoryEAPackage implements EAPackage {
         this.packages = new ArrayList<>();
         this.elements = new ArrayList<>();
         this.diagrams = new ArrayList<>();
-        this.tags = ArrayListMultimap.create();
+        this.tags = new ArrayList<>();
     }
 
     @Override
@@ -86,8 +84,8 @@ class MemoryEAPackage implements EAPackage {
     }
 
     @Override
-    public ListMultimap<String, String> getTags() {
-        return Multimaps.unmodifiableListMultimap(tags);
+    public List<EATag> getTags() {
+        return Collections.unmodifiableList(tags);
     }
 
     List<EADiagram> getDiagramsOrig() {
@@ -110,7 +108,7 @@ class MemoryEAPackage implements EAPackage {
         this.parent = parent;
     }
 
-    ListMultimap<String, String> getTagsOrig() {
+    List<EATag> getTagsOrig() {
         return tags;
     }
 }

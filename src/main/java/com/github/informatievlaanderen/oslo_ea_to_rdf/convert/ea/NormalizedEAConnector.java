@@ -2,12 +2,10 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -98,18 +96,15 @@ public class NormalizedEAConnector implements EAConnector {
     }
 
     @Override
-    public ListMultimap<String, String> getTags() {
-        ListMultimap<String, String> filteredTags = ArrayListMultimap.create();
+    public List<EATag> getTags() {
+        List<EATag> filteredTags = new ArrayList<>();
 
-        Map<String, Collection<String>> innerTags = inner.getTags().asMap();
-        for (String key : innerTags.keySet()) {
-            if (key.startsWith(tagPrefix)) {
-                String newKey = key.substring(tagPrefix.length());
-                filteredTags.putAll(newKey, innerTags.get(key));
-            }
+        for (EATag tag : inner.getTags()) {
+            if (tag.getKey().startsWith(tagPrefix))
+                filteredTags.add(tag);
         }
 
-        return Multimaps.unmodifiableListMultimap(filteredTags);
+        return filteredTags;
     }
 
     @Override

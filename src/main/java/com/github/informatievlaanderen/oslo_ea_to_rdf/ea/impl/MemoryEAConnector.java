@@ -2,9 +2,11 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Dieter De Paepe
@@ -21,7 +23,7 @@ class MemoryEAConnector implements EAConnector {
     private EAElement destination;
     private EAElement associationClass;
     private String guid;
-    private ListMultimap<String, String> tags;
+    private List<EATag> tags;
 
     MemoryEAConnector(int connectorId, String name, Direction direction, String notes, String type,
                              String sourceRole, String destinationRole, EAElement source, EAElement destination,
@@ -37,7 +39,7 @@ class MemoryEAConnector implements EAConnector {
         this.destination = destination;
         this.associationClass = associationClass;
         this.guid = guid;
-        this.tags = ArrayListMultimap.create();
+        this.tags = new ArrayList<>();
     }
 
     @Override
@@ -91,15 +93,15 @@ class MemoryEAConnector implements EAConnector {
     }
 
     @Override
-    public ListMultimap<String, String> getTags() {
-        return Multimaps.unmodifiableListMultimap(tags);
+    public List<EATag> getTags() {
+        return Collections.unmodifiableList(tags);
     }
 
     int getConnectorId() {
         return connectorId;
     }
 
-    ListMultimap<String, String> getTagsOrig() {
+    List<EATag> getTagsOrig() {
         return tags;
     }
 }

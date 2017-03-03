@@ -1,6 +1,6 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea;
 
-import com.google.common.collect.ListMultimap;
+import java.util.List;
 
 /**
  * An object used in Enterprise Architect for modelling purposes.
@@ -30,7 +30,7 @@ public interface EAObject {
     /**
      * Gets the tags linked to this object.
      *
-     * @return an unmodifiable map
+     * @return never {@code null}
      */
-    ListMultimap<String, String> getTags();
+    List<EATag> getTags();
 }

@@ -1,12 +1,6 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl;
 
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAAttribute;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,7 +19,7 @@ class MemoryEAElement implements EAElement {
     private EAPackage containingPackage;
     private List<EAConnector> connectors;
     private List<EAAttribute> attributes;
-    private ListMultimap<String, String> tags;
+    private List<EATag> tags;
 
     MemoryEAElement(int objectID, String name, String notes, String guid, String stereotype,
                     Type type, EAPackage containingPackage) {
@@ -38,7 +32,7 @@ class MemoryEAElement implements EAElement {
         this.containingPackage = containingPackage;
         this.connectors = new ArrayList<>();
         this.attributes = new ArrayList<>();
-        this.tags = ArrayListMultimap.create();
+        this.tags = new ArrayList<>();
     }
 
     int getObjectID() {
@@ -71,8 +65,8 @@ class MemoryEAElement implements EAElement {
     }
 
     @Override
-    public ListMultimap<String, String> getTags() {
-        return Multimaps.unmodifiableListMultimap(tags);
+    public List<EATag> getTags() {
+        return Collections.unmodifiableList(tags);
     }
 
     @Override
@@ -98,7 +92,7 @@ class MemoryEAElement implements EAElement {
         return attributes;
     }
 
-    ListMultimap<String, String> getTagsOrig() {
+    List<EATag> getTagsOrig() {
         return tags;
     }
 }

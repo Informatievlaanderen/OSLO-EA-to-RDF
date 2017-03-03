@@ -1,7 +1,5 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea;
 
-import com.google.common.collect.ListMultimap;
-
 import java.util.List;
 
 /**

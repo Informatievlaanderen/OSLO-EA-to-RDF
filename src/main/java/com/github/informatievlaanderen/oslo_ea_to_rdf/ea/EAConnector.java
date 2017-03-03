@@ -1,16 +1,14 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea;
 
-import com.google.common.collect.ListMultimap;
-
 /**
  * A link between two {@link EAElement}s, containing additional information.
  *
  * @author Dieter De Paepe
  */
 public interface EAConnector extends EAObject {
-    public static final String TYPE_AGGREGATION = "Aggregation";
-    public static final String TYPE_ASSOCIATION = "Association";
-    public static final String TYPE_GENERALIZATION = "Generalization";
+    String TYPE_AGGREGATION = "Aggregation";
+    String TYPE_ASSOCIATION = "Association";
+    String TYPE_GENERALIZATION = "Generalization";
 
     /**
      * Gets the direction defined for this connector.

@@ -4,6 +4,7 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.Configurati
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.Mapping;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAObject;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,16 +85,16 @@ public class TagHelper {
     }
 
     public String getMandatoryTag(EAObject pack, String key, String backup) {
-        List<String> values = pack.getTags().get(key);
+        List<EATag> tags = pack.getTags().stream().filter(t -> key.equals(t.getKey())).collect(Collectors.toList());
 
-        if (values.isEmpty()) {
+        if (tags.isEmpty()) {
             LOGGER.warn("Missing \"{}\" tag for \"{}\".", key, Util.getFullName(pack));
             return backup;
-        } else if (values.size() > 1) {
+        } else if (tags.size() > 1) {
             LOGGER.warn("Multiple occurrences of tag \"{}\" for \"{}\".", key, Util.getFullName(pack));
-            return values.get(0);
+            return tags.get(0).getValue();
         } else {
-            return values.get(0);
+            return tags.get(0).getValue();
         }
     }
 
@@ -102,16 +103,16 @@ public class TagHelper {
     }
 
     public String getMandatoryTag(EAPackage pack, String key, String backup) {
-        List<String> values = pack.getTags().get(key);
+        List<EATag> tags = pack.getTags().stream().filter(t -> key.equals(t.getKey())).collect(Collectors.toList());
 
-        if (values.isEmpty()) {
+        if (tags.isEmpty()) {
             LOGGER.warn("Missing \"{}\" tag for package \"{}\".", key, Util.getFullName(pack));
             return backup;
-        } else if (values.size() > 1) {
+        } else if (tags.size() > 1) {
             LOGGER.warn("Multiple occurrences of tag \"{}\" for package \"{}\".", key, Util.getFullName(pack));
-            return values.get(0);
+            return tags.get(0).getValue();
         } else {
-            return values.get(0);
+            return tags.get(0).getValue();
         }
     }
 
@@ -120,15 +121,15 @@ public class TagHelper {
     }
 
     public String getOptionalTag(EAObject pack, String key, String backup) {
-        List<String> values = pack.getTags().get(key);
+        List<EATag> values = pack.getTags().stream().filter(t -> key.equals(t.getKey())).collect(Collectors.toList());
 
         if (values.isEmpty()) {
             return backup;
         } else if (values.size() > 1) {
             LOGGER.warn("Multiple occurrences of tag \"{}\" for \"{}\".", key, Util.getFullName(pack));
-            return values.get(0);
+            return values.get(0).getValue();
         } else {
-            return values.get(0);
+            return values.get(0).getValue();
         }
     }
 
@@ -137,15 +138,15 @@ public class TagHelper {
     }
 
     public String getOptionalTag(EAPackage pack, String key, String backup) {
-        List<String> values = pack.getTags().get(key);
+        List<EATag> values = pack.getTags().stream().filter(t -> key.equals(t.getKey())).collect(Collectors.toList());
 
         if (values.isEmpty()) {
             return backup;
         } else if (values.size() > 1) {
             LOGGER.warn("Multiple occurrences of tag \"{}\" for package \"{}\".", key, Util.getFullName(pack));
-            return values.get(0);
+            return values.get(0).getValue();
         } else {
-            return values.get(0);
+            return values.get(0).getValue();
         }
     }
 }

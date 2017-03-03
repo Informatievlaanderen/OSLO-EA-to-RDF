@@ -1,7 +1,10 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -262,9 +265,9 @@ public class Converter {
 
         // Subproperty
         List<Resource> superProperties = attribute.getTags()
-                .get(tagHelper.getTagKey(Tag.SUBPROPERTY_OF))
                 .stream()
-                .map(ResourceFactory::createResource)
+                .filter(t -> tagHelper.getTagKey(Tag.SUBPROPERTY_OF).equals(t.getKey()))
+                .map(tag -> ResourceFactory.createResource(tag.getValue()))
                 .collect(Collectors.toList());
 
         outputHandler.handleProperty(
@@ -300,9 +303,9 @@ public class Converter {
             if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
                 // Subproperty
                 List<Resource> superProperties = connector.getTags()
-                        .get(tagHelper.getTagKey(Tag.SUBPROPERTY_OF))
                         .stream()
-                        .map(ResourceFactory::createResource)
+                        .filter(t -> tagHelper.getTagKey(Tag.SUBPROPERTY_OF).equals(t.getKey()))
+                        .map(tag -> ResourceFactory.createResource(tag.getValue()))
                         .collect(Collectors.toList());
 
                 Resource domain = null;

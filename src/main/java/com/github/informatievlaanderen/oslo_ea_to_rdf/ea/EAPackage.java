@@ -1,7 +1,5 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea;
 
-import com.google.common.collect.ListMultimap;
-
 import java.util.List;
 
 /**
@@ -61,7 +59,7 @@ public interface EAPackage {
 
     /**
      * Get the tags associated with this package.
-     * @return an immutable multimap
+     * @return never {@code null}
      */
-    ListMultimap<String, String> getTags();
+    List<EATag> getTags();
 }

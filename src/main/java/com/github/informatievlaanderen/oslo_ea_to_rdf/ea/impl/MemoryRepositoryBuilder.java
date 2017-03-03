@@ -272,19 +272,20 @@ public class MemoryRepositoryBuilder {
      */
     private void loadObjectTags(Connection connection, Map<Integer, MemoryEAElement> elements, Map<Integer, MemoryEAPackage> packages) throws SQLException {
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT Property, Value, Object_ID FROM t_objectproperties");
+            ResultSet rs = s.executeQuery("SELECT Property, Value, Object_ID, Notes FROM t_objectproperties ORDER BY PropertyID ASC");
 
             while (rs.next()) {
                 String key = rs.getString("Property");
                 String value = rs.getString("Value");
+                String notes = rs.getString("Notes");
                 int objectId = rs.getInt("Object_ID");
 
                 if (elements.containsKey(objectId)) {
                     MemoryEAElement element = elements.get(objectId);
-                    element.getTagsOrig().put(key, value);
+                    element.getTagsOrig().add(new MemoryEATag(key, value, notes));
                 } else if (packages.containsKey(objectId)) {
                     MemoryEAPackage pack = packages.get(objectId);
-                    pack.getTagsOrig().put(key, value);
+                    pack.getTagsOrig().add(new MemoryEATag(key, value, notes));
                 }
             }
         }
@@ -297,15 +298,16 @@ public class MemoryRepositoryBuilder {
      */
     private void loadAttributeTags(Connection connection, Map<Integer, MemoryEAAttribute> attributes) throws SQLException {
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT Property, VALUE, ElementID FROM t_attributetag");
+            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_attributetag ORDER BY PropertyID ASC");
 
             while (rs.next()) {
                 String key = rs.getString("Property");
                 String value = rs.getString("VALUE");
+                String notes = rs.getString("NOTES");
                 int attributeId = rs.getInt("ElementID");
 
                 MemoryEAAttribute attribute = attributes.get(attributeId);
-                attribute.getTagsOrig().put(key, value);
+                attribute.getTagsOrig().add(new MemoryEATag(key, value, notes));
             }
         }
     }
@@ -317,15 +319,16 @@ public class MemoryRepositoryBuilder {
      */
     private void loadConnectorTags(Connection connection, Map<Integer, MemoryEAConnector> connectors) throws SQLException {
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT Property, VALUE, ElementID FROM t_connectortag");
+            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_connectortag ORDER BY PropertyID ASC");
 
             while (rs.next()) {
                 String key = rs.getString("Property");
                 String value = rs.getString("VALUE");
+                String notes = rs.getString("NOTES");
                 int elementId = rs.getInt("ElementID");
 
                 MemoryEAConnector connector = connectors.get(elementId);
-                connector.getTagsOrig().put(key, value);
+                connector.getTagsOrig().add(new MemoryEATag(key, value, notes));
             }
         }
     }
