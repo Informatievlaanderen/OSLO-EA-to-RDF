@@ -60,11 +60,11 @@ public class UriAssigner {
                 LOGGER.warn("The following packages map to the same URI ({}): {}",
                         entry.getKey(),
                         Joiner.on(", ").join(conflictingPackages));
-                for (EAPackage pack : entry.getValue()) {
-                    String newKey = findUniqueKey(entry.getKey(), claimedKeys);
-                    claimedKeys.add(newKey);
-                    packageURIs.put(pack, newKey);
-                }
+//                for (EAPackage pack : entry.getValue()) {
+//                    String newKey = findUniqueKey(entry.getKey(), claimedKeys);
+//                    claimedKeys.add(newKey);
+//                    packageURIs.put(pack, newKey);
+//                }
             }
         }
 
@@ -75,11 +75,11 @@ public class UriAssigner {
                 LOGGER.warn("The following elements map to the same URI ({}): {}",
                         entry.getKey(),
                         Joiner.on(", ").join(conflictingElements));
-                for (EAElement element : entry.getValue()) {
-                    String newKey = findUniqueKey(entry.getKey(), claimedKeys);
-                    claimedKeys.add(newKey);
-                    elementURIs.put(element, newKey);
-                }
+//                for (EAElement element : entry.getValue()) {
+//                    String newKey = findUniqueKey(entry.getKey(), claimedKeys);
+//                    claimedKeys.add(newKey);
+//                    elementURIs.put(element, newKey);
+//                }
             }
         }
 
@@ -90,11 +90,11 @@ public class UriAssigner {
                 LOGGER.warn("The following instances map to the same URI ({}): {}",
                         entry.getKey(),
                         Joiner.on(", ").join(conflictingElements));
-                for (EAAttribute instance : entry.getValue()) {
-                    String newKey = findUniqueKey(entry.getKey(), claimedKeys);
-                    claimedKeys.add(newKey);
-                    instanceURIs.put(instance, newKey);
-                }
+//                for (EAAttribute instance : entry.getValue()) {
+//                    String newKey = findUniqueKey(entry.getKey(), claimedKeys);
+//                    claimedKeys.add(newKey);
+//                    instanceURIs.put(instance, newKey);
+//                }
             }
         }
 
@@ -106,15 +106,15 @@ public class UriAssigner {
                 LOGGER.warn("The following properties (attribute or connector) map to the same URI ({}): {}",
                         entry.getKey(),
                         Joiner.on(", ").join(Iterables.concat(conflictingAttributes, conflictingConnectors)));
-                for (Object attributeOrConnection : entry.getValue()) {
-                    String newKey = findUniqueKey(entry.getKey(), claimedKeys);
-                    claimedKeys.add(newKey);
-                    if (attributeOrConnection instanceof EAAttribute) {
-                        attributeURIs.put((EAAttribute) attributeOrConnection, newKey);
-                    } else {
-                        connectorURIs.put(((EAConnector) attributeOrConnection), newKey);
-                    }
-                }
+//                for (Object attributeOrConnection : entry.getValue()) {
+//                    String newKey = findUniqueKey(entry.getKey(), claimedKeys);
+//                    claimedKeys.add(newKey);
+//                    if (attributeOrConnection instanceof EAAttribute) {
+//                        attributeURIs.put((EAAttribute) attributeOrConnection, newKey);
+//                    } else {
+//                        connectorURIs.put(((EAConnector) attributeOrConnection), newKey);
+//                    }
+//                }
             }
         }
 
