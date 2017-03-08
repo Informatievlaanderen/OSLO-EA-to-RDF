@@ -52,7 +52,9 @@ public class TSVOutputHandler implements OutputHandler {
         write("type");
         write("domain");
         write("range");
-        writeNl("parent");
+        write("parent");
+        write("min card");
+        writeNl("max card");
     }
 
     private DiagramElement findInDiagram(EAElement element) {
@@ -136,9 +138,9 @@ public class TSVOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleProperty(PropertySource source, Resource property, Scope scope,
-                               Resource ontology, Resource propertyType, Resource domain, Resource range,
-                               List<Resource> superProperties) {
+    public void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
+                               Resource propertyType, Resource domain, Resource range,
+                               String lowerbound, String upperbound, List<Resource> superProperties) {
         if (source.attribute != null) {
             write("attribute");
             write(source.attribute.getElement().getPackage().getName());
@@ -174,7 +176,9 @@ public class TSVOutputHandler implements OutputHandler {
         write(propertyType.getURI());
         write(domain != null ? domain.getURI() : "");
         write(range != null ? range.getURI() : "");
-        writeNl(JOINER.join(Iterables.transform(superProperties, Resource::getURI)));
+        write(JOINER.join(Iterables.transform(superProperties, Resource::getURI)));
+        write(lowerbound);
+        writeNl(upperbound);
     }
 
     @Override
@@ -228,7 +232,9 @@ public class TSVOutputHandler implements OutputHandler {
 
     private void write(String s) {
         try {
+            writer.write("\"");
             writer.write(Strings.nullToEmpty(s));
+            writer.write("\"");
             writer.write("\t");
         } catch (IOException e) {
             throw new RuntimeException(e);

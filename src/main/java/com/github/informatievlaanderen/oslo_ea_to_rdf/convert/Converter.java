@@ -279,6 +279,8 @@ public class Converter {
                 propertyType,
                 domain,
                 range,
+                attribute.getLowerBound(),
+                attribute.getUpperBound(),
                 superProperties
         );
     }
@@ -316,13 +318,17 @@ public class Converter {
                 String customDomain = tagHelper.getOptionalTag(connector, Tag.DOMAIN, null);
                 String customRange = tagHelper.getOptionalTag(connector, Tag.RANGE, null);
 
-                // Range and domain
+                String cardinality = null;
+
+                // Range, domain & cardinality
                 if (dConnector.getLabelDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
                     domain = sourceRes;
                     range = targetRes;
+                    cardinality = connector.getDestinationCardinality();
                 } else if (dConnector.getLabelDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
                     domain = targetRes;
                     range = sourceRes;
+                    cardinality = connector.getSourceCardinality();
                 } else {
                     LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", Util.getFullName(connector));
                 }
@@ -331,6 +337,18 @@ public class Converter {
                     domain = ResourceFactory.createResource(customDomain);
                 if (customRange != null)
                     domain = ResourceFactory.createResource(customRange);
+
+                String lowerCardinality = null;
+                String higherCardinality = null;
+
+                if (cardinality != null && cardinality.contains("..")) {
+                    String[] parts = cardinality.split("\\.\\.");
+                    lowerCardinality = parts[0];
+                    higherCardinality = parts[1];
+                } else if (cardinality != null) {
+                    lowerCardinality = cardinality;
+                    higherCardinality = cardinality;
+                }
 
                 EAPackage definingPackage = definingPackages.get(connector);
                 boolean currentPackageTerm = convertedPackage.equals(definingPackage);
@@ -349,6 +367,8 @@ public class Converter {
                         OWL.ObjectProperty,
                         domain,
                         range,
+                        lowerCardinality,
+                        higherCardinality,
                         superProperties);
             } else {
                 LOGGER.error("Unsupported connector type for \"{}\" - skipping.", Util.getFullName(connector));

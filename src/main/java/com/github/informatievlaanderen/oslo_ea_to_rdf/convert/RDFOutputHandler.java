@@ -1,10 +1,13 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.SortedOutputModel;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAAttribute;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
 import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
@@ -93,7 +96,8 @@ public class RDFOutputHandler implements OutputHandler {
 
     @Override
     public void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
-                               Resource propertyType, Resource domain, Resource range, List<Resource> superProperties) {
+                               Resource propertyType, Resource domain, Resource range,
+                               String lowerbound, String upperbound, List<Resource> superProperties) {
         if (!forceFullOutput && scope == Scope.NOTHING)
             return;
 

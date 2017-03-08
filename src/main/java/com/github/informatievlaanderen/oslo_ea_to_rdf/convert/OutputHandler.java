@@ -1,6 +1,9 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAAttribute;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
 import org.apache.jena.rdf.model.Resource;
 
 import java.util.List;
@@ -42,9 +45,12 @@ public interface OutputHandler {
      * @param domain nullable, domain of the property
      * @param range nullable, range of the property
      * @param superProperties all super properties of this property
+     * @param lowerbound lower cardinality
+     * @param upperbound higher cardinality
      */
     void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
-                        Resource propertyType, Resource domain, Resource range, List<Resource> superProperties);
+                        Resource propertyType, Resource domain, Resource range, String lowerbound, String upperbound,
+                        List<Resource> superProperties);
 
     /**
      * Handles the definition of an instance of a class.
