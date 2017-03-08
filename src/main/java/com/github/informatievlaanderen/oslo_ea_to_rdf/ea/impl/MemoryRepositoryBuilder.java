@@ -74,7 +74,7 @@ public class MemoryRepositoryBuilder {
 
         try (Statement s = connection.createStatement()) {
             ResultSet rs = s.executeQuery(
-                    "SELECT c.Connector_ID, c.Name, c.Direction, c.Notes, c.Connector_Type, c.SourceRole, c.DestRole, c.Start_Object_ID, c.End_Object_ID, c.PDATA1, c.ea_guid " +
+                    "SELECT c.Connector_ID, c.Name, c.Direction, c.Notes, c.Connector_Type, c.SourceRole, c.DestRole, c.Start_Object_ID, c.End_Object_ID, c.PDATA1, c.ea_guid, c.SourceCard, c.DestCard " +
                     "FROM ((t_connector AS c " +
                     "INNER JOIN t_object AS src ON c.Start_Object_ID = src.Object_ID) " +
                     "INNER JOIN t_object AS dest ON c.End_Object_ID = dest.Object_ID) " +
@@ -89,6 +89,8 @@ public class MemoryRepositoryBuilder {
                 String connectorType = rs.getString("Connector_Type");
                 String sourceRole = rs.getString("SourceRole");
                 String destRole = rs.getString("DestRole");
+                String sourceCard = rs.getString("SourceCard");
+                String destCard = rs.getString("DestCard");
                 int startObjectId = rs.getInt("Start_Object_ID");
                 int endObjectId = rs.getInt("End_Object_ID");
                 String associationClassId = rs.getString("PDATA1");
@@ -104,7 +106,7 @@ public class MemoryRepositoryBuilder {
                 MemoryEAConnector memoryEAConnector = new MemoryEAConnector(
                         connectorId, name, EAConnector.Direction.parse(direction),
                         notes, connectorType, sourceRole,
-                        destRole, source, destination, associationClass, guid);
+                        destRole, sourceCard, destCard, source, destination, associationClass, guid);
 
                 source.getConnectorsOrig().add(memoryEAConnector);
                 if (source != destination)
@@ -246,7 +248,7 @@ public class MemoryRepositoryBuilder {
         Map<Integer, MemoryEAAttribute> attributes = new HashMap<>();
 
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT ea_guid, ID, Object_ID, Name, Type, Notes FROM t_attribute");
+            ResultSet rs = s.executeQuery("SELECT ea_guid, ID, Object_ID, Name, Type, Notes, LowerBound, UpperBound FROM t_attribute");
 
             while (rs.next()) {
                 String guid = rs.getString("ea_guid");
@@ -255,9 +257,11 @@ public class MemoryRepositoryBuilder {
                 String name = rs.getString("Name");
                 String type = rs.getString("Type");
                 String notes = rs.getString("Notes");
+                String lowerBound = rs.getString("LowerBound");
+                String upperBound = rs.getString("UpperBound");
 
                 MemoryEAElement element = elements.get(objectID);
-                MemoryEAAttribute att = new MemoryEAAttribute(element, guid, name, notes, type, id);
+                MemoryEAAttribute att = new MemoryEAAttribute(element, guid, name, notes, type, id, lowerBound, upperBound);
                 element.getAttributesOrig().add(att);
                 attributes.put(id, att);
             }

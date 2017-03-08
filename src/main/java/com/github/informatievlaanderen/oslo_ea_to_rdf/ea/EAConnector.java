@@ -54,6 +54,18 @@ public interface EAConnector extends EAObject {
      */
     EAElement getAssociationClass();
 
+    /**
+     * Gets the cardinality specified associated with the source.
+     * @return a string, or {@code null}
+     */
+    String getSourceCardinality();
+
+    /**
+     * Gets the cardinality specified associated with the target.
+     * @return a string, or {@code null}
+     */
+    String getDestinationCardinality();
+
 
     enum Direction {
         UNSPECIFIED,

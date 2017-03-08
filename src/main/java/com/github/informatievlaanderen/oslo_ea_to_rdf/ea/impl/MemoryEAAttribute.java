@@ -17,15 +17,20 @@ class MemoryEAAttribute implements EAAttribute {
     private String name;
     private String notes;
     private String type;
+    private String lowerBound;
+    private String upperBound;
     private int attributeID;
     private List<EATag> tags;
 
-    MemoryEAAttribute(EAElement element, String guid, String name, String notes, String type, int attributeID) {
+    MemoryEAAttribute(EAElement element, String guid, String name, String notes, String type, int attributeID,
+                      String lowerBound, String upperBound) {
         this.element = element;
         this.guid = guid;
         this.name = name;
         this.notes = notes;
         this.type = type;
+        this.lowerBound = lowerBound;
+        this.upperBound = upperBound;
         this.attributeID = attributeID;
         this.tags = new ArrayList<>();
     }
@@ -53,6 +58,16 @@ class MemoryEAAttribute implements EAAttribute {
     @Override
     public String getType() {
         return type;
+    }
+
+    @Override
+    public String getLowerBound() {
+        return lowerBound;
+    }
+
+    @Override
+    public String getUpperBound() {
+        return upperBound;
     }
 
     @Override

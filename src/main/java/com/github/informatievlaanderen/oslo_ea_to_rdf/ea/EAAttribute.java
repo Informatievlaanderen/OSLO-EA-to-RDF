@@ -17,4 +17,16 @@ public interface EAAttribute extends EAObject {
      * @return the type, or {@code null}
      */
     String getType();
+
+    /**
+     * Returns the lower cardinality of this attribute.
+     * @return a string, not guaranteed to be a parsable number, or {@code null}
+     */
+    String getLowerBound();
+
+    /**
+     * Returns the upper cardinality of this attribute.
+     * @return a string, not guaranteed to be a parsable number, or {@code null}
+     */
+    String getUpperBound();
 }
