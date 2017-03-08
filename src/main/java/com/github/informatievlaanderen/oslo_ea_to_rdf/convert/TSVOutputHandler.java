@@ -243,7 +243,9 @@ public class TSVOutputHandler implements OutputHandler {
 
      private void writeNl(String s) {
          try {
+             writer.write("\"");
              writer.write(Strings.nullToEmpty(s));
+             writer.write("\"");
              writer.write("\n");
          } catch (IOException e) {
              throw new RuntimeException(e);
