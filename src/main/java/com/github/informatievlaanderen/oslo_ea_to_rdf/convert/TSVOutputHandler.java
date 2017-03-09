@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
@@ -120,7 +121,8 @@ public class TSVOutputHandler implements OutputHandler {
         write(sourceElement.getPackage().getName());
         write(sourceElement.getName());
 
-        write(JOINER.join(findParents(findInDiagram(sourceElement))));
+        List<EAElement> parents = findParents(findInDiagram(sourceElement));
+        write(JOINER.join(Lists.transform(parents, EAElement::getName)));
         write("");
         write("");
 
