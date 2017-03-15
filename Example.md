@@ -1,12 +1,15 @@
 # Example
 
 This page describes a fictitious model to illustrate the conversion of the tool.
+The model is available as an [Enterprise Architect project](./examples/example.eap)
+or as [XMI](./examples/example.xml) (can be used to visualise the model, not for conversion).
 
 ![Model](./examples/uml.png)
 
-This model displays 3 classes spread over 2 packages.
+This model contains 3 classes spread over 2 packages.
 
-The tags are listed below.
+All elements are tagged as described on project description.
+For ease of reading, all tags are listed below.
 
 ## Tags
 
