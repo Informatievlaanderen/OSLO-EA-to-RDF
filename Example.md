@@ -1,7 +1,7 @@
 # Example
 
 This page describes a fictitious model to illustrate the conversion of the tool.
-The model is available as an [Enterprise Architect project](./examples/example.eap)
+The model is available as an [Enterprise Architect project](./examples/example.EAP)
 or as [XMI](./examples/example.xml) (can be used to visualise the model, not for conversion).
 
 ![Model](./examples/uml.png)

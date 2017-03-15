@@ -9,6 +9,8 @@ This project was created as part of the OSLO² ([Github](http://informatievlaand
 This tool provides an automatic way to create ontologies from an Enterprise Architect (a commonly 
 used UML modelling tool) project that has the proper format.
 
+An example is available [here](./Example.md).
+
 ## Building & Running
 
 Building requires Maven and Java (JDK) to be installed.
