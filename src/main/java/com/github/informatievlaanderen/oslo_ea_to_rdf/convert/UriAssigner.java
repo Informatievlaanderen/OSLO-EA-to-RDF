@@ -10,9 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag.LOCALNAME;
-import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag.PACKAGE_BASE_URI;
-import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag.PACKAGE_ONTOLOGY_URI;
+import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag.*;
 
 /**
  * Functionality to assign URIs to all components from an EA repository.
@@ -249,7 +247,7 @@ public class UriAssigner {
         if (temp != null)
             return temp;
 
-        temp = tagHelper.getOptionalTag(element, Tag.EXTERNAL_URI, null);
+        temp = tagHelper.getOptionalTag(element, Tag.LOCALNAME, null);
         if (temp != null)
             return packageURI + temp;
         else
