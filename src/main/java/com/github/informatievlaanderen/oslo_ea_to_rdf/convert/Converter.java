@@ -212,6 +212,10 @@ public class Converter {
         for (EAAttribute attribute : attributes) {
             Resource attResource = ResourceFactory.createResource(instanceURIs.get(attribute));
 
+            if (Boolean.valueOf(tagHelper.getOptionalTag(attribute, Tag.IGNORE, "false"))) {
+                continue;
+            }
+
             String definingPackageName = tagHelper.getOptionalTag(attribute, Tag.DEFINING_PACKAGE, attribute.getElement().getPackage().getName());
             boolean currentPackageTerm = activePackage.getName().equals(definingPackageName);
             boolean customURI = tagHelper.getOptionalTag(attribute, Tag.EXTERNAL_URI, null) != null;
