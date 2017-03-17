@@ -293,7 +293,7 @@ public class Converter {
                                   Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
                                   Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
         EAConnector bareConnector = dConnector.getReferencedConnector();
-        for (EAConnector connector : Util.extractAssociationElement(bareConnector, dConnector.getLabelDirection())) {
+        for (EAConnector connector : Util.extractAssociationElement(bareConnector, dConnector.getLabelDirection(), tagHelper)) {
             if (!connectorURIs.containsKey(connector))
                 continue;
 

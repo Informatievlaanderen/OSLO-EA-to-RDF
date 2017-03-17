@@ -69,7 +69,7 @@ public class TSVOutputHandler implements OutputHandler {
     private DiagramConnector findInDiagram(EAConnector connector) {
         for (DiagramElement element : diagram.getElements()) {
             for (DiagramConnector rawConnector : element.getConnectors()) {
-                for (EAConnector conn : Util.extractAssociationElement(rawConnector.getReferencedConnector(), rawConnector.getLabelDirection())) {
+                for (EAConnector conn : Util.extractAssociationElement(rawConnector.getReferencedConnector(), rawConnector.getLabelDirection(), tagHelper)) {
                     if (connector.equals(conn))
                         return rawConnector;
                 }

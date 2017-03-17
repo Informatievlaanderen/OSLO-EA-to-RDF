@@ -3,6 +3,7 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryEATag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,14 @@ public class NormalizedEAConnector implements EAConnector {
 
     @Override
     public Direction getDirection() {
+        if (part == ConnectionPart.ASSOCIATION_TO_SOURCE || part == ConnectionPart.DESTINATION_TO_ASSOCIATION) {
+            if (inner.getDirection() == Direction.DEST_TO_SOURCE)
+                return Direction.SOURCE_TO_DEST;
+            if (inner.getDirection() == Direction.SOURCE_TO_DEST)
+                return Direction.DEST_TO_SOURCE;
+            return inner.getDirection();
+        }
+
         return inner.getDirection();
     }
 
@@ -58,6 +67,8 @@ public class NormalizedEAConnector implements EAConnector {
     public String getSourceRole() {
         if (part == ConnectionPart.SOURCE_TO_ASSOCIATION)
             return inner.getSourceRole();
+        if (part == ConnectionPart.DESTINATION_TO_ASSOCIATION)
+            return inner.getDestRole();
         return null;
     }
 
@@ -65,6 +76,8 @@ public class NormalizedEAConnector implements EAConnector {
     public String getDestRole() {
         if (part == ConnectionPart.ASSOCIATION_TO_DESTINATION)
             return inner.getDestRole();
+        if (part == ConnectionPart.ASSOCIATION_TO_SOURCE)
+            return inner.getSourceRole();
         return null;
     }
 
@@ -72,16 +85,18 @@ public class NormalizedEAConnector implements EAConnector {
     public EAElement getSource() {
         if (part == ConnectionPart.SOURCE_TO_ASSOCIATION)
             return inner.getSource();
-        else
-            return inner.getAssociationClass();
+        if (part == ConnectionPart.DESTINATION_TO_ASSOCIATION)
+            return inner.getDestination();
+        return inner.getAssociationClass();
     }
 
     @Override
     public EAElement getDestination() {
-        if (part == ConnectionPart.SOURCE_TO_ASSOCIATION)
-            return inner.getAssociationClass();
-        else
+        if (part == ConnectionPart.ASSOCIATION_TO_DESTINATION)
             return inner.getDestination();
+        if (part == ConnectionPart.ASSOCIATION_TO_SOURCE)
+            return inner.getSource();
+        return inner.getAssociationClass();
     }
 
     @Override
@@ -101,7 +116,7 @@ public class NormalizedEAConnector implements EAConnector {
 
         for (EATag tag : inner.getTags()) {
             if (tag.getKey().startsWith(tagPrefix))
-                filteredTags.add(tag);
+                filteredTags.add(new MemoryEATag(tag.getKey().substring(tagPrefix.length()), tag.getValue(), tag.getNotes()));
         }
 
         return filteredTags;
@@ -111,6 +126,8 @@ public class NormalizedEAConnector implements EAConnector {
     public String getSourceCardinality() {
         if (part == ConnectionPart.SOURCE_TO_ASSOCIATION)
             return inner.getSourceCardinality();
+        if (part == ConnectionPart.DESTINATION_TO_ASSOCIATION)
+            return inner.getDestinationCardinality();
         return null;
     }
 
@@ -118,6 +135,8 @@ public class NormalizedEAConnector implements EAConnector {
     public String getDestinationCardinality() {
         if (part == ConnectionPart.ASSOCIATION_TO_DESTINATION)
             return inner.getDestinationCardinality();
+        if (part == ConnectionPart.ASSOCIATION_TO_SOURCE)
+            return inner.getSourceCardinality();
         return null;
     }
 
@@ -138,6 +157,8 @@ public class NormalizedEAConnector implements EAConnector {
 
     public enum ConnectionPart {
         SOURCE_TO_ASSOCIATION,
+        ASSOCIATION_TO_SOURCE,
+        DESTINATION_TO_ASSOCIATION,
         ASSOCIATION_TO_DESTINATION
     }
 }
