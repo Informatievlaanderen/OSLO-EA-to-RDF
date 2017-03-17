@@ -10,6 +10,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ public class Converter {
     // https://www.w3.org/TR/2004/REC-rdf-concepts-20040210/#section-Graph-Literal
     // https://www.w3.org/TR/2001/REC-xmlschema-2-20010502/#built-in-datatypes
     private static final Map<String, Resource> DATATYPES = ImmutableMap.<String, Resource>builder()
-            .put("String", XSD.xstring)
+            .put("String", RDFS.Literal)
             .put("Date", XSD.date)
             .put("Time", XSD.time)
             .put("DateTime", XSD.dateTime)
