@@ -82,3 +82,10 @@ Configuration:
     
 ## Application profile terms
 
+- `ap-label-nl`
+- `ap-label-en`
+- `ap-definition-nl`
+- `ap-definition-en`
+- `ap-usageNote-nl`
+- `ap-usageNote-en`
+- `ap-codelist`
