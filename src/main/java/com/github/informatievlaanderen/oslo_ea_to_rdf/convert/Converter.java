@@ -1,10 +1,8 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.base.Joiner;
+import com.google.common.collect.*;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -253,16 +251,22 @@ public class Converter {
 
         // Type and range
         if (customRange != null) {
-            propertyType = OWL.ObjectProperty;
+            boolean rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(attribute, Tag.IS_LITERAL, "false"));
+            propertyType = rangeIsLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty;
             range = ResourceFactory.createProperty(customRange);
         } else if (DATATYPES.containsKey(attribute.getType())){
             propertyType = OWL.DatatypeProperty;
             range = DATATYPES.get(attribute.getType());
         } else if (elementIndex.containsKey(attribute.getType())) {
-            if (elementIndex.get(attribute.getType()).size() > 1)
-                LOGGER.warn("Ambiguous data type \"{}\" for attribute \"{}\".", attribute.getType(), Util.getFullName(attribute));
-            propertyType = OWL.ObjectProperty;
-            range = ResourceFactory.createResource(elementURIs.get(elementIndex.get(attribute.getType()).iterator().next()));
+            Collection<EAElement> refElements = elementIndex.get(attribute.getType());
+            if (refElements.size() > 1) {
+                Iterable<String> names = Iterables.transform(refElements, e -> Util.getFullName(e));
+                LOGGER.warn("Ambiguous data type \"{}\" for attribute \"{}\": {}.", attribute.getType(), Util.getFullName(attribute), Joiner.on(", ").join(names));
+            }
+            EAElement selectedElement = refElements.iterator().next();
+            boolean isLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(selectedElement, Tag.IS_LITERAL, "false"));
+            propertyType = isLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty;
+            range = ResourceFactory.createResource(elementURIs.get(selectedElement));
         } else {
             propertyType = RDF.Property;
             LOGGER.warn("Missing data type for attribute \"{}\".", Util.getFullName(attribute));
@@ -324,16 +328,19 @@ public class Converter {
                 String customRange = tagHelper.getOptionalTag(connector, Tag.RANGE, null);
 
                 String cardinality = null;
+                boolean rangeIsLiteral = false;
 
                 // Range, domain & cardinality
                 if (dConnector.getLabelDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
                     domain = sourceRes;
                     range = targetRes;
                     cardinality = connector.getDestinationCardinality();
+                    rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(target, Tag.IS_LITERAL, "false"));
                 } else if (dConnector.getLabelDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
                     domain = targetRes;
                     range = sourceRes;
                     cardinality = connector.getSourceCardinality();
+                    rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(target, Tag.IS_LITERAL, "false"));
                 } else {
                     LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", Util.getFullName(connector));
                 }
@@ -369,7 +376,7 @@ public class Converter {
                         connResource,
                         scope,
                         ontology,
-                        OWL.ObjectProperty,
+                        rangeIsLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty,
                         domain,
                         range,
                         lowerCardinality,

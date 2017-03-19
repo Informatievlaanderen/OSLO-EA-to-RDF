@@ -98,6 +98,8 @@ Enumerations are restricted to one of the specified values using `owl:oneOf`.
 Tags:
 
 - (optional) `ignore`: A boolean flag that will make the tool ignore this element and its attributes (eg: `true`).
+- (optional) `literal`: A boolean flag to indicate whether this element represents a literal type.
+Reflected in the type of the properties referring to this element. (Defaults to `false`.) 
 - (optional) `name`: The string used to complete the URI for this element.
  If not specified, the name of the class/datatype will be used.
  (Eg: specifying `Canine` as `name` on a class called `Dog` will result in the URI `http://example.org/ns#Canine`.)
@@ -113,8 +115,10 @@ Attributes are mapped to `rdf:Property`, `owl:DatatypeProperty` or `owl:ObjectPr
 
 Tags:
 
-- (optional) `ignore`: A boolean flag that will make the tool ignore this property (eg: `true`).
 - (optional) `domain`: The URI of the domain for this property (overriding the automatically derived one).
+- (optional) `ignore`: A boolean flag that will make the tool ignore this property (eg: `true`).
+- (optional) `literal`: Only useful combined when with the `range` tag, indicates whether the
+range is a literal (defaults to `false`)
 - (optional) `name`: The string used to complete the URI for this element.
 If not specified, the name of the attribute will be used. (Eg: `canine-name`.)
 - (optional) `package`: The name of the package (representing an ontology) that should define this
@@ -255,6 +259,8 @@ The snippet belows shows the format to use in the configuration and each default
     SUBPROPERTY_OF: "parentURI",
     DOMAIN: "domain",
     RANGE: "range",
+    ASSOCIATION: "association",
+    IS_LITERAL: "literal",
     PACKAGE_BASE_URI: "baseURI",
     PACKAGE_BASE_URI_ABBREVIATION: "baseURIabbrev",
     PACKAGE_ONTOLOGY_URI: "ontologyURI"

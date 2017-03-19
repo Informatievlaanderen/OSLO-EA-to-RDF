@@ -15,6 +15,7 @@ public enum Tag {
     DOMAIN("domain"),
     RANGE("range"),
     ASSOCIATION("association"),
+    IS_LITERAL("literal"),
     PACKAGE_BASE_URI("baseURI"),
     PACKAGE_BASE_URI_ABBREVIATION("baseURIabbrev"),
     PACKAGE_ONTOLOGY_URI("ontologyURI");
