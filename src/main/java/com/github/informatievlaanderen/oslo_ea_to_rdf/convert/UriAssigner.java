@@ -188,6 +188,12 @@ public class UriAssigner {
             if (Boolean.valueOf(tagHelper.getOptionalTag(connector, Tag.IGNORE, "false")))
                 continue;
 
+            if (Boolean.valueOf(tagHelper.getOptionalTag(connector.getSource(), Tag.IGNORE, "false")))
+                continue;
+
+            if (Boolean.valueOf(tagHelper.getOptionalTag(connector.getDestination(), Tag.IGNORE, "false")))
+                continue;
+
             // Inheritance related connectors don't get an URI
             if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
                 continue;
