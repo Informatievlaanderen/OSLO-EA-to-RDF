@@ -131,7 +131,8 @@ Use of this tag will result in a `owl:ObjectProperty` being generated.
 - (optional) `uri`: The complete URI to use, this will take preference over the `baseURI`/`name` combo.
 Eg: `http://example.org/ns/special#canine-name`.
 
-The type of the attribute will be mapped to a class in the project (as an `owl:ObjectProperty`), or to one the supported primitive types:
+The type of the attribute will be mapped to a class in the project (as an `owl:ObjectProperty`),
+ or to one the supported primitive types:
 
 - Boolean
 - Date
@@ -139,7 +140,8 @@ The type of the attribute will be mapped to a class in the project (as an `owl:O
 - Double
 - Int
 - String
-- Time 
+- Time
+- URI
 
 ### Connector
 

@@ -32,6 +32,7 @@ public class Converter {
             .put("Int", XSD.xint) //Note: this differs from "...XMLSchema#integer"!
             .put("Double", XSD.xdouble)
             .put("Boolean", XSD.xboolean)
+            .put("URI", XSD.anyURI)
             .build();
 
     private final Logger LOGGER = LoggerFactory.getLogger(Converter.class);
