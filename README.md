@@ -156,7 +156,6 @@ Tags:
 - `package`: the name of the package (representing an ontology)that should define this
 property. Defaults to guessing this based on the connected elements.
 [More details below.](#specifying-packages)
-- (optional) `association`: For connectors with association classes only.
 Defines how the split connector is connected to the association class. [More details below.](#association-classes) 
 - (optional) `domain`: The URI of the domain for this property (overriding the automatically derived one).
 - (optional) `ignore`: A boolean flag that will make the tool ignore this property (eg: `true`).
@@ -208,38 +207,30 @@ It is considered an external term when:
 
 ## Association Classes
 
+**Note**: because association classes exists in UML only and poorly
+reflect the resulting RDF, it is discouraged to use them.
+
 In UML, connectors can have a association class to identify information being tracked on the association between
 2 classes. In RDF this is represented by simply having the association class being put in the middle of the
-connecting property, effectively forming 2 separate properties instead of one.
-Since a connector with an association class will result in 2 different RDF properties,
-there is a need to differentiate between the tags supplied to the connector.
+connecting property.
+Taking the reverse properties into account, this effectively forms 4 separate properties instead of one.
 
-Any connector that has an association class should prefix all tags with `source-` or `target-`.
+Any connector that has an association class should prefix all tags with `source-`,
+`source-rev-`, `target-` and `target-rev-`.
 Tags of the first form (eg: `source-label-en`) will relate to the property connecting the starting element
 with the association class. Likewise, the second form will relate to the property connecting the association class
-with the ending element. Starting and ending element are defined by the direction of the label of the connector.
+with the the source element. Starting and ending elements are defined by the direction of the label of the connector.
 
-Using the `association` tag, it is possible to define how the association is translated in RDF.
-The following values are possible:
-- `follow` (default)
-- `in`
-- `out`
-
-As an example, the following diagram would be converted as follows:
+As an example, the following diagram:
 
 ![Model](./doc/association.png)
 
-Using `follow`:
+would be converted as follows:
 
-![Model](./doc/association-follow.png)
+![Model](./doc/association-converted.png)
 
-Using `in`:
-
-![Model](./doc/association-in.png)
-
-Using `out`:
-
-![Model](./doc/association-out.png)
+If not all properties are desired in the conversion, they should be marked using the ignore tag
+(eg: `source-rev-ignore` should be set to `true`).
 
 ## Builtin Tags
 
@@ -259,7 +250,6 @@ The snippet belows shows the format to use in the configuration and each default
     SUBPROPERTY_OF: "parentURI",
     DOMAIN: "domain",
     RANGE: "range",
-    ASSOCIATION: "association",
     IS_LITERAL: "literal",
     PACKAGE_BASE_URI: "baseURI",
     PACKAGE_BASE_URI_ABBREVIATION: "baseURIabbrev",

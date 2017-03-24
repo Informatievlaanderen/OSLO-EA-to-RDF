@@ -14,14 +14,15 @@ public enum Tag {
     SUBPROPERTY_OF("parentURI"),
     DOMAIN("domain"),
     RANGE("range"),
-    ASSOCIATION("association"),
     IS_LITERAL("literal"),
     PACKAGE_BASE_URI("baseURI"),
     PACKAGE_BASE_URI_ABBREVIATION("baseURIabbrev"),
     PACKAGE_ONTOLOGY_URI("ontologyURI");
 
     public static final String ASSOCIATION_SOURCE_PREFIX = "source-";
+    public static final String ASSOCIATION_SOURCE_REV_PREFIX = "source-rev-";
     public static final String ASSOCIATION_DEST_PREFIX = "target-";
+    public static final String ASSOCIATION_DEST_REV_PREFIX = "target-rev-";
 
     private String defaultTagName;
 

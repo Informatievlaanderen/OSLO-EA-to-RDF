@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A virtual connector that represents one of two parts of a (non-virtual) connector with an association class.
+ * A virtual connector that represents one of four parts of a (non-virtual) connector with an association class.
  *
  * Regular connectors can have an association class, effectively linking 3 elements together. In order to have a more
- * streamlined workflow, this class can be used to split such a connector into 2 instances of this class, effectively
+ * streamlined workflow, this class can be used to split such a connector into 4 instances of this class, effectively
  * acting as a wrapper. Most methods are forwarded to the original connector, except those relating to source, target
  * and associations. Connector tags are a filtered version of the original tags.
  */
@@ -23,7 +23,7 @@ public class NormalizedEAConnector implements EAConnector {
     private String tagPrefix;
 
     /**
-     * Creates a new connector to represent one of two parts of a connector with an association class.
+     * Creates a new connector to represent one of four parts of a connector with an association class.
      * @param inner the base connector
      * @param part the part of the base connector to be represented by this connector
      * @param tagPrefix the prefix identifying all tags of the original connector that should occur in this connector
