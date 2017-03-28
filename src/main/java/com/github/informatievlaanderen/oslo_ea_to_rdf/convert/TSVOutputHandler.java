@@ -39,8 +39,10 @@ public class TSVOutputHandler implements OutputHandler {
         write("EA-Type");
         write("EA-Package");
         write("EA-Name");
+        write("EA-GUID");
         write("EA-Parent");
         write("EA-Domain");
+        write("EA-Domain-GUID");
         write("EA-Range");
 
         for (String tagName : tagNames) {
@@ -95,11 +97,13 @@ public class TSVOutputHandler implements OutputHandler {
     @Override
     public void handleOntology(EAPackage sourcePackage, Resource ontology, String prefix, String baseURI) {
         write("Package");
-        write("");
+        write(""); // Package
         write(sourcePackage.getName());
-        write("");
-        write("");
-        write("");
+        write(sourcePackage.getGuid());
+        write(""); // Parent
+        write(""); // Domain
+        write(""); // Domain GUID
+        write(""); // Range
 
         for (String s : tagHelper.getTagNamesFor(Scope.FULL_DEFINITON)) {
             write("");
@@ -120,11 +124,13 @@ public class TSVOutputHandler implements OutputHandler {
         write(sourceElement.getType().toString());
         write(sourceElement.getPackage().getName());
         write(sourceElement.getName());
+        write(sourceElement.getGuid());
 
         List<EAElement> parents = findParents(findInDiagram(sourceElement));
         write(JOINER.join(Lists.transform(parents, EAElement::getName)));
-        write("");
-        write("");
+        write(""); // Domain
+        write(""); // Domain GUID
+        write(""); // Range
 
         for (String tag : extactTagValues(tagHelper.getTagDataFor(sourceElement, Scope.FULL_DEFINITON))) {
             write(tag);
@@ -144,27 +150,33 @@ public class TSVOutputHandler implements OutputHandler {
                                Resource propertyType, Resource domain, Resource range,
                                String lowerbound, String upperbound, List<Resource> superProperties) {
         if (source.attribute != null) {
-            write("attribute");
-            write(source.attribute.getElement().getPackage().getName());
-            write(source.attribute.getName());
-            write("");
-            write(source.attribute.getElement().getName());
-            write(source.attribute.getType());
+            write("attribute"); // Type
+            write(source.attribute.getElement().getPackage().getName()); // Package
+            write(source.attribute.getName()); // Name
+            write(source.attribute.getGuid()); // GUID
+            write(""); // Parent
+            write(source.attribute.getElement().getName()); // Domain
+            write(source.attribute.getElement().getGuid()); // Domain GUID
+            write(source.attribute.getType()); // Range
         } else {
-            write("connector");
-            write("");
-            write(source.connector.getName());
-            write("");
+            write("connector"); // Type
+            write(""); // Package
+            write(source.connector.getName()); // Name
+            write(source.connector.getGuid()); // GUID
+            write(""); // Parent
             DiagramConnector dConnector = findInDiagram(source.connector);
             if (EAConnector.Direction.SOURCE_TO_DEST.equals(dConnector.getLabelDirection())) {
-                write(source.connector.getSource().getName());
-                write(source.connector.getDestination().getName());
+                write(source.connector.getSource().getName()); // Domain
+                write(source.connector.getSource().getGuid()); // Domain GUID
+                write(source.connector.getDestination().getName()); // Range
             } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(dConnector.getLabelDirection())) {
-                write(source.connector.getDestination().getName());
-                write(source.connector.getSource().getName());
+                write(source.connector.getDestination().getName()); // Domain
+                write(source.connector.getDestination().getGuid()); // Domain GUID
+                write(source.connector.getSource().getName()); // Range
             } else {
-                write("");
-                write("");
+                write(""); // Domain
+                write(""); // Domain GUID
+                write(""); // Range
             }
         }
 
@@ -186,12 +198,14 @@ public class TSVOutputHandler implements OutputHandler {
     @Override
     public void handleInstance(EAAttribute source, Resource instance, Scope scope,
                                Resource ontology, Resource clazz) {
-        write("attribute");
-        write(source.getElement().getPackage().getName());
-        write(source.getName());
-        write("");
-        write(source.getElement().getName());
-        write("");
+        write("attribute"); // Type
+        write(source.getElement().getPackage().getName()); // Package
+        write(source.getName()); // Name
+        write(source.getGuid()); // GUID
+        write(""); // Parent
+        write(source.getElement().getName()); // Domain
+        write(source.getElement().getGuid()); // Domain GUID
+        write(""); // Range
 
         for (String tag : extactTagValues(tagHelper.getTagDataFor(source, Scope.FULL_DEFINITON))) {
             write(tag);
