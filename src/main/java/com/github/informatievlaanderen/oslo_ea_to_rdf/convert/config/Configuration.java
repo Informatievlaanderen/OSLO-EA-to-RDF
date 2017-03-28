@@ -17,12 +17,15 @@ import java.util.Map;
 public class Configuration {
     private Map<String, Resource> prefixes;
     private Map<Tag, String> builtinTags;
+    private List<Mapping> ontologyMappings;
     private List<Mapping> internalMappings;
     private List<Mapping> externalMappings;
 
-    public Configuration(Map<String, Resource> prefixes, Map<Tag, String> builtinTags, List<Mapping> internalMappings, List<Mapping> externalMappings) {
+    public Configuration(Map<String, Resource> prefixes, Map<Tag, String> builtinTags,
+                         List<Mapping> ontologyMappings, List<Mapping> internalMappings, List<Mapping> externalMappings) {
         this.prefixes = prefixes;
         this.builtinTags = builtinTags;
+        this.ontologyMappings = ontologyMappings;
         this.internalMappings = internalMappings;
         this.externalMappings = externalMappings;
     }
@@ -45,6 +48,17 @@ public class Configuration {
         if (prefixes == null)
             return Collections.emptyMap();
         return Collections.unmodifiableMap(prefixes);
+    }
+
+    /**
+     * Gets the mappings intended for the ontologies.
+     *
+     * @return never {@code null}
+     */
+    public List<Mapping> getOntologyMappings() {
+        if (ontologyMappings == null)
+            return Collections.emptyList();
+        return Collections.unmodifiableList(ontologyMappings);
     }
 
     /**

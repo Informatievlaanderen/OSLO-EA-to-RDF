@@ -65,6 +65,28 @@ public class TagHelper {
     }
 
     /**
+     * Collects all relevant information from the tags of the specified package.
+     *
+     * @param eaPackage the package whose tags are to be extracted
+     * @return never {@code null}
+     */
+    public List<TagData> getTagDataFor(EAPackage eaPackage) {
+        List<TagData> result = new ArrayList<>();
+        for (Mapping mapping : config.getOntologyMappings()) {
+            String value;
+            if (mapping.isMandatory())
+                value = getMandatoryTag(eaPackage, mapping.getTag(), "TODO");
+            else
+                value = getOptionalTag(eaPackage, mapping.getTag(), null);
+
+            if (value != null)
+                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(value, mapping.getLang())));
+        }
+
+        return result;
+    }
+
+    /**
      * Gets all the names of relevant tags for the given scope.
      * @return never {@code null}
      */

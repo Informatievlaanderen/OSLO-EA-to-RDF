@@ -70,6 +70,9 @@ public class RDFOutputHandler implements OutputHandler {
             model.setNsPrefix(prefix, baseURI);
             model.add(ontology, model.createProperty("http://purl.org/vocab/vann/preferredNamespacePrefix"), prefix);
         }
+
+        for (TagData tag : tagHelper.getTagDataFor(sourcePackage))
+            model.add(ontology, tag.getProperty(), tag.getValue());
     }
 
     @Override

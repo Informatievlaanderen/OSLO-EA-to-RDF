@@ -36,28 +36,36 @@ Example config file:
       prefixes: {
         rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
         rdfs: "http://www.w3.org/2000/01/rdf-schema#",
-    	owl: "http://www.w3.org/2002/07/owl#"
+        owl: "http://www.w3.org/2002/07/owl#"
       },
+      ontologyMappings: [
+        {
+          tag: "title-nl",
+          property: "http://purl.org/dc/terms/title",
+          mandatory: true,
+          lang: "nl"
+        }
+      ],
       internalMappings: [
         {
-    	  tag: "label-nl",
-    	  property: "http://www.w3.org/2000/01/rdf-schema#label",
-    	  mandatory: true,
-    	  lang: "nl"
-    	},
-    	{
-    	  tag: "definition-nl",
-    	  property: "http://www.w3.org/2000/01/rdf-schema#comment",
-    	  mandatory: true,
-    	  lang: "nl"
-    	}
+          tag: "label-nl",
+          property: "http://www.w3.org/2000/01/rdf-schema#label",
+          mandatory: true,
+          lang: "nl"
+        },
+        {
+          tag: "definition-nl",
+          property: "http://www.w3.org/2000/01/rdf-schema#comment",
+          mandatory: true,
+          lang: "nl"
+        }
       ],
       externalMappings: [
         {
-    	  tag: "label-nl",
-    	  property: "http://www.w3.org/2000/01/rdf-schema#label",
-    	  lang: "nl"
-    	}
+          tag: "label-nl",
+          property: "http://www.w3.org/2000/01/rdf-schema#label",
+          lang: "nl"
+        }
       ]
     }
 
