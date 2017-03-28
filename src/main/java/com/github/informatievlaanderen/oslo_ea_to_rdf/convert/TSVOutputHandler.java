@@ -87,7 +87,7 @@ public class TSVOutputHandler implements OutputHandler {
             String s = tagData.stream()
                     .filter(t -> tagName.equals(t.getOriginTag()))
                     .findFirst()
-                    .map(t -> t.getValue().getString())
+                    .map(t -> t.getValue().isLiteral() ? t.getValue().asLiteral().getString() : t.getValue().asResource().getURI())
                     .orElse("");
             result.add(s);
         }

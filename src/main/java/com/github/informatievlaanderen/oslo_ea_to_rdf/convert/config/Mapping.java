@@ -11,12 +11,14 @@ public class Mapping {
     private String tag;
     private Property property;
     private boolean mandatory;
+    private String type;
     private String lang;
 
-    public Mapping(String tag, Property property, boolean mandatory, String lang) {
+    public Mapping(String tag, Property property, boolean mandatory, String type, String lang) {
         this.tag = tag;
         this.property = property;
         this.mandatory = mandatory;
+        this.type = type;
         this.lang = lang;
     }
 
@@ -40,6 +42,15 @@ public class Mapping {
      */
     public boolean isMandatory() {
         return mandatory;
+    }
+
+    /**
+     * Returns the RDF datatype associated with this term.
+     *
+     * @return may be {@code null}
+     */
+    public String getType() {
+        return type;
     }
 
     /**

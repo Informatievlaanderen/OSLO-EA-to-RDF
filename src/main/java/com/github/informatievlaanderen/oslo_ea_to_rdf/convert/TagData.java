@@ -1,7 +1,7 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
-import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 
 /**
  * Minimal data container describing a RDF (predicate, object) pair that was derived from relevant tags.
@@ -11,12 +11,12 @@ import org.apache.jena.rdf.model.Property;
 public class TagData {
     private String originTag;
     private Property property;
-    private Literal literal;
+    private RDFNode value;
 
-    public TagData(String originTag, Property property, Literal literal) {
+    public TagData(String originTag, Property property, RDFNode value) {
         this.originTag = originTag;
         this.property = property;
-        this.literal = literal;
+        this.value = value;
     }
 
     public String getOriginTag() {
@@ -27,7 +27,7 @@ public class TagData {
         return property;
     }
 
-    public Literal getValue() {
-        return literal;
+    public RDFNode getValue() {
+        return value;
     }
 }

@@ -5,7 +5,12 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.Mapping;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAObject;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
+import com.google.common.base.Strings;
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,8 +62,17 @@ public class TagHelper {
             else
                 value = getOptionalTag(source, mapping.getTag(), null);
 
-            if (value != null)
+            if (value == null)
+                continue;
+
+            if (RDFS.Resource.getURI().equals(mapping.getType())) {
+                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(value)));
+            } else if (Strings.isNullOrEmpty(mapping.getType()) || RDF.dtLangString.getURI().equals(mapping.getType())) {
                 result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(value, mapping.getLang())));
+            } else {
+                RDFDatatype datatype = NodeFactory.getType(mapping.getType());
+                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createTypedLiteral(value, datatype)));
+            }
         }
 
         return result;
@@ -79,8 +93,17 @@ public class TagHelper {
             else
                 value = getOptionalTag(eaPackage, mapping.getTag(), null);
 
-            if (value != null)
+            if (value == null)
+                continue;
+
+            if (RDFS.Resource.getURI().equals(mapping.getType())) {
+                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(value)));
+            } else if (Strings.isNullOrEmpty(mapping.getType()) || RDF.dtLangString.getURI().equals(mapping.getType())) {
                 result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(value, mapping.getLang())));
+            } else {
+                RDFDatatype datatype = NodeFactory.getType(mapping.getType());
+                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createTypedLiteral(value, datatype)));
+            }
         }
 
         return result;

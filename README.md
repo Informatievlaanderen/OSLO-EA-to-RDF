@@ -30,6 +30,7 @@ Typical usage (for more options/commands, use `--help`):
 
 Example config file:
 
+    # The ontology will have a title and (xsd:date) date attribute.
     # Newly defined terms will have a "nl"-typed label and comment. Existing terms will only get a "nl" translations.
     # The "mandatory" key determines whether the tool warns for missing values.
     {
@@ -44,6 +45,12 @@ Example config file:
           property: "http://purl.org/dc/terms/title",
           mandatory: true,
           lang: "nl"
+        },
+        {
+          tag: "issued",
+          property: "http://purl.org/dc/terms/issued",
+          mandatory: true,
+          type: "http://www.w3.org/2001/XMLSchema#date"
         }
       ],
       internalMappings: [
@@ -68,6 +75,9 @@ Example config file:
         }
       ]
     }
+
+**Note**: you can use `http://www.w3.org/2000/01/rdf-schema#Resource` as
+mapping `type` to convert the values to links instead of literals.
 
 ## Conversion Conventions
 
