@@ -249,7 +249,7 @@ public class TSVOutputHandler implements OutputHandler {
     private void write(String s) {
         try {
             writer.write("\"");
-            writer.write(Strings.nullToEmpty(s));
+            writer.write(Strings.nullToEmpty(s).replaceAll("\"", "\"\""));
             writer.write("\"");
             writer.write("\t");
         } catch (IOException e) {
@@ -260,7 +260,7 @@ public class TSVOutputHandler implements OutputHandler {
      private void writeNl(String s) {
          try {
              writer.write("\"");
-             writer.write(Strings.nullToEmpty(s));
+             writer.write(Strings.nullToEmpty(s).replaceAll("\"", "\"\""));
              writer.write("\"");
              writer.write("\n");
          } catch (IOException e) {
