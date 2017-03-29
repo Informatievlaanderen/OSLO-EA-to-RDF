@@ -4,7 +4,6 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.Configurati
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.Mapping;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAObject;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 import com.google.common.base.Strings;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.graph.NodeFactory;
@@ -177,15 +176,18 @@ public class TagHelper {
     }
 
     public String getOptionalTag(EAObject pack, String key, String backup) {
-        List<EATag> values = pack.getTags().stream().filter(t -> key.equals(t.getKey())).collect(Collectors.toList());
+        List<String> values = pack.getTags().stream()
+                .filter(t -> key.equals(t.getKey()))
+                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
+                .collect(Collectors.toList());
 
         if (values.isEmpty()) {
             return backup;
         } else if (values.size() > 1) {
             LOGGER.warn("Multiple occurrences of tag \"{}\" for \"{}\".", key, Util.getFullName(pack));
-            return values.get(0).getValue();
+            return values.get(0);
         } else {
-            return values.get(0).getValue();
+            return values.get(0);
         }
     }
 
