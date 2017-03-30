@@ -149,17 +149,12 @@ Use of this tag will result in a `owl:ObjectProperty` being generated.
 - (optional) `uri`: The complete URI to use, this will take preference over the `baseURI`/`name` combo.
 Eg: `http://example.org/ns/special#canine-name`.
 
-The type of the attribute will be mapped to a class in the project (as an `owl:ObjectProperty`),
- or to one the supported primitive types:
-
-- Boolean
-- Date
-- DateTime
-- Double
-- Int
-- String
-- Time
-- URI
+The datatype of the attribute will be mapped to (first match wins):
+ 
+ - `RDFS:Resource` if the datatype is `URI`
+ - One of the supported primitive XSD types if the datatype is `Boolean`, `Date`, `DateTime`,
+  `Int`, `String` or `Time`
+ - The class (or datatype) whose name matches the datatype
 
 ### Connector
 

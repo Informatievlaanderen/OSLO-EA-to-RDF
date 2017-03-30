@@ -32,8 +32,8 @@ public class Converter {
             .put("Int", XSD.xint) //Note: this differs from "...XMLSchema#integer"!
             .put("Double", XSD.xdouble)
             .put("Boolean", XSD.xboolean)
-            .put("URI", XSD.anyURI)
             .build();
+    private static final String RESOURCE_DATATYPE = "URI";
 
     private final Logger LOGGER = LoggerFactory.getLogger(Converter.class);
 
@@ -255,6 +255,9 @@ public class Converter {
             boolean rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(attribute, Tag.IS_LITERAL, "false"));
             propertyType = rangeIsLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty;
             range = ResourceFactory.createProperty(customRange);
+        } else if (RESOURCE_DATATYPE.equals(attribute.getType())) {
+            propertyType = OWL.ObjectProperty;
+            range = RDFS.Resource;
         } else if (DATATYPES.containsKey(attribute.getType())){
             propertyType = OWL.DatatypeProperty;
             range = DATATYPES.get(attribute.getType());
