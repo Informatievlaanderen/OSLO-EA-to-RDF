@@ -89,7 +89,7 @@ determines how these tags are converted into RDF.
 **Tag values are limited to 256 characters**, to get around this limitation, you can use the
 value `NOTE` to indicate tag note should be used as a value.
 
-The specific tags used for the OSLO project are listed [here](OSLO-configuration.md).
+The specific tags used for the OSLO² project are listed [here](OSLO-configuration.md).
 
 All tags listed below can be customised through the configuration, [see below](#builtin-tags).
 
