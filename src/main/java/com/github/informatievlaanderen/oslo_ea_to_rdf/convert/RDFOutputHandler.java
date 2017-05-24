@@ -57,6 +57,7 @@ public class RDFOutputHandler implements OutputHandler {
      * @throws IOException if an exception occurred while writing the file
      */
     public void writeToFile(Path outputFile) throws IOException {
+        Files.createDirectories(outputFile.toAbsolutePath().getParent());
         try (Writer w = Files.newBufferedWriter(outputFile, Charsets.UTF_8)) {
             model.write(w, "TTL");
         }
