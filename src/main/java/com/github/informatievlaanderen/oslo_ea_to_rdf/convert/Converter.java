@@ -426,8 +426,7 @@ public class Converter {
 
         List<Resource> parentClasses = new ArrayList<>();
 
-        for (DiagramConnector diagramConnector : diagramElement.getConnectors()) {
-            EAConnector connector = diagramConnector.getReferencedConnector();
+        for (EAConnector connector : element.getConnectors()) {
             if (!EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
                 continue;
 
