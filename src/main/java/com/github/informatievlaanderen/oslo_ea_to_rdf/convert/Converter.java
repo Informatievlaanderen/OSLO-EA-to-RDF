@@ -25,15 +25,24 @@ public class Converter {
     // https://www.w3.org/TR/2004/REC-rdf-concepts-20040210/#section-Graph-Literal
     // https://www.w3.org/TR/2001/REC-xmlschema-2-20010502/#built-in-datatypes
     private static final Map<String, Resource> DATATYPES = ImmutableMap.<String, Resource>builder()
-            .put("String", RDFS.Literal)
+            .put("String", XSD.xstring)
             .put("Date", XSD.date)
             .put("Time", XSD.time)
             .put("DateTime", XSD.dateTime)
             .put("Int", XSD.xint) //Note: this differs from "...XMLSchema#integer"!
+            .put("Integer", XSD.integer)
             .put("Double", XSD.xdouble)
             .put("Boolean", XSD.xboolean)
+            .put("LangString", RDF.langString)
+            .put("Literal", RDFS.Literal)
+            .put("Year", XSD.gYear)
+            .put("YearMonth", XSD.gYearMonth)
+            .put("Month", XSD.gMonth)
+            .put("MonthDay", XSD.gMonthDay)
+            .put("Duration", XSD.duration)
+            .put("HTML", RDF.HTML)
+            .put("URI", XSD.anyURI)
             .build();
-    private static final String RESOURCE_DATATYPE = "URI";
 
     private final Logger LOGGER = LoggerFactory.getLogger(Converter.class);
 
@@ -267,9 +276,6 @@ public class Converter {
             boolean rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(attribute, Tag.IS_LITERAL, "false"));
             propertyType = rangeIsLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty;
             range = ResourceFactory.createProperty(customRange);
-        } else if (RESOURCE_DATATYPE.equals(attribute.getType())) {
-            propertyType = OWL.ObjectProperty;
-            range = RDFS.Resource;
         } else if (DATATYPES.containsKey(attribute.getType())){
             propertyType = OWL.DatatypeProperty;
             range = DATATYPES.get(attribute.getType());

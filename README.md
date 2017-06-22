@@ -151,9 +151,9 @@ Eg: `http://example.org/ns/special#canine-name`.
 
 The datatype of the attribute will be mapped to (first match wins):
  
- - `RDFS:Resource` if the datatype is `URI`
- - One of the supported primitive XSD types if the datatype is `Boolean`, `Date`, `DateTime`,
-  `Int`, `String` or `Time`
+ - One of the supported primitive XSD/RDF/RDFS types if the datatype is `Boolean`, `Date`, `DateTime`, `Double`,
+  `Duration`,`HTML`, `Int`, `Integer`, `LangString`, `Literal`, `Month`, `MonthDay`, `String`, `Time`, `URI`, 
+  `Year` or `YearMonth`
  - The class (or datatype) whose name matches the datatype
 
 ### Connector
