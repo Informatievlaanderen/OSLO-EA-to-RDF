@@ -122,7 +122,8 @@ public class Converter {
                 continue;
             }
 
-            convertConnector(dConnector, uris.elementURIs, uris.connectorURIs, uris.definingPackages, ontology, diagram.getPackage());
+            convertConnector(dConnector.getReferencedConnector(), connectorDirections, uris.elementURIs,
+                    uris.connectorURIs, uris.definingPackages, ontology, diagram.getPackage());
         }
 
         // Convert non-enum attributes.
@@ -175,7 +176,9 @@ public class Converter {
     }
 
     /**
-     * Creates a mapping of all connectors in the given diagram to their label direction.
+     * Creates a mapping of all connectors (including all normalized connectors when an association class is present)
+     * in the given diagram to their label direction, or if that is not present,
+     * the direction of the connection.
      */
     private Map<EAConnector, EAConnector.Direction> indexDirections(EADiagram diagram) {
         Set<DiagramConnector> connectors = diagram.getElements().stream()
@@ -184,7 +187,16 @@ public class Converter {
 
         ImmutableMap.Builder<EAConnector, EAConnector.Direction> builder = ImmutableMap.builder();
         for (DiagramConnector connector : connectors) {
-            builder.put(connector.getReferencedConnector(), connector.getLabelDirection());
+            EAConnector.Direction direction = connector.getLabelDirection();
+            if (direction == EAConnector.Direction.UNSPECIFIED)
+                direction = connector.getReferencedConnector().getDirection();
+            builder.put(connector.getReferencedConnector(), direction);
+
+            if (connector.getReferencedConnector().getAssociationClass() != null) {
+                for (EAConnector innerConnector : Util.extractAssociationElement(connector.getReferencedConnector(), direction)) {
+                    builder.put(innerConnector, innerConnector.getDirection());
+                }
+            }
         }
         return builder.build();
     }
@@ -298,11 +310,11 @@ public class Converter {
         );
     }
 
-    private void convertConnector(DiagramConnector dConnector,
+    private void convertConnector(EAConnector bareConnector, Map<EAConnector, EAConnector.Direction> directions,
                                   Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
                                   Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
-        EAConnector bareConnector = dConnector.getReferencedConnector();
-        for (EAConnector connector : Util.extractAssociationElement(bareConnector, dConnector.getLabelDirection())) {
+        EAConnector.Direction rawDirection = directions.getOrDefault(bareConnector, EAConnector.Direction.UNSPECIFIED);
+        for (EAConnector connector : Util.extractAssociationElement(bareConnector, rawDirection)) {
             if (!connectorURIs.containsKey(connector))
                 continue;
 
@@ -335,12 +347,13 @@ public class Converter {
                 boolean rangeIsLiteral = false;
 
                 // Range, domain & cardinality
-                if (dConnector.getLabelDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
+                EAConnector.Direction connectorDirection = directions.getOrDefault(connector, EAConnector.Direction.UNSPECIFIED);
+                if (connectorDirection == EAConnector.Direction.SOURCE_TO_DEST) {
                     domain = sourceRes;
                     range = targetRes;
                     cardinality = connector.getDestinationCardinality();
                     rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(target, Tag.IS_LITERAL, "false"));
-                } else if (dConnector.getLabelDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
+                } else if (connectorDirection == EAConnector.Direction.DEST_TO_SOURCE) {
                     domain = targetRes;
                     range = sourceRes;
                     cardinality = connector.getSourceCardinality();

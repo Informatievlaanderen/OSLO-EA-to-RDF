@@ -160,8 +160,8 @@ The datatype of the attribute will be mapped to (first match wins):
 
 A generalization connector will be converted into a `rdfs:subClassOf` triple.
 An association or aggregation connector will be converted into a `owl:ObjectProperty`.
-Properties follow the direction of the label associated with the connector, _not the direction of
-connector_.
+Properties follow the direction of the label associated with the connector, or if these are not present,
+the direction of the connector.
 
 Connectors can be defined between elements from different packages, so it is not always clear to
 which package (= ontology) they belong.

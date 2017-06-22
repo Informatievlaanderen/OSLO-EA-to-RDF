@@ -42,15 +42,7 @@ public class NormalizedEAConnector implements EAConnector {
 
     @Override
     public Direction getDirection() {
-        if (part == ConnectionPart.ASSOCIATION_TO_SOURCE || part == ConnectionPart.DESTINATION_TO_ASSOCIATION) {
-            if (inner.getDirection() == Direction.DEST_TO_SOURCE)
-                return Direction.SOURCE_TO_DEST;
-            if (inner.getDirection() == Direction.SOURCE_TO_DEST)
-                return Direction.DEST_TO_SOURCE;
-            return inner.getDirection();
-        }
-
-        return inner.getDirection();
+        return Direction.SOURCE_TO_DEST;
     }
 
     @Override
