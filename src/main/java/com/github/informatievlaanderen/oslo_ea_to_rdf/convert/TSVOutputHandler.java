@@ -109,13 +109,15 @@ public class TSVOutputHandler implements OutputHandler {
             write("");
         }
 
-        write("");
-        write(ontology.getNameSpace());
-        write(ontology.getLocalName());
-        write(OWL.Ontology.getURI());
-        write("");
-        write("");
-        writeNl("");
+        write(""); // external term
+        write(ontology.getNameSpace()); //namespace
+        write(ontology.getLocalName()); //localname
+        write(OWL.Ontology.getURI()); //type
+        write(""); // domain
+        write(""); // range
+        write(""); // parent
+        write(""); // min card
+        writeNl(""); // max card
     }
 
     @Override
@@ -142,7 +144,9 @@ public class TSVOutputHandler implements OutputHandler {
         write(RDFS.Class.getURI());
         write("");
         write("");
-        writeNl(JOINER.join(parentClasses));
+        write(JOINER.join(parentClasses));
+        write("");
+        writeNl("");
     }
 
     @Override
@@ -215,6 +219,8 @@ public class TSVOutputHandler implements OutputHandler {
         write(instance.getNameSpace());
         write(instance.getURI());
         write(clazz.getURI());
+        write("");
+        write("");
         write("");
         write("");
         writeNl("");
