@@ -13,7 +13,6 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EADiagram;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EARepository;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryRepositoryBuilder;
 import com.google.common.base.Charsets;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.Collections2;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +28,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Entry class for command line.
@@ -81,6 +81,7 @@ public class Main {
                 Configuration config = loadConfig(convertTSVArgs.config);
                 EARepository repo = new MemoryRepositoryBuilder().build(convertTSVArgs.eaFile);
 
+                Files.createDirectories(convertTSVArgs.outputFile.toPath().toAbsolutePath().getParent());
                 try (BufferedWriter writer = Files.newBufferedWriter(convertTSVArgs.outputFile.toPath(), Charsets.UTF_8)) {
                     EADiagram diagram = findByName(repo, convertTSVArgs.diagramName);
                     TagHelper tagHelper = new TagHelper(config);
