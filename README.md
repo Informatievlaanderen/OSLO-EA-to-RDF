@@ -118,10 +118,9 @@ which package (= ontology) they belong.
 
 Tags:
 
-- `package`: the name of the package (representing an ontology)that should define this
-property. Defaults to guessing this based on the connected elements.
+- `package`: the name of the package (representing an ontology) that should define this
+property. Not required if `uri` is specified. Defaults to guessing this based on the connected elements.
 [More details below.](#specifying-packages)
-Defines how the split connector is connected to the association class. [More details below.](#association-classes) 
 - (optional) `domain`: The URI of the domain for this property (overriding the automatically derived one).
 - (optional) `ignore`: A boolean flag that will make the tool ignore this property (eg: `true`).
 - (optional) `name`: The string used to complete the URI for this element.
