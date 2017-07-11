@@ -115,6 +115,14 @@ public class NormalizedEAConnector implements EAConnector {
     }
 
     @Override
+    public String getPath() {
+        if (getName() != null)
+            return getSource().getPath() + ":" + getName();
+        else
+            return getSource().getPath() + ":(" + getSource().getName() + " -> " + getDestination().getName() + ")";
+    }
+
+    @Override
     public String getSourceCardinality() {
         if (part == ConnectionPart.SOURCE_TO_ASSOCIATION)
             return inner.getSourceCardinality();

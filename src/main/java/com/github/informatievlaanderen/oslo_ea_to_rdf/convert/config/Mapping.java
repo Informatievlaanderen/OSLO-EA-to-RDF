@@ -2,6 +2,8 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config;
 
 import org.apache.jena.rdf.model.Property;
 
+import java.util.List;
+
 /**
  * Description of how a single Enterprise Architect tag should be mapped to a RDF term.
  *
@@ -9,13 +11,15 @@ import org.apache.jena.rdf.model.Property;
  */
 public class Mapping {
     private String tag;
+    private List<String> fallbackTags;
     private Property property;
     private boolean mandatory;
     private String type;
     private String lang;
 
-    public Mapping(String tag, Property property, boolean mandatory, String type, String lang) {
+    public Mapping(String tag, List<String> fallbackTags, Property property, boolean mandatory, String type, String lang) {
         this.tag = tag;
+        this.fallbackTags = fallbackTags;
         this.property = property;
         this.mandatory = mandatory;
         this.type = type;
@@ -27,6 +31,13 @@ public class Mapping {
      */
     public String getTag() {
         return tag;
+    }
+
+    /**
+     * Gets the name of the tags to try in case the main tag is not present.
+     */
+    public List<String> getFallbackTags() {
+        return fallbackTags;
     }
 
     /**

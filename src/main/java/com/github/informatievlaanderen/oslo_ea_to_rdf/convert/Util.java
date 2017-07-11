@@ -1,8 +1,7 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.NormalizedEAConnector;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
-import com.google.common.base.MoreObjects;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 
 import java.util.*;
 
@@ -13,43 +12,6 @@ import java.util.*;
  */
 public class Util {
     private Util() {}
-
-    public static String getFullName(EAObject object) {
-        if (object instanceof EAPackage)
-            return getFullName((EAPackage) object);
-        else if (object instanceof EAElement)
-            return getFullName((EAElement) object);
-        else if (object instanceof EAConnector)
-            return getFullName((EAConnector) object);
-        else if (object instanceof EAAttribute)
-            return getFullName((EAAttribute) object);
-        else
-            throw new IllegalArgumentException("Unsupported class passed: " + object.getClass().getName());
-    }
-
-    public static String getFullName(EAPackage pack) {
-        String name = pack.getName();
-        while (pack.getParent() != null) {
-            pack = pack.getParent();
-            name = pack.getName() + "." + name;
-        }
-        return name;
-    }
-
-    public static String getFullName(EAElement element) {
-        return getFullName(element.getPackage()) + ":" + element.getName();
-    }
-
-    public static String getFullName(EAAttribute attribute) {
-        return getFullName(attribute.getElement()) + ":" + attribute.getName();
-    }
-
-    public static String getFullName(EAConnector connector) {
-        return getFullName(connector.getSource())
-                + ":" + MoreObjects.firstNonNull(
-                        connector.getName(),
-                        "(" + connector.getSource().getName() + " -> " + connector.getDestination().getName() + ")");
-    }
 
     /**
      * Converts a connector in one or four connectors so that the resulting connectors do not have any association

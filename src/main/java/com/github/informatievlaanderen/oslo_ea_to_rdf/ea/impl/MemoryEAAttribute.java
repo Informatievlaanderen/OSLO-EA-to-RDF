@@ -75,6 +75,11 @@ class MemoryEAAttribute implements EAAttribute {
         return Collections.unmodifiableList(tags);
     }
 
+    @Override
+    public String getPath() {
+        return getElement().getPath() + ":" + getName();
+    }
+
     List<EATag> getTagsOrig() {
         return tags;
     }

@@ -70,6 +70,11 @@ class MemoryEAElement implements EAElement {
     }
 
     @Override
+    public String getPath() {
+        return getPackage().getPath() + ":" + getName();
+    }
+
+    @Override
     public EAPackage getPackage() {
         return containingPackage;
     }

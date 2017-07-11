@@ -28,56 +28,6 @@ Typical usage (for more options/commands, use `--help`):
     # Converts a diagram in a tab separated value file listing the hierarchy, datatypes and more.
     java -jar <jarfile> tsv --diagram <diagramName> --config <configFile> --input <EA project file> --output <turtle output file>
 
-Example config file:
-
-    # The ontology will have a title and (xsd:date) date attribute.
-    # Newly defined terms will have a "nl"-typed label and comment. Existing terms will only get a "nl" translations.
-    # The "mandatory" key determines whether the tool warns for missing values.
-    {
-      prefixes: {
-        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-        rdfs: "http://www.w3.org/2000/01/rdf-schema#",
-        owl: "http://www.w3.org/2002/07/owl#"
-      },
-      ontologyMappings: [
-        {
-          tag: "title-nl",
-          property: "http://purl.org/dc/terms/title",
-          mandatory: true,
-          lang: "nl"
-        },
-        {
-          tag: "issued",
-          property: "http://purl.org/dc/terms/issued",
-          mandatory: true,
-          type: "http://www.w3.org/2001/XMLSchema#date"
-        }
-      ],
-      internalMappings: [
-        {
-          tag: "label-nl",
-          property: "http://www.w3.org/2000/01/rdf-schema#label",
-          mandatory: true,
-          lang: "nl"
-        },
-        {
-          tag: "definition-nl",
-          property: "http://www.w3.org/2000/01/rdf-schema#comment",
-          mandatory: true,
-          lang: "nl"
-        }
-      ],
-      externalMappings: [
-        {
-          tag: "label-nl",
-          property: "http://www.w3.org/2000/01/rdf-schema#label",
-          lang: "nl"
-        }
-      ]
-    }
-
-**Note**: you can use `http://www.w3.org/2000/01/rdf-schema#Resource` as
-mapping `type` to convert the values to links instead of literals.
 
 ## Conversion Conventions
 
@@ -247,7 +197,84 @@ would be converted as follows:
 If not all properties are desired in the conversion, they should be marked using the ignore tag
 (eg: `source-rev-ignore` should be set to `true`).
 
-## Builtin Tags
+## Configuration
+
+The configuration file is a JSON file that affects how the UML diagram is converted.
+Broadly, it specifies the following aspects:
+- the prefixes used in a converted diagram
+- the mappings of class/attribute/connector/... tags to properties
+  - on the level of the ontology (= a diagram)
+  - for the terms present in and defined in the package of the diagram being converted
+  - for the terms present in but not defined in the package of the diagram being converted
+- overrides for the builtin tags (documented below)
+
+A typical configuration is listed at the end of this section.
+
+### Prefixes
+
+Prefixes are straightforward:
+
+    {
+      prefixes: {
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+        owl: "http://www.w3.org/2002/07/owl#"
+      }
+      ...
+    }
+
+### Mappings
+
+The mappings are specified in 3 blocks, each affecting a different part of the conversion:
+- `ontologyMappings` specify which tags to process on the level of each package, these
+tags will end up as properties on the `owl:Ontology` instance.
+- `internalMappings` affect the classes, attributes... that are defined in the package of
+the diagram being converted and are shown on the diagram.
+- `externalMappings` affect the classes that are not defined in the package of the diagram
+being converted, but are shown on the diagram.
+
+Each block consists of a list of mappings. Each mapping is specified as follows:
+- `tag`: the name of the tag as used in EA that contains the value to be mapped.
+- `property`: the RDF property (URI) to which the value will be mapped.
+- `mandatory`: a boolean determining whether the tool should provide a warning if no value is specfied.
+- `type`: the URI of the datatype to be used in the RDF for the mapped value. Defaults to
+`http://www.w3.org/1999/02/22-rdf-syntax-ns#langString`. You can use `http://www.w3.org/2000/01/rdf-schema#Resource`
+ to convert the values to links instead of literals.
+- `lang`: the language of `rdf:langString` value.
+- `fallbackTags`: in case no entry was found for the `tag` of this mapping, the tool
+will try again with each of the tags specified in this list (in order), until a value is found.
+
+
+    {
+      ontologyMappings: [
+        {
+          tag: "issued",
+          property: "http://purl.org/dc/terms/issued",
+          mandatory: true,
+          type: "http://www.w3.org/2001/XMLSchema#date"
+        }
+      ],
+      internalMappings: [
+        {
+          tag: "label-nl",
+          property: "http://www.w3.org/2000/01/rdf-schema#label",
+          mandatory: true,
+          lang: "nl"
+        },
+        {
+          tag: "pref-label-nl",
+          property: "http://www.w3.org/2004/02/skos/core#prefLabel",
+          fallbackTags: ["label-nl"]
+          mandatory: true,
+          lang: "nl"
+        }
+      ],
+      externalMappings: [
+      ],
+      ...
+    }
+
+### Builtin Tags
 
 All tags defined above can in fact be customised through the configuration.
 The snippet belows shows the format to use in the configuration and each default value.
@@ -275,3 +302,61 @@ The snippet belows shows the format to use in the configuration and each default
   ]
 }
 ```
+
+### Example configuration
+
+
+    # The ontology will have a title and (xsd:date) date attribute.
+    # Newly defined terms will have a "nl"-typed label, pref-label and comment.
+    # In case no "pref-label-nl" tag exists, the value from "label-nl" will be used.
+    # Existing terms will only get a "nl" translations.
+    # The "mandatory" key determines whether the tool warns for missing values.
+    {
+      prefixes: {
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        rdfs: "http://www.w3.org/2000/01/rdf-schema#",
+        owl: "http://www.w3.org/2002/07/owl#"
+      },
+      ontologyMappings: [
+        {
+          tag: "title-nl",
+          property: "http://purl.org/dc/terms/title",
+          mandatory: true,
+          lang: "nl"
+        },
+        {
+          tag: "issued",
+          property: "http://purl.org/dc/terms/issued",
+          mandatory: true,
+          type: "http://www.w3.org/2001/XMLSchema#date"
+        }
+      ],
+      internalMappings: [
+        {
+          tag: "label-nl",
+          property: "http://www.w3.org/2000/01/rdf-schema#label",
+          mandatory: true,
+          lang: "nl"
+        },
+        {
+          tag: "pref-label-nl",
+          property: "http://www.w3.org/2004/02/skos/core#prefLabel",
+          fallbackTags: ["label-nl"]
+          mandatory: true,
+          lang: "nl"
+        },
+        {
+          tag: "definition-nl",
+          property: "http://www.w3.org/2000/01/rdf-schema#comment",
+          mandatory: true,
+          lang: "nl"
+        }
+      ],
+      externalMappings: [
+        {
+          tag: "label-nl",
+          property: "http://www.w3.org/2000/01/rdf-schema#label",
+          lang: "nl"
+        }
+      ]
+    }

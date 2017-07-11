@@ -34,7 +34,7 @@ public class TSVOutputHandler implements OutputHandler {
         this.writer = writer;
         this.tagHelper = tagHelper;
         this.diagram = diagram;
-        this.tagNames = tagHelper.getTagNamesFor(Scope.FULL_DEFINITON);
+        this.tagNames = tagHelper.getTagNames(tagHelper.getContentMappings(Scope.FULL_DEFINITON));
 
         write("EA-Type");
         write("EA-Package");
@@ -105,7 +105,7 @@ public class TSVOutputHandler implements OutputHandler {
         write(""); // Domain GUID
         write(""); // Range
 
-        for (String s : tagHelper.getTagNamesFor(Scope.FULL_DEFINITON)) {
+        for (String s : tagNames) {
             write("");
         }
 
@@ -132,7 +132,7 @@ public class TSVOutputHandler implements OutputHandler {
         write(""); // Domain GUID
         write(""); // Range
 
-        for (String tag : extactTagValues(tagHelper.getTagDataFor(sourceElement, Scope.FULL_DEFINITON))) {
+        for (String tag : extactTagValues(tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON)))) {
             write(tag);
         }
 
@@ -180,7 +180,7 @@ public class TSVOutputHandler implements OutputHandler {
             }
         }
 
-        for (String tag : extactTagValues(tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), Scope.FULL_DEFINITON))) {
+        for (String tag : extactTagValues(tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON)))) {
             write(tag);
         }
 
@@ -207,7 +207,7 @@ public class TSVOutputHandler implements OutputHandler {
         write(source.getElement().getGuid()); // Domain GUID
         write(""); // Range
 
-        for (String tag : extactTagValues(tagHelper.getTagDataFor(source, Scope.FULL_DEFINITON))) {
+        for (String tag : extactTagValues(tagHelper.getTagDataFor(source, tagHelper.getContentMappings(Scope.FULL_DEFINITON)))) {
             write(tag);
         }
 

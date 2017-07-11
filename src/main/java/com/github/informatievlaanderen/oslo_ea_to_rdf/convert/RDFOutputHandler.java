@@ -72,7 +72,7 @@ public class RDFOutputHandler implements OutputHandler {
             model.add(ontology, model.createProperty("http://purl.org/vocab/vann/preferredNamespacePrefix"), prefix);
         }
 
-        for (TagData tag : tagHelper.getTagDataFor(sourcePackage))
+        for (TagData tag : tagHelper.getTagDataFor(sourcePackage, tagHelper.getOntologyMappings()))
             model.add(ontology, tag.getProperty(), tag.getValue());
     }
 
@@ -93,7 +93,7 @@ public class RDFOutputHandler implements OutputHandler {
                 model.add(clazz, OWL.oneOf, model.createList(allowedValues.iterator()));
         }
 
-        for (TagData tag : tagHelper.getTagDataFor(sourceElement, scope)) {
+        for (TagData tag : tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(scope))) {
             model.add(clazz, tag.getProperty(), tag.getValue());
         }
     }
@@ -119,7 +119,7 @@ public class RDFOutputHandler implements OutputHandler {
                 model.add(property, RDFS.subPropertyOf, superProperty);
         }
 
-        for (TagData tag : tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), scope)) {
+        for (TagData tag : tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(scope))) {
             model.add(property, tag.getProperty(), tag.getValue());
         }
     }
@@ -137,7 +137,7 @@ public class RDFOutputHandler implements OutputHandler {
             model.add(instance, RDF.type, clazz);
         }
 
-        for (TagData tag : tagHelper.getTagDataFor(source, scope)) {
+        for (TagData tag : tagHelper.getTagDataFor(source, tagHelper.getContentMappings(scope))) {
             model.add(instance, tag.getProperty(), tag.getValue());
         }
     }

@@ -59,7 +59,7 @@ public class UriAssigner {
         Set<String> claimedKeys = new HashSet<>(packageIndex.keys());
         for (Map.Entry<String, Collection<EAPackage>> entry : packageIndex.asMap().entrySet()) {
             if (entry.getValue().size() > 1) {
-                Iterable<String> conflictingPackages = Iterables.transform(entry.getValue(), e -> Util.getFullName(e));
+                Iterable<String> conflictingPackages = Iterables.transform(entry.getValue(), EAObject::getPath);
                 LOGGER.warn("The following packages map to the same URI ({}): {}",
                         entry.getKey(),
                         Joiner.on(", ").join(conflictingPackages));
@@ -74,7 +74,7 @@ public class UriAssigner {
         claimedKeys = new HashSet<>(elementIndex.keys());
         for (Map.Entry<String, Collection<EAElement>> entry : elementIndex.asMap().entrySet()) {
             if (entry.getValue().size() > 1) {
-                Iterable<String> conflictingElements = Iterables.transform(entry.getValue(), e -> Util.getFullName(e));
+                Iterable<String> conflictingElements = Iterables.transform(entry.getValue(), EAObject::getPath);
                 LOGGER.warn("The following elements map to the same URI ({}): {}",
                         entry.getKey(),
                         Joiner.on(", ").join(conflictingElements));
@@ -89,7 +89,7 @@ public class UriAssigner {
         claimedKeys = new HashSet<>(instanceIndex.keys());
         for (Map.Entry<String, Collection<EAAttribute>> entry : instanceIndex.asMap().entrySet()) {
             if (entry.getValue().size() > 1) {
-                Iterable<String> conflictingElements = Iterables.transform(entry.getValue(), e -> Util.getFullName(e));
+                Iterable<String> conflictingElements = Iterables.transform(entry.getValue(), EAObject::getPath);
                 LOGGER.warn("The following instances map to the same URI ({}): {}",
                         entry.getKey(),
                         Joiner.on(", ").join(conflictingElements));
@@ -104,8 +104,8 @@ public class UriAssigner {
         claimedKeys = new HashSet<>(propertyIndex.keys());
         for (Map.Entry<String, Collection<Object>> entry : propertyIndex.asMap().entrySet()) {
             if (entry.getValue().size() > 1) {
-                Iterable<String> conflictingAttributes = Iterables.transform(Iterables.filter(entry.getValue(), EAAttribute.class), e -> Util.getFullName(e));
-                Iterable<String> conflictingConnectors = Iterables.transform(Iterables.filter(entry.getValue(), EAConnector.class), e -> Util.getFullName(e));
+                Iterable<String> conflictingAttributes = Iterables.transform(Iterables.filter(entry.getValue(), EAAttribute.class), EAObject::getPath);
+                Iterable<String> conflictingConnectors = Iterables.transform(Iterables.filter(entry.getValue(), EAConnector.class), EAObject::getPath);
                 LOGGER.warn("The following properties (attribute or connector) map to the same URI ({}): {}",
                         entry.getKey(),
                         Joiner.on(", ").join(Iterables.concat(conflictingAttributes, conflictingConnectors)));
@@ -131,7 +131,7 @@ public class UriAssigner {
             if (Boolean.valueOf(tagHelper.getOptionalTag(eaPackage, Tag.IGNORE, "false")))
                 continue;
 
-            String packageURI = tagHelper.getMandatoryTag(eaPackage, PACKAGE_BASE_URI, "http://fixme.com#");
+            String packageURI = tagHelper.getSingleValue(eaPackage, PACKAGE_BASE_URI, "http://fixme.com#", true);
             String namespace = packageURI.substring(0, packageURI.length() - 1);
             String ontologyURI = tagHelper.getOptionalTag(eaPackage, PACKAGE_ONTOLOGY_URI, namespace);
             packageURIs.put(eaPackage, packageURI);
@@ -156,7 +156,7 @@ public class UriAssigner {
                             ResourceFactory.createProperty(uri);
                             attributeURIs.put(attribute, uri);
                         } catch (InvalidPropertyURIException e) {
-                            LOGGER.error("Invalid property URI \"{}\", will ignore attribute {}.", uri, Util.getFullName(attribute));
+                            LOGGER.error("Invalid property URI \"{}\", will ignore attribute {}.", uri, attribute.getPath());
                         }
                     }
                 }
@@ -203,7 +203,7 @@ public class UriAssigner {
             String packageName = tagHelper.getOptionalTag(connector, Tag.DEFINING_PACKAGE, null);
             Collection<EAPackage> connectionPackage = nameToPackages.get(packageName);
             if (connectionPackage.size() >= 2) {
-                LOGGER.warn("Ambiguous package name specified for connector \"{}\", it matches multiple packages in the project.", Util.getFullName(connector));
+                LOGGER.warn("Ambiguous package name specified for connector \"{}\", it matches multiple packages in the project.", connector.getPath());
                 definingPackage = connectionPackage.iterator().next();
             } else if (connectionPackage.size() == 1) {
                 definingPackage = connectionPackage.iterator().next();
@@ -212,18 +212,18 @@ public class UriAssigner {
                 EAPackage dstPackage = connector.getDestination().getPackage();
                 if (srcPackage.equals(dstPackage)) {
                     definingPackage = srcPackage;
-                    LOGGER.info("Assuming connector \"{}\" belongs to package \"{}\" based on source and target definition.", Util.getFullName(connector), definingPackage.getName());
+                    LOGGER.info("Assuming connector \"{}\" belongs to package \"{}\" based on source and target definition.", connector.getPath(), definingPackage.getName());
                 }
             }
 
             if (definingPackage == null) {
-                LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", Util.getFullName(connector));
+                LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", connector.getPath());
                 continue;
             }
 
             String packageURI = packageURIs.get(definingPackage);
             if (packageURI == null) {
-                LOGGER.warn("Connector \"{}\" is defined on an non existing package, it will be ignored.", Util.getFullName(connector));
+                LOGGER.warn("Connector \"{}\" is defined on an non existing package, it will be ignored.", connector.getPath());
                 continue;
             }
 
@@ -234,7 +234,7 @@ public class UriAssigner {
             String connectorURI = tagHelper.getOptionalTag(connector, Tag.EXTERNAL_URI, null);
             if (connectorURI == null) {
                 if (localName == null) {
-                    LOGGER.error("Connector \"{}\" does not have a name, it will be ignored.", Util.getFullName(connector));
+                    LOGGER.error("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
                     continue;
                 }
                 connectorURI = packageURI + localName;
@@ -245,7 +245,7 @@ public class UriAssigner {
                 definingPackages.put(connector, definingPackage);
                 connectorURIs.put(connector, connectorURI);
             } catch (InvalidPropertyURIException e) {
-                LOGGER.error("Invalid property URI \"{}\", will ignore connector {}.", connectorURI, Util.getFullName(connector));
+                LOGGER.error("Invalid property URI \"{}\", will ignore connector {}.", connectorURI, connector.getPath());
             }
         }
     }

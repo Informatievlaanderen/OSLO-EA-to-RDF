@@ -88,6 +88,14 @@ class MemoryEAPackage implements EAPackage {
         return Collections.unmodifiableList(tags);
     }
 
+    @Override
+    public String getPath() {
+        if (getParent() != null)
+            return getParent().getPath() + "." + getName();
+        else
+            return getName();
+    }
+
     List<EADiagram> getDiagramsOrig() {
         return diagrams;
     }

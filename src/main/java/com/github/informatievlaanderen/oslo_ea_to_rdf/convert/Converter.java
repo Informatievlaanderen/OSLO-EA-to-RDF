@@ -92,7 +92,7 @@ public class Converter {
         for (DiagramElement diagramElement : diagram.getElements()) {
             EAElement element = diagramElement.getReferencedElement();
             if (Boolean.valueOf(tagHelper.getOptionalTag(element, Tag.IGNORE, "false"))) {
-                LOGGER.info("Skipping class \"{}\" since it is marked as ignored.", Util.getFullName(element));
+                LOGGER.info("Skipping class \"{}\" since it is marked as ignored.", element.getPath());
                 continue;
             }
 
@@ -127,7 +127,7 @@ public class Converter {
 
             // Skip if marked as ignore.
             if (Boolean.valueOf(tagHelper.getOptionalTag(connector, Tag.IGNORE, "false"))) {
-                LOGGER.info("Skipping connector \"{}\" since it is marked as ignored.", Util.getFullName(connector));
+                LOGGER.info("Skipping connector \"{}\" since it is marked as ignored.", connector.getPath());
                 continue;
             }
 
@@ -151,7 +151,7 @@ public class Converter {
             for (EAAttribute attribute : element.getAttributes()) {
                 // Skip if marked as ignore.
                 if (!uris.attributeURIs.containsKey(attribute)) {
-                    LOGGER.info("Skipping attribute \"{}\" since it is marked as ignored.", Util.getFullName(attribute));
+                    LOGGER.info("Skipping attribute \"{}\" since it is marked as ignored.", attribute.getPath());
                     continue;
                 }
 
@@ -282,8 +282,8 @@ public class Converter {
         } else if (elementIndex.containsKey(attribute.getType())) {
             Collection<EAElement> refElements = elementIndex.get(attribute.getType());
             if (refElements.size() > 1) {
-                Iterable<String> names = Iterables.transform(refElements, e -> Util.getFullName(e));
-                LOGGER.warn("Ambiguous data type \"{}\" for attribute \"{}\": {}.", attribute.getType(), Util.getFullName(attribute), Joiner.on(", ").join(names));
+                Iterable<String> names = Iterables.transform(refElements, EAObject::getPath);
+                LOGGER.warn("Ambiguous data type \"{}\" for attribute \"{}\": {}.", attribute.getType(), attribute.getPath(), Joiner.on(", ").join(names));
             }
             EAElement selectedElement = refElements.iterator().next();
             boolean isLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(selectedElement, Tag.IS_LITERAL, "false"));
@@ -291,7 +291,7 @@ public class Converter {
             range = ResourceFactory.createResource(elementURIs.get(selectedElement));
         } else {
             propertyType = RDF.Property;
-            LOGGER.warn("Missing data type for attribute \"{}\".", Util.getFullName(attribute));
+            LOGGER.warn("Missing data type for attribute \"{}\".", attribute.getPath());
         }
 
         // Subproperty
@@ -365,7 +365,7 @@ public class Converter {
                     cardinality = connector.getSourceCardinality();
                     rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(target, Tag.IS_LITERAL, "false"));
                 } else {
-                    LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", Util.getFullName(connector));
+                    LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", connector.getPath());
                 }
 
                 if (customDomain != null)
@@ -406,7 +406,7 @@ public class Converter {
                         higherCardinality,
                         superProperties);
             } else {
-                LOGGER.error("Unsupported connector type for \"{}\" - skipping.", Util.getFullName(connector));
+                LOGGER.error("Unsupported connector type for \"{}\" - skipping.", connector.getPath());
             }
         }
     }
@@ -421,7 +421,7 @@ public class Converter {
             List<? extends EAAttribute> attributes = element.getAttributes();
             allowedValues = Lists.transform(attributes, a -> ResourceFactory.createResource(instanceURIs.get(a)));
             if (allowedValues.isEmpty())
-                LOGGER.warn("No possible values defined for enumeration \"{}\".", Util.getFullName(element));
+                LOGGER.warn("No possible values defined for enumeration \"{}\".", element.getPath());
         }
 
         List<Resource> parentClasses = new ArrayList<>();
@@ -437,7 +437,7 @@ public class Converter {
                 if (connector.getDestination().equals(element))
                     parentClasses.add(ResourceFactory.createResource(elementURIs.get(connector.getSource())));
             } else {
-                LOGGER.error("Generalization connector \"{}\" does not specify a direction - skipping.", Util.getFullName(connector));
+                LOGGER.error("Generalization connector \"{}\" does not specify a direction - skipping.", connector.getPath());
             }
         }
 

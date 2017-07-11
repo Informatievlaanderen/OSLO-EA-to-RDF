@@ -112,6 +112,14 @@ class MemoryEAConnector implements EAConnector {
         return Collections.unmodifiableList(tags);
     }
 
+    @Override
+    public String getPath() {
+        if (getName() != null)
+            return getSource().getPath() + ":" + getName();
+        else
+            return getSource().getPath() + ":(" + getSource().getName() + " -> " + getDestination().getName() + ")";
+    }
+
     int getConnectorId() {
         return connectorId;
     }

@@ -8,30 +8,12 @@ import java.util.List;
  *
  * @author Dieter De Paepe
  */
-public interface EAPackage {
-    /**
-     * Gets the name of this package.
-     * @return the name
-     */
-    String getName();
-
-    /**
-     * Gets the GUID of the package.
-     * @return the GUID
-     */
-    String getGuid();
-
+public interface EAPackage extends EAObject {
     /**
      * Gets the primary stereotype of this package
      * @return the stereotype, or {@code null}
      */
     String getStereoType();
-
-    /**
-     * Gets the notes for this package.
-     * @return the notes, or {@code null}
-     */
-    String getNotes();
 
     /**
      * Gets the packages contained in this package.
@@ -56,10 +38,4 @@ public interface EAPackage {
      * @return an immutable list
      */
     List<? extends EADiagram> getDiagrams();
-
-    /**
-     * Get the tags associated with this package.
-     * @return never {@code null}
-     */
-    List<EATag> getTags();
 }

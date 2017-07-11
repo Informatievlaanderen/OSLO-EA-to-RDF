@@ -3,7 +3,7 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.Configuration;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.Mapping;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAObject;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 import com.google.common.base.Strings;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.graph.NodeFactory;
@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,9 +58,9 @@ public class TagHelper {
         for (Mapping mapping : mappings) {
             String value;
             if (mapping.isMandatory())
-                value = getMandatoryTag(source, mapping.getTag(), "TODO");
+                value = getSingleValue(source, mapping.getTag(), "TODO", true);
             else
-                value = getOptionalTag(source, mapping.getTag(), null);
+                value = getSingleValue(source, mapping.getTag(), null, false);
 
             if (value == null)
                 continue;
@@ -78,30 +79,35 @@ public class TagHelper {
     }
 
     /**
-     * Collects all relevant information from the tags of the specified package.
-     *
-     * @param eaPackage the package whose tags are to be extracted
+     * Collects all values for each of the specified mappings for the given object.
+     * @param object the object from which to extract the tags
+     * @param mappings all mappings to include
      * @return never {@code null}
      */
-    public List<TagData> getTagDataFor(EAPackage eaPackage) {
+    public List<TagData> getTagDataFor(EAObject object, Iterable<Mapping> mappings) {
         List<TagData> result = new ArrayList<>();
-        for (Mapping mapping : config.getOntologyMappings()) {
-            String value;
-            if (mapping.isMandatory())
-                value = getMandatoryTag(eaPackage, mapping.getTag(), "TODO");
-            else
-                value = getOptionalTag(eaPackage, mapping.getTag(), null);
+        for (Mapping mapping : mappings) {
+            List<String> tagValues = getTagValues(object.getTags(), mapping.getTag());
 
-            if (value == null)
-                continue;
+            Iterator<String> backupIterator = mapping.getFallbackTags() != null ? mapping.getFallbackTags().iterator() : Collections.emptyIterator();
+            while (tagValues.isEmpty() && backupIterator.hasNext())
+                tagValues = getTagValues(object.getTags(), backupIterator.next());
+
+            if (tagValues.isEmpty() && mapping.isMandatory()) {
+                LOGGER.warn("Missing \"{}\" tag for \"{}\".", mapping.getTag(), object.getPath());
+                tagValues = Collections.singletonList("TODO");
+            }
 
             if (RDFS.Resource.getURI().equals(mapping.getType())) {
-                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(value)));
+                for (String tagValue : tagValues)
+                    result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(tagValue)));
             } else if (Strings.isNullOrEmpty(mapping.getType()) || RDF.dtLangString.getURI().equals(mapping.getType())) {
-                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(value, mapping.getLang())));
+                for (String tagValue : tagValues)
+                    result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(tagValue, mapping.getLang())));
             } else {
                 RDFDatatype datatype = NodeFactory.getType(mapping.getType());
-                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createTypedLiteral(value, datatype)));
+                for (String tagValue : tagValues)
+                    result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createTypedLiteral(tagValue, datatype)));
             }
         }
 
@@ -109,19 +115,11 @@ public class TagHelper {
     }
 
     /**
-     * Gets all the names of relevant tags for the given scope.
+     * Collects the {@link Mapping#getTag()} values.
+     *
      * @return never {@code null}
      */
-    public List<String> getTagNamesFor(Scope scope) {
-        if (scope == Scope.NOTHING)
-            return Collections.emptyList();
-
-        List<Mapping> mappings;
-        if (scope == Scope.FULL_DEFINITON)
-            mappings = config.getInternalMappings();
-        else
-            mappings = config.getExternalMappings();
-
+    public List<String> getTagNames(List<Mapping> mappings) {
         return mappings.stream().map(Mapping::getTag).collect(Collectors.toList());
     }
 
@@ -129,85 +127,55 @@ public class TagHelper {
         return config.getBuiltinTags().getOrDefault(tag, tag.getDefaultTagName());
     }
 
-    public String getMandatoryTag(EAObject obj, Tag tag, String backup) {
-        return getMandatoryTag(obj, getTagKey(tag), backup);
-    }
-
-    public String getMandatoryTag(EAObject pack, String key, String backup) {
-        List<String> tags = pack.getTags().stream()
-                .filter(t -> key.equals(t.getKey()))
-                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
-                .collect(Collectors.toList());
-
-        if (tags.isEmpty()) {
-            LOGGER.warn("Missing \"{}\" tag for \"{}\".", key, Util.getFullName(pack));
-            return backup;
-        } else if (tags.size() > 1) {
-            LOGGER.warn("Multiple occurrences of tag \"{}\" for \"{}\".", key, Util.getFullName(pack));
-            return tags.get(0);
-        } else {
-            return tags.get(0);
-        }
-    }
-
-    public String getMandatoryTag(EAPackage pack, Tag tag, String backup) {
-        return getMandatoryTag(pack, getTagKey(tag), backup);
-    }
-
-    public String getMandatoryTag(EAPackage pack, String key, String backup) {
-        List<String> tags = pack.getTags().stream()
-                .filter(t -> key.equals(t.getKey()))
-                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
-                .collect(Collectors.toList());
-
-        if (tags.isEmpty()) {
-            LOGGER.warn("Missing \"{}\" tag for package \"{}\".", key, Util.getFullName(pack));
-            return backup;
-        } else if (tags.size() > 1) {
-            LOGGER.warn("Multiple occurrences of tag \"{}\" for package \"{}\".", key, Util.getFullName(pack));
-            return tags.get(0);
-        } else {
-            return tags.get(0);
-        }
-    }
-
-    public String getOptionalTag(EAObject obj, Tag tag, String backup) {
-        return getOptionalTag(obj, getTagKey(tag), backup);
-    }
-
-    public String getOptionalTag(EAObject pack, String key, String backup) {
-        List<String> values = pack.getTags().stream()
-                .filter(t -> key.equals(t.getKey()))
-                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
-                .collect(Collectors.toList());
-
-        if (values.isEmpty()) {
-            return backup;
-        } else if (values.size() > 1) {
-            LOGGER.warn("Multiple occurrences of tag \"{}\" for \"{}\".", key, Util.getFullName(pack));
-            return values.get(0);
-        } else {
-            return values.get(0);
-        }
-    }
-
-    public String getOptionalTag(EAPackage pack, Tag tag, String backup) {
+    public String getOptionalTag(EAObject pack, Tag tag, String backup) {
         return getOptionalTag(pack, getTagKey(tag), backup);
     }
 
-    public String getOptionalTag(EAPackage pack, String key, String backup) {
-        List<String> values = pack.getTags().stream()
-                .filter(t -> key.equals(t.getKey()))
-                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
-                .collect(Collectors.toList());
+    public String getOptionalTag(EAObject pack, String key, String backup) {
+        return getSingleValue(pack, key, backup, false);
+    }
+
+    public String getSingleValue(EAObject object, Tag tag, String backup, boolean warnIfMissing) {
+        return getSingleValue(object, getTagKey(tag), backup, warnIfMissing);
+    }
+
+    public String getSingleValue(EAObject object, String tag, String backup, boolean warnIfMissing) {
+        List<String> values = getTagValues(object.getTags(), tag);
 
         if (values.isEmpty()) {
+            if (warnIfMissing) {
+                LOGGER.warn("Missing \"{}\" tag for \"{}\".", tag, object.getPath());
+            }
             return backup;
         } else if (values.size() > 1) {
-            LOGGER.warn("Multiple occurrences of tag \"{}\" for package \"{}\".", key, Util.getFullName(pack));
+            LOGGER.warn("Multiple occurrences of tag \"{}\" where only one was expected for \"{}\".", tag, object.getPath());
             return values.get(0);
         } else {
             return values.get(0);
         }
+    }
+
+    /**
+     * Gathers the values of all tags with the given key.
+     */
+    private List<String> getTagValues(List<EATag> tags, String key) {
+        return tags.stream()
+                .filter(t -> key.equals(t.getKey()))
+                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
+                .collect(Collectors.toList());
+    }
+
+    public List<Mapping> getOntologyMappings() {
+        return config.getOntologyMappings();
+    }
+
+    public List<Mapping> getContentMappings(Scope scope) {
+        if (scope == Scope.NOTHING)
+            return Collections.emptyList();
+
+        if (scope == Scope.FULL_DEFINITON)
+            return config.getInternalMappings();
+        else
+            return config.getExternalMappings();
     }
 }

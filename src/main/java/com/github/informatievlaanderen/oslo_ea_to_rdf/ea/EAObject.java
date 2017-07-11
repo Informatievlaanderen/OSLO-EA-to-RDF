@@ -33,4 +33,13 @@ public interface EAObject {
      * @return never {@code null}
      */
     List<EATag> getTags();
+
+    /**
+     * Gets a user-friendly string that can be used to identify the object.
+     * <p>
+     * The string is built using the names of the {@code EAObject}s in a path-like way (eg: "package1.package2.classX").
+     *
+     * @return a string
+     */
+    String getPath();
 }
