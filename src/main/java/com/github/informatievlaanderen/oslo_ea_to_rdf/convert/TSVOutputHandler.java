@@ -169,11 +169,14 @@ public class TSVOutputHandler implements OutputHandler {
             write(source.connector.getGuid()); // GUID
             write(""); // Parent
             DiagramConnector dConnector = findInDiagram(source.connector);
-            if (EAConnector.Direction.SOURCE_TO_DEST.equals(dConnector.getLabelDirection())) {
+            EAConnector.Direction direction = dConnector.getLabelDirection();
+            if (direction == EAConnector.Direction.UNSPECIFIED)
+                direction = dConnector.getReferencedConnector().getDirection();
+            if (EAConnector.Direction.SOURCE_TO_DEST.equals(direction)) {
                 write(source.connector.getSource().getName()); // Domain
                 write(source.connector.getSource().getGuid()); // Domain GUID
                 write(source.connector.getDestination().getName()); // Range
-            } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(dConnector.getLabelDirection())) {
+            } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(direction)) {
                 write(source.connector.getDestination().getName()); // Domain
                 write(source.connector.getDestination().getGuid()); // Domain GUID
                 write(source.connector.getSource().getName()); // Range
