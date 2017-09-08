@@ -93,6 +93,9 @@ public class RDFOutputHandler implements OutputHandler {
                 model.add(clazz, OWL.oneOf, model.createList(allowedValues.iterator()));
         }
 
+        if (scope == Scope.TRANSLATIONS_ONLY && !tagHelper.getContentMappings(scope).isEmpty())
+            model.add(clazz, RDF.type, RDFS.Class);
+
         for (TagData tag : tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(scope))) {
             model.add(clazz, tag.getProperty(), tag.getValue());
         }
@@ -118,6 +121,9 @@ public class RDFOutputHandler implements OutputHandler {
             for (Resource superProperty : superProperties)
                 model.add(property, RDFS.subPropertyOf, superProperty);
         }
+
+        if (scope == Scope.TRANSLATIONS_ONLY && !tagHelper.getContentMappings(scope).isEmpty())
+            model.add(property, RDF.type, RDF.Property);
 
         for (TagData tag : tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(scope))) {
             model.add(property, tag.getProperty(), tag.getValue());
