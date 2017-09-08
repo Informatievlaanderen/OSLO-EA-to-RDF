@@ -65,14 +65,15 @@ Enumerations are restricted to one of the specified values using `owl:oneOf`.
 
 Tags:
 
-- (optional) `ignore`: A boolean flag that will make the tool ignore this element and its attributes (eg: `true`).
+- (optional) `ignore`: A boolean flag that will make the tool ignore this element, its attributes and
+connectors (eg: `true`).
 - (optional) `literal`: A boolean flag to indicate whether this element represents a literal type.
 Reflected in the type of the properties referring to this element. (Defaults to `false`.) 
 - (optional) `name`: The string used to complete the URI for this element.
  If not specified, the name of the class/datatype will be used.
  (Eg: specifying `Canine` as `name` on a class called `Dog` will result in the URI `http://example.org/ns#Canine`.)
 - (optional) `package`: The name of the package (representing an ontology) that should define the translations
- for the externally defined class. Only useful in combination with the `uri` tag. Defaults to the
+ for the externally defined class. Defaults to the
  name of the package in which this element is defined. [More details below.](#specifying-packages)
 - (optional) `uri`: The URI of the externally defined class, this will take preference over the `baseURI`/`name` combo.
  Eg: `http://example.org/ns/special#Canine`.
@@ -146,18 +147,21 @@ when running this tool. There are 3 options:
 - An external term: the term is externally defined and reused by us, we may want to add some
 additional information to it, such as a translation.
  This uses the `externalMapping` from the configuration.
-- An internal, nonactive term: the term is defined by us, but in a different diagram.
+- An nonactive term: the term is defined in a different diagram.
  In this case nothing will be outputted.
 
 ### Class, Datatype & Enumeration
 
 The term is seen as an internal, active term when:
 - there is no `uri` tag present
-- the element is defined in the package being exported
+- the element is defined in, or has its `package` tag set to the package being exported
 
 It is considered an external term when:
 - there is a `uri` tag present
-- the `package` tag (or its default value) refers to the package being exported
+- the element is defined in, or has its `package` tag set to the package being exported
+
+The term is seen as an nonactive term when:
+- the element is not defined in the package being exported
 
 ### Attributes & Connectors
 

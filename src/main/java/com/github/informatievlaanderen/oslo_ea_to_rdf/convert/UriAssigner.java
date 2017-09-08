@@ -36,7 +36,8 @@ public class UriAssigner {
         Map<EAConnector, String> connectorURIs = new HashMap<>();
         Map<EAConnector, EAPackage> definingPackages = new HashMap<>();
 
-        assignNonConnectorURIs(packages, packageURIs, ontologyURIs, elementURIs, attributeURIs, instanceURIs);
+        assignPackageURIs(packages, packageURIs, ontologyURIs);
+        assignNonConnectorURIs(packages, packageURIs, elementURIs, attributeURIs, instanceURIs, nameToPackages);
 
         // A connector can reference a package as its defining package, meaning it takes on the base URI of that package.
         // This means connectors need to be handled after all package names are assigned an URI.
@@ -124,9 +125,8 @@ public class UriAssigner {
         return new Result(packageURIs, ontologyURIs, elementURIs, attributeURIs, connectorURIs, instanceURIs, definingPackages);
     }
 
-    private void assignNonConnectorURIs(Iterable<EAPackage> packages, Map<EAPackage, String> packageURIs,
-                                        Map<EAPackage, String> ontologyURIs, Map<EAElement, String> elementURIs,
-                                        Map<EAAttribute, String> attributeURIs, Map<EAAttribute, String> instanceURIs) {
+    private void assignPackageURIs(Iterable<EAPackage> packages, Map<EAPackage, String> packageURIs,
+                                   Map<EAPackage, String> ontologyURIs) {
         for (EAPackage eaPackage : packages) {
             if (Boolean.valueOf(tagHelper.getOptionalTag(eaPackage, Tag.IGNORE, "false")))
                 continue;
@@ -135,23 +135,67 @@ public class UriAssigner {
             String namespace = packageURI.substring(0, packageURI.length() - 1);
             String ontologyURI = tagHelper.getOptionalTag(eaPackage, PACKAGE_ONTOLOGY_URI, namespace);
             packageURIs.put(eaPackage, packageURI);
-            ontologyURIs.put(eaPackage,ontologyURI);
+            ontologyURIs.put(eaPackage, ontologyURI);
+        }
+    }
+
+    private void assignNonConnectorURIs(Iterable<EAPackage> packages, Map<EAPackage, String> packageURIs,
+                                        Map<EAElement, String> elementURIs,
+                                        Map<EAAttribute, String> attributeURIs, Map<EAAttribute, String> instanceURIs,
+                                        Multimap<String, EAPackage> nameToPackages) {
+        for (EAPackage eaPackage : packages) {
+            if (Boolean.valueOf(tagHelper.getOptionalTag(eaPackage, Tag.IGNORE, "false")))
+                continue;
+
+            String packageURI = packageURIs.get(eaPackage);
 
             for (EAElement element : eaPackage.getElements()) {
                 if (Boolean.valueOf(tagHelper.getOptionalTag(element, Tag.IGNORE, "false")))
                     continue;
 
-                elementURIs.put(element, extractURI(element, packageURI));
+                String elementPackageURI = packageURI;
+
+                String packageName = tagHelper.getOptionalTag(element, Tag.DEFINING_PACKAGE, null);
+                if (packageName != null) {
+                    Collection<EAPackage> referencedPackages = nameToPackages.get(packageName);
+                    if (referencedPackages.size() == 0) {
+                        LOGGER.warn("Specified package \"{}\" for element \"{}\" was not found.", packageName, element.getPath());
+                    } else if (referencedPackages.size() == 1) {
+                        elementPackageURI = packageURIs.get(referencedPackages.iterator().next());
+                    } else {
+                        LOGGER.warn("Ambiguous package name \"{}\" specified for element \"{}\", it matches multiple packages in the project.", packageName, element.getPath());
+                        elementPackageURI = packageURIs.get(referencedPackages.iterator().next());
+                    }
+                }
+                elementURIs.put(element, extractURI(element, elementPackageURI));
 
                 for (EAAttribute attribute : element.getAttributes()) {
                     if (Boolean.valueOf(tagHelper.getOptionalTag(attribute, Tag.IGNORE, "false")))
                         continue;
 
+                    String attributePackageURI = packageURI;
+
+                    packageName = tagHelper.getOptionalTag(attribute, Tag.DEFINING_PACKAGE, null);
+                    if (packageName != null) {
+                        Collection<EAPackage> referencedPackages = nameToPackages.get(packageName);
+                        if (referencedPackages.size() == 0) {
+                            LOGGER.warn("Specified package \"{}\" for attribute \"{}\" was not found.", packageName, attribute.getPath());
+                        } else if (referencedPackages.size() == 1) {
+                            attributePackageURI = packageURIs.get(referencedPackages.iterator().next());
+                        } else {
+                            LOGGER.warn("Ambiguous package name \"{}\" specified for attribute \"{}\", it matches multiple packages in the project.", packageName, element.getPath());
+                            attributePackageURI = packageURIs.get(referencedPackages.iterator().next());
+                        }
+                    }
+
                     if (element.getType() == EAElement.Type.ENUMERATION) {
+                        String namespace = attributePackageURI;
+                        if (namespace.endsWith("/") || namespace.endsWith("#"))
+                            namespace = namespace.substring(0, attributePackageURI.length() - 1);
                         String instanceNamespace = namespace + "/" + tagHelper.getOptionalTag(element, LOCALNAME, element.getName()) + "/";
                         instanceURIs.put(attribute, extractURI(attribute, instanceNamespace));
                     } else {
-                        String uri = extractURI(attribute, packageURI);
+                        String uri = extractURI(attribute, attributePackageURI);
                         try {
                             ResourceFactory.createProperty(uri);
                             attributeURIs.put(attribute, uri);
