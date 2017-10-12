@@ -1,7 +1,7 @@
 # OSLO Configuration
 
-The (first version?) of the OSLO² ontologies were published [online](http://data.vlaanderen.be/ns/)
-on 2017-03-31. The ontologies were created using `v1.0` of this tool and using the configuration
+The second iteration of the OSLO² vocabularies were published [online](http://data.vlaanderen.be/ns/)
+on 2017-10-12. The vocabularies were created using `v2.1` of this tool and using the configuration
 listed below.
 
 ## Core vocabulary terms
@@ -20,6 +20,7 @@ Configuration:
       prefixes: {
         cpsv: "http://purl.org/vocab/cpsv#",
         dcterms: "http://purl.org/dc/terms/",
+        eli: "http://data.europa.eu/eli/ontology#",
         eu: "http://data.europa.eu/m8g/",
         foaf: "http://xmlns.com/foaf/0.1/",
         rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -67,6 +68,12 @@ Configuration:
           property: "http://purl.org/dc/terms/issued",
           mandatory: true,
           type: "http://www.w3.org/2001/XMLSchema#date"
+        },
+        {
+          tag: "license",
+          property: "http://purl.org/dc/terms/license",
+          mandatory: true,
+          type: "http://www.w3.org/2000/01/rdf-schema#Resource"
         }
       ],
       internalMappings: [
@@ -102,7 +109,7 @@ Configuration:
           property: "http://purl.org/vocab/vann/usageNote",
           lang: "en"
         },
-    	{
+        {
           tag: "equivalent",
           property: "http://www.w3.org/2002/07/owl#equivalentClass",
           type: "http://www.w3.org/2000/01/rdf-schema#Resource"
@@ -112,12 +119,6 @@ Configuration:
         {
           tag: "label-nl",
           property: "http://www.w3.org/2000/01/rdf-schema#label",
-          mandatory: false,
-          lang: "nl"
-        },
-        {
-          tag: "definition-nl",
-          property: "http://www.w3.org/2000/01/rdf-schema#comment",
           mandatory: false,
           lang: "nl"
         }
@@ -137,6 +138,7 @@ Configuration:
       prefixes: {
         cpsv: "http://purl.org/vocab/cpsv#",
         dcterms: "http://purl.org/dc/terms/",
+        eli: "http://data.europa.eu/eli/ontology#",
         eu: "http://data.europa.eu/m8g/",
         foaf: "http://xmlns.com/foaf/0.1/",
         rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -158,13 +160,15 @@ Configuration:
         {
           tag: "ap-label-nl",
           property: "http://www.w3.org/2000/01/rdf-schema#label",
-          lang: "nl"
+          lang: "nl",
+          fallbackTags: ["label-nl"]
         },
         {
           tag: "ap-definition-nl",
           property: "http://www.w3.org/2000/01/rdf-schema#comment",
           mandatory: true,
-          lang: "nl"
+          lang: "nl",
+          fallbackTags: ["definition-nl"]
         },
         {
           tag: "ap-usageNote-nl",
@@ -180,12 +184,14 @@ Configuration:
         {
           tag: "ap-label-nl",
           property: "http://www.w3.org/2000/01/rdf-schema#label",
-          lang: "nl"
+          lang: "nl",
+          fallbackTags: ["label-nl"]
         },
         {
           tag: "ap-definition-nl",
           property: "http://www.w3.org/2000/01/rdf-schema#comment",
-          lang: "nl"
+          lang: "nl",
+          fallbackTags: ["definition-nl"]
         },
         {
           tag: "ap-usageNote-nl",
