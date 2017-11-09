@@ -246,34 +246,34 @@ public class UriAssigner {
             EAPackage definingPackage = null;
             String connectorURI = tagHelper.getOptionalTag(connector, Tag.EXTERNAL_URI, null);
 
+            String packageName = tagHelper.getOptionalTag(connector, Tag.DEFINING_PACKAGE, null);
+            Collection<EAPackage> connectionPackage = nameToPackages.get(packageName);
+            if (connectionPackage.size() >= 2) {
+                LOGGER.warn("Ambiguous package name specified for connector \"{}\", it matches multiple packages in the project.", connector.getPath());
+                definingPackage = connectionPackage.iterator().next();
+            } else if (connectionPackage.size() == 1) {
+                definingPackage = connectionPackage.iterator().next();
+            } else {
+                EAPackage srcPackage = connector.getSource().getPackage();
+                EAPackage dstPackage = connector.getDestination().getPackage();
+                if (srcPackage.equals(dstPackage)) {
+                    definingPackage = srcPackage;
+                    LOGGER.info("Assuming connector \"{}\" belongs to package \"{}\" based on source and target definition.", connector.getPath(), definingPackage.getName());
+                }
+            }
+
+            if (definingPackage == null) {
+                LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", connector.getPath());
+                continue;
+            }
+
+            String packageURI = packageURIs.get(definingPackage);
+            if (packageURI == null) {
+                LOGGER.warn("Connector \"{}\" is defined on an non existing package, it will be ignored.", connector.getPath());
+                continue;
+            }
+
             if (connectorURI == null) {
-                String packageName = tagHelper.getOptionalTag(connector, Tag.DEFINING_PACKAGE, null);
-                Collection<EAPackage> connectionPackage = nameToPackages.get(packageName);
-                if (connectionPackage.size() >= 2) {
-                    LOGGER.warn("Ambiguous package name specified for connector \"{}\", it matches multiple packages in the project.", connector.getPath());
-                    definingPackage = connectionPackage.iterator().next();
-                } else if (connectionPackage.size() == 1) {
-                    definingPackage = connectionPackage.iterator().next();
-                } else {
-                    EAPackage srcPackage = connector.getSource().getPackage();
-                    EAPackage dstPackage = connector.getDestination().getPackage();
-                    if (srcPackage.equals(dstPackage)) {
-                        definingPackage = srcPackage;
-                        LOGGER.info("Assuming connector \"{}\" belongs to package \"{}\" based on source and target definition.", connector.getPath(), definingPackage.getName());
-                    }
-                }
-
-                if (definingPackage == null) {
-                    LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", connector.getPath());
-                    continue;
-                }
-
-                String packageURI = packageURIs.get(definingPackage);
-                if (packageURI == null) {
-                    LOGGER.warn("Connector \"{}\" is defined on an non existing package, it will be ignored.", connector.getPath());
-                    continue;
-                }
-
                 String localName = tagHelper.getOptionalTag(connector, LOCALNAME, connector.getName());
                 if (localName == null) {
                     LOGGER.error("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
@@ -348,7 +348,6 @@ public class UriAssigner {
         public final Map<EAAttribute, String> instanceURIs;
         /**
          * Maps each connector to the package it was assigned to. Contains the keys that {@code connectorURIs} contains.
-         * Contains null values for connectors with external URI.
          */
         public final Map<EAConnector, EAPackage> definingPackages;
 
