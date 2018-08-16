@@ -10,7 +10,6 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
-import javafx.geometry.Rectangle2D;
 
 import java.io.File;
 import java.sql.*;
@@ -133,15 +132,10 @@ public class MemoryRepositoryBuilder {
             while (rs.next()) {
                 int diagramId = rs.getInt("Diagram_ID");
                 int objectId = rs.getInt("Object_ID");
-                int top = rs.getInt("RectTop");
-                int left = rs.getInt("RectLeft");
-                int right = rs.getInt("RectRight");
-                int bottom = rs.getInt("RectBottom");
 
                 MemoryDiagramElement diagramClass = new MemoryDiagramElement(
                         diagrams.get(diagramId),
-                        elements.get(objectId),
-                        new Rectangle2D(left, bottom, right - left, top - bottom)
+                        elements.get(objectId)
                 );
 
                 diagrams.get(diagramId).getClassesOrig().add(diagramClass);

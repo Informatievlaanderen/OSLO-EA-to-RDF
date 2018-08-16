@@ -4,7 +4,6 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.DiagramConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.DiagramElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EADiagram;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
-import javafx.geometry.Rectangle2D;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,13 +16,11 @@ class MemoryDiagramElement implements DiagramElement {
     private EADiagram diagram;
     private EAElement innerElement;
     private List<DiagramConnector> connectors;
-    private Rectangle2D rect;
 
-    MemoryDiagramElement(EADiagram diagram, EAElement element, Rectangle2D rect) {
+    MemoryDiagramElement(EADiagram diagram, EAElement element) {
         this.diagram = diagram;
         this.innerElement = element;
         this.connectors = new ArrayList<>();
-        this.rect = rect;
     }
 
     @Override
@@ -34,11 +31,6 @@ class MemoryDiagramElement implements DiagramElement {
     @Override
     public EADiagram getDiagram() {
         return diagram;
-    }
-
-    @Override
-    public Rectangle2D getBoundaries() {
-        return rect;
     }
 
     @Override

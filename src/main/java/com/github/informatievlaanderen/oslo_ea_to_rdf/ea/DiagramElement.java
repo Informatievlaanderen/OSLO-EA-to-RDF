@@ -1,7 +1,5 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea;
 
-import javafx.geometry.Rectangle2D;
-
 import java.util.List;
 
 /**
@@ -23,12 +21,6 @@ public interface DiagramElement {
      * @return the diagram
      */
     EADiagram getDiagram();
-
-    /**
-     * Gets the boundaries in which the element is displayed in the diagram.
-     * @return the boundaries
-     */
-    Rectangle2D getBoundaries();
 
     /**
      * Gets the diagram specific links for this element.
