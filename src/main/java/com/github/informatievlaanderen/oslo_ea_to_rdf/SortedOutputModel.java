@@ -9,8 +9,6 @@ import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.ResIteratorImpl;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 /**
  * A Jena-compatible model that outputs its elements in alphabetical order.
@@ -25,7 +23,7 @@ public class SortedOutputModel extends ModelCom {
         ResIterator resIterator = super.listSubjects();
 
         ArrayList<Resource> subjects = Lists.newArrayList(resIterator);
-        Collections.sort(subjects, (o1, o2) -> ComparisonChain.start()
+        subjects.sort((o1, o2) -> ComparisonChain.start()
                 .compare(o1.getNameSpace(), o2.getNameSpace(), Ordering.natural().nullsLast())
                 .compare(o1.getLocalName(), o2.getLocalName(), Ordering.natural().nullsLast())
                 .result());

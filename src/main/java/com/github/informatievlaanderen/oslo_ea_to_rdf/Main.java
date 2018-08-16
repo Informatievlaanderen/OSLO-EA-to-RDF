@@ -1,9 +1,6 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.ParameterException;
-import com.beust.jcommander.Parameters;
+import com.beust.jcommander.*;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.*;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.Configuration;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.config.InvalidConfigurationException;
@@ -28,8 +25,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Entry class for command line.
@@ -55,7 +51,7 @@ public class Main {
         } catch (ParameterException e) {
             System.out.println(e.getMessage());
             jCommander.usage();
-            System.exit(-1);
+            System.exit(1);
         }
 
         if (args.help) {
@@ -94,10 +90,13 @@ public class Main {
             }
         } catch (SQLException e) {
             LOGGER.error("An error occurred while reading the EA model.", e);
+            System.exit(2);
         } catch (ConversionException | IOException e) {
             LOGGER.error("An error occurred during conversion.",  e);
+            System.exit(3);
         } catch (InvalidConfigurationException e) {
             LOGGER.error("Invalid configuration specified.", e);
+            System.exit(1);
         }
     }
 
