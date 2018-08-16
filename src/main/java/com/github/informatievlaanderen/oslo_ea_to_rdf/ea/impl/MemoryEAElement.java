@@ -1,6 +1,7 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
+import com.google.gson.annotations.Expose;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,8 +12,10 @@ import java.util.List;
  */
 class MemoryEAElement implements EAElement {
     private int objectID;
+    @Expose
     private String name;
     private String notes;
+    @Expose
     private String guid;
     private String stereotype;
     private Type type;

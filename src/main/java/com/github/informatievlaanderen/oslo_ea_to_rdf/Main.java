@@ -11,9 +11,7 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EARepository;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryRepositoryBuilder;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Collections2;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
@@ -45,6 +43,8 @@ public class Main {
         jCommander.addCommand("convert", convertRDFArgs);
         ConvertDiagramToTSVArgs convertTSVArgs = new ConvertDiagramToTSVArgs();
         jCommander.addCommand("tsv", convertTSVArgs);
+        DefaultProvider defaultProvider = new DefaultProvider();
+        jCommander.setDefaultProvider(defaultProvider);
 
         try {
             jCommander.parse(rawArgs);
@@ -62,7 +62,19 @@ public class Main {
         try {
             if ("list".equals(jCommander.getParsedCommand())) {
                 EARepository repo = new MemoryRepositoryBuilder().build(listArgs.eaFile);
-                new StructurePrinter().execute(repo, listArgs.printElements);
+                if (listArgs.ouputFormat == OutputFormat.txt) {
+                    new StructurePrinter().execute(repo, listArgs.printElements);
+                } else {
+                    // Gson annotations have been set so that no nested structures are printed
+                    // Since the EARepository contains a list of all elements at the top, we still get all necessary
+                    // information for the GUI application, even if we can't reconstruct the tree from the actual json
+                    // When we start using this json output for different purposes, we might consider changing this (or
+                    // provide commandline flags to modify the behaviour)
+                    Gson gson = new GsonBuilder()
+                            .excludeFieldsWithoutExposeAnnotation()
+                            .create();
+                    System.out.print(gson.toJson(repo));
+                }
             } else if ("convert".equals(jCommander.getParsedCommand())) {
                 Configuration config = loadConfig(convertRDFArgs.config);
                 EARepository repo  = new MemoryRepositoryBuilder().build(convertRDFArgs.eaFile);
@@ -138,6 +150,9 @@ public class Main {
 
         @Parameter(names = {"--full"}, description = "Also print classes, enumerations and datatypes.")
         boolean printElements;
+
+        @Parameter(names = {"--format"}, description = "The output format. Default: txt.")
+        OutputFormat ouputFormat;
     }
 
     @Parameters(commandDescription = "Convert a diagram from an EA file to a RDF turtle file.")
@@ -174,5 +189,16 @@ public class Main {
 
         @Parameter(names = {"-c", "--config"}, required = true, description = "JSON configuration file for mappings.")
         File config;
+    }
+
+    private static class DefaultProvider implements IDefaultProvider {
+        private final List<String> format = Collections.singletonList("--format");
+        public String getDefaultValueFor(String optionName) {
+            return format.contains(optionName) ? "txt" : null;
+        }
+    }
+
+    private enum OutputFormat {
+        txt, json
     }
 }

@@ -4,6 +4,7 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EADiagram;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
+import com.google.gson.annotations.Expose;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +14,9 @@ import java.util.List;
  * @author Dieter De Paepe
  */
 class MemoryEAPackage implements EAPackage {
+    @Expose
     private String name;
+    @Expose
     private String guid;
     private String stereoType;
     private String notes;
