@@ -124,20 +124,28 @@ public class NormalizedEAConnector implements EAConnector {
 
     @Override
     public String getSourceCardinality() {
-        if (part == ConnectionPart.SOURCE_TO_ASSOCIATION)
+        if (part == ConnectionPart.ASSOCIATION_TO_DESTINATION)
             return inner.getSourceCardinality();
-        if (part == ConnectionPart.DESTINATION_TO_ASSOCIATION)
+        if (part == ConnectionPart.ASSOCIATION_TO_SOURCE)
             return inner.getDestinationCardinality();
-        return null;
+        if (part == ConnectionPart.SOURCE_TO_ASSOCIATION)
+            return "1";
+        if (part == ConnectionPart.DESTINATION_TO_ASSOCIATION)
+            return "1";
+        throw new IllegalStateException();
     }
 
     @Override
     public String getDestinationCardinality() {
-        if (part == ConnectionPart.ASSOCIATION_TO_DESTINATION)
+        if (part == ConnectionPart.SOURCE_TO_ASSOCIATION)
             return inner.getDestinationCardinality();
-        if (part == ConnectionPart.ASSOCIATION_TO_SOURCE)
+        if (part == ConnectionPart.DESTINATION_TO_ASSOCIATION)
             return inner.getSourceCardinality();
-        return null;
+        if (part == ConnectionPart.ASSOCIATION_TO_DESTINATION)
+            return "1";
+        if (part == ConnectionPart.ASSOCIATION_TO_SOURCE)
+            return "1";
+        throw new IllegalStateException();
     }
 
     @Override
