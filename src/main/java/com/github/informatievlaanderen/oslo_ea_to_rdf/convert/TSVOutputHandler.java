@@ -150,7 +150,8 @@ public class TSVOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
+    public void handleProperty(PropertySource source, Resource property, Scope scope,
+                               PackageExported packageExported, Resource ontology,
                                Resource propertyType, Resource domain, Resource range,
                                String lowerbound, String upperbound, List<Resource> superProperties) {
         if (source.attribute != null) {

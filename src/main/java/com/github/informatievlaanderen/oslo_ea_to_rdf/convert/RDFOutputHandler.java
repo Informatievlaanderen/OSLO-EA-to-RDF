@@ -11,6 +11,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -26,6 +28,8 @@ import java.util.Map;
  * @author Dieter De Paepe
  */
 public class RDFOutputHandler implements OutputHandler {
+    private final Logger LOGGER = LoggerFactory.getLogger(RDFOutputHandler.class);
+
     private Model model;
     private TagHelper tagHelper;
     private boolean forceFullOutput;
@@ -102,11 +106,18 @@ public class RDFOutputHandler implements OutputHandler {
     }
 
     @Override
-    public void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
+    public void handleProperty(PropertySource source, Resource property, Scope scope,
+                               PackageExported packageExported, Resource ontology,
                                Resource propertyType, Resource domain, Resource range,
                                String lowerbound, String upperbound, List<Resource> superProperties) {
         if (!forceFullOutput && scope == Scope.NOTHING)
             return;
+
+        if (packageExported == PackageExported.UNKNOWN) {
+            // Can only occur for connectors
+            LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", source.connector.getPath());
+            return;
+        }
 
         if (scope == Scope.FULL_DEFINITON)
             model.add(property, RDFS.isDefinedBy, ontology);

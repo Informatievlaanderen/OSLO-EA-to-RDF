@@ -306,6 +306,7 @@ public class Converter {
                 OutputHandler.PropertySource.from(attribute),
                 attResource,
                 scope,
+                scope == Scope.FULL_DEFINITON ? PackageExported.ACTIVE_PACKAGE : PackageExported.OTHER_PACKAGE,
                 ontology,
                 propertyType,
                 domain,
@@ -386,18 +387,26 @@ public class Converter {
                 }
 
                 EAPackage definingPackage = definingPackages.get(connector);
-                boolean currentPackageTerm = convertedPackage.equals(definingPackage);
+                PackageExported packageExported;
+                if (definingPackage == null)
+                    packageExported = PackageExported.UNKNOWN;
+                else if (convertedPackage.equals(definingPackage))
+                    packageExported = PackageExported.ACTIVE_PACKAGE;
+                else
+                    packageExported = PackageExported.OTHER_PACKAGE;
+
                 boolean externalTerm = tagHelper.getOptionalTag(connector, Tag.EXTERNAL_URI, null) != null;
                 Scope scope = Scope.NOTHING;
-                if (!externalTerm && currentPackageTerm)
+                if (!externalTerm && packageExported == PackageExported.ACTIVE_PACKAGE)
                     scope = Scope.FULL_DEFINITON;
-                else if (externalTerm && currentPackageTerm)
+                else if (externalTerm && packageExported == PackageExported.ACTIVE_PACKAGE)
                     scope = Scope.TRANSLATIONS_ONLY;
 
                 outputHandler.handleProperty(
                         OutputHandler.PropertySource.from(connector),
                         connResource,
                         scope,
+                        packageExported,
                         ontology,
                         rangeIsLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty,
                         domain,

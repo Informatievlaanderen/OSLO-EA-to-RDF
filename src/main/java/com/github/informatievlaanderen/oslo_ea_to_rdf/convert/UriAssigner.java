@@ -262,18 +262,18 @@ public class UriAssigner {
                 }
             }
 
-            if (definingPackage == null) {
-                LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", connector.getPath());
-                continue;
-            }
-
-            String packageURI = packageURIs.get(definingPackage);
-            if (packageURI == null) {
-                LOGGER.warn("Connector \"{}\" is defined on an non existing package, it will be ignored.", connector.getPath());
-                continue;
-            }
-
             if (connectorURI == null) {
+                if (definingPackage == null) {
+                    LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", connector.getPath());
+                    continue;
+                }
+
+                String packageURI = packageURIs.get(definingPackage);
+                if (packageURI == null) {
+                    LOGGER.warn("Connector \"{}\" is defined on an non existing package, it will be ignored.", connector.getPath());
+                    continue;
+                }
+
                 String localName = tagHelper.getOptionalTag(connector, LOCALNAME, connector.getName());
                 if (localName == null) {
                     LOGGER.error("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());

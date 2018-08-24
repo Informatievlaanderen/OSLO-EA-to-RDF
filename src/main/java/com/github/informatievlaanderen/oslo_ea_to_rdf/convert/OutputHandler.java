@@ -40,6 +40,7 @@ public interface OutputHandler {
      * @param source the source EA element
      * @param property the resource representing the property
      * @param scope hint on how to handle this property in the output
+     * @param packageExported info which package the property belongs to
      * @param ontology the ontology in which the property is defined
      * @param propertyType the type of the property (owl:Property, owl:ObjectProperty, owl:DataProperty)
      * @param domain nullable, domain of the property
@@ -48,9 +49,9 @@ public interface OutputHandler {
      * @param lowerbound lower cardinality
      * @param upperbound higher cardinality
      */
-    void handleProperty(PropertySource source, Resource property, Scope scope, Resource ontology,
-                        Resource propertyType, Resource domain, Resource range, String lowerbound, String upperbound,
-                        List<Resource> superProperties);
+    void handleProperty(PropertySource source, Resource property, Scope scope, PackageExported packageExported,
+                        Resource ontology, Resource propertyType, Resource domain, Resource range,
+                        String lowerbound, String upperbound, List<Resource> superProperties);
 
     /**
      * Handles the definition of an instance of a class.
