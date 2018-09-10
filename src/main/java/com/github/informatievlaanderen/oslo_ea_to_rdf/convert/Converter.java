@@ -372,7 +372,7 @@ public class Converter {
                 if (customDomain != null)
                     domain = ResourceFactory.createResource(customDomain);
                 if (customRange != null)
-                    domain = ResourceFactory.createResource(customRange);
+                    range = ResourceFactory.createResource(customRange);
 
                 String lowerCardinality = null;
                 String higherCardinality = null;
