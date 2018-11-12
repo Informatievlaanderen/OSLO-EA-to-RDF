@@ -21,7 +21,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -43,6 +45,8 @@ public class Main {
         jCommander.addCommand("convert", convertRDFArgs);
         ConvertDiagramToTSVArgs convertTSVArgs = new ConvertDiagramToTSVArgs();
         jCommander.addCommand("tsv", convertTSVArgs);
+        ConvertDiagramToJSONLDArgs convertJSONLDArgs = new ConvertDiagramToJSONLDArgs();
+        jCommander.addCommand("jsonld", convertJSONLDArgs);
         DefaultProvider defaultProvider = new DefaultProvider();
         jCommander.setDefaultProvider(defaultProvider);
 
@@ -96,6 +100,21 @@ public class Main {
                     TSVOutputHandler tsvOutputHandler = new TSVOutputHandler(writer, tagHelper, diagram);
                     new Converter(repo, tagHelper, tsvOutputHandler)
                             .convertDiagram(diagram);
+                }
+            } else if ("jsonld".equals(jCommander.getParsedCommand())) {
+                Configuration config = loadConfig(convertJSONLDArgs.config);
+                EARepository repo = new MemoryRepositoryBuilder().build(convertJSONLDArgs.eaFile);
+
+                Files.createDirectories(convertJSONLDArgs.outputFile.toPath().toAbsolutePath().getParent());
+                try (BufferedWriter writer = Files.newBufferedWriter(convertJSONLDArgs.outputFile.toPath(), Charsets.UTF_8)) {
+                    EADiagram diagram = findByName(repo, convertJSONLDArgs.diagramName);
+                    TagHelper tagHelper = new TagHelper(config);
+                    JSONLDOutputHandler jsonldOutputHandler = new JSONLDOutputHandler(convertJSONLDArgs.name, convertJSONLDArgs.contributors, writer, tagHelper, diagram);
+                    new Converter(repo, tagHelper, jsonldOutputHandler)
+                            .convertDiagram(diagram);
+                    jsonldOutputHandler.handleContributers(new URL("https://raw.githubusercontent.com/Informatievlaanderen/Data.Vlaanderen.be/test/src/stakeholders.csv"));
+                    jsonldOutputHandler.writeToFile(convertJSONLDArgs.outputFile.toPath());
+                    jsonldOutputHandler.writeRapportToFile("myreport.txt");
                 }
             } else {
                 jCommander.usage();
@@ -189,6 +208,27 @@ public class Main {
 
         @Parameter(names = {"-c", "--config"}, required = true, description = "JSON configuration file for mappings.")
         File config;
+    }
+
+    @Parameters(commandDescription = "Create a JSONLD table of all term information.")
+    private static class ConvertDiagramToJSONLDArgs {
+        @Parameter(names = {"-i", "--input"}, required = true, description = "The EA project file.")
+        File eaFile;
+
+        @Parameter(names = {"-d", "--diagram"}, required = true, description = "The name of the diagram to convert.")
+        String diagramName;
+
+        @Parameter(names = {"-o", "--output"}, required = true, description = "Output file name.")
+        File outputFile;
+
+        @Parameter(names = {"-c", "--config"}, required = true, description = "JSON configuration file for mappings.")
+        File config;
+
+        @Parameter(names = {"--contributors"}, required = true, description = "Column in the contributors CSV file that indicates who contributred to this ontology.")
+        String contributors;
+
+        @Parameter(names = {"-n", "--name"}, required = true, description = "The name of the ontology")
+        String name;
     }
 
     private static class DefaultProvider implements IDefaultProvider {
