@@ -269,8 +269,12 @@ public class JSONLDOutputHandler implements OutputHandler {
 //                this.conversionReport.addRemark("[ ] relation direction for source " + source.toString() + " was not found.");
 //            }
 //        }
-        propertyDescription.getDomain().add(domain.getURI());
-        propertyDescription.getRange().add(range.getURI());
+        if(domain != null) {
+            propertyDescription.getDomain().add(domain.getURI());
+        }
+        if(range != null) {
+            propertyDescription.getRange().add(range.getURI());
+        }
 
         String parent = JOINER.join(Iterables.transform(superProperties, Resource::getURI));
         if(parent.length() > 0) {
