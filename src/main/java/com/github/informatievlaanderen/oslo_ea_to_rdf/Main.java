@@ -102,8 +102,12 @@ public class Main {
                             .convertDiagram(diagram);
                 }
             } else if ("jsonld".equals(jCommander.getParsedCommand())) {
-                ThemaConfiguration[] themaConfigurations = getThemaConfiguration(convertJSONLDArgs.config);
-                for(ThemaConfiguration themaConfiguration : themaConfigurations) {
+                ThemaConfiguration themaConfiguration = getThemaConfiguration(convertJSONLDArgs.config, convertJSONLDArgs.name);
+                if(themaConfiguration == null) {
+                    // the configuration for ontology with passed name was not found.
+                    System.out.println("Could not find ontology with name: " + convertJSONLDArgs.name +
+                    " in configuration file: " + convertJSONLDArgs.config);
+                } else {
                     Configuration config = loadConfig(new File(themaConfiguration.getConfig()));
                     EARepository repo = new MemoryRepositoryBuilder().build(new File(themaConfiguration.getEap()));
                     File outputFile = new File(System.getProperty("user.dir") + "/" + themaConfiguration.getName() + ".jsonld");
@@ -146,10 +150,16 @@ public class Main {
         return diagrams.iterator().next();
     }
 
-    private static ThemaConfiguration[] getThemaConfiguration(File themaConfiguration) throws IOException{
-        String jsonString = new String(Files.readAllBytes(themaConfiguration.toPath()));
+    private static ThemaConfiguration getThemaConfiguration(File themaConfigurationFile, String name) throws IOException{
+        String jsonString = new String(Files.readAllBytes(themaConfigurationFile.toPath()));
         Gson gson = new GsonBuilder().create();
-        return gson.fromJson(jsonString, ThemaConfiguration[].class);
+        ThemaConfiguration[] themaConfigurations = gson.fromJson(jsonString, ThemaConfiguration[].class);
+        for(ThemaConfiguration themaConfiguration : themaConfigurations) {
+            if(themaConfiguration.getName().equals(name)) {
+                return themaConfiguration;
+            }
+        }
+        return null;
     }
 
     private static Configuration loadConfig(File configFile) throws InvalidConfigurationException {
@@ -224,6 +234,9 @@ public class Main {
     private static class ConvertDiagramToJSONLDArgs {
         @Parameter(names = {"-c", "--config"}, required = true, description = "Configuration for buildign the JSON-LD file.")
         File config;
+
+        @Parameter(names = {"-n", "--name"}, required = true, description = "The name of the ontology to be published. This name is expected to be found in the configuration file passed and expeceted to be unique therein.")
+        String name;
     }
 
     private static class DefaultProvider implements IDefaultProvider {
