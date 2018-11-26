@@ -15,7 +15,8 @@ public class PropertyDescription {
     private List<String> domain;
     private List<String> range;
     private List<String> generalization;
-    private String cardinality;
+    private String minCount;
+    private String maxCount;
 
     public PropertyDescription() {
         this.name = new ArrayList<>();
@@ -82,12 +83,20 @@ public class PropertyDescription {
         this.generalization = generalization;
     }
 
-    public String getCardinality() {
-        return cardinality;
+    public String getMinCount() {
+        return minCount;
     }
 
-    public void setCardinality(String cardinality) {
-        this.cardinality = cardinality;
+    public void setMinCount(String minCount) {
+        this.minCount = minCount;
+    }
+
+    public String getMaxCount() {
+        return maxCount;
+    }
+
+    public void setMaxCount(String maxCount) {
+        this.maxCount = maxCount;
     }
 
     public List<String> getRange() {

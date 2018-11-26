@@ -2,7 +2,6 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.JSONLDOntology.*;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
@@ -48,7 +47,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         this.tagNames = tagHelper.getTagNames(tagHelper.getContentMappings(Scope.FULL_DEFINITON));
     }
 
-    public void handleContributers(URL url) {
+    public void handleContributors(URL url) {
         try {
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(url.openStream()));
@@ -58,9 +57,18 @@ public class JSONLDOutputHandler implements OutputHandler {
         }
     }
 
+    public void handleContributors(File file) {
+        try (Reader r = Files.newBufferedReader(file.toPath())) {
+            handleContributors(new BufferedReader(r));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void handleContributors(BufferedReader reader) {
         try {
-            CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT);
+            CSVParser csvParser = new CSVParser(reader, CSVFormat.newFormat(';'));
 
             // This list contains all records in the contributors CSV
             // the first line contains just the headers.
@@ -283,16 +291,21 @@ public class JSONLDOutputHandler implements OutputHandler {
 
         // this needs some work..
         if(lowerbound != null && lowerbound.length() > 0) {
-            String cardinality = "";
-            cardinality = lowerbound;
-            if(upperbound != null && upperbound.length() > 0) {
-                cardinality += ".." + upperbound;
-            }
-            propertyDescription.setCardinality(cardinality);
-        } else {
-            if(upperbound != null && upperbound.length() > 0) {
-                propertyDescription.setCardinality(upperbound);
-            }
+            propertyDescription.setMinCount(lowerbound);
+//            String cardinality = "";
+//            cardinality = lowerbound;
+//            if(upperbound != null && upperbound.length() > 0) {
+//                cardinality += ".." + upperbound;
+//            }
+//            propertyDescription.setCardinality(cardinality);
+//        } else {
+//            if(upperbound != null && upperbound.length() > 0) {
+//                propertyDescription.setCardinality(upperbound);
+//            }
+        }
+
+        if(upperbound != null && upperbound.length() > 0) {
+            propertyDescription.setMaxCount(upperbound);
         }
         this.ontologyDescription.getProperties().add(propertyDescription);
     }
@@ -548,8 +561,11 @@ public class JSONLDOutputHandler implements OutputHandler {
                     outputString = outputString.substring(0, outputString.length() - 2);
                 }
                 outputString += "\n],\n";
-                if(propertyDescription.getCardinality() != null && propertyDescription.getCardinality().length() > 0) {
-                    outputString += "\"cardinality\": \"" + propertyDescription.getCardinality() + "\",\n";
+                if(propertyDescription.getMinCount() != null && propertyDescription.getMinCount().length() > 0) {
+                    outputString += "\"minCardinality\": \"" + propertyDescription.getMinCount() + "\",\n";
+                }
+                if(propertyDescription.getMaxCount() != null && propertyDescription.getMaxCount().length() > 0) {
+                    outputString += "\"maxCardinality\": \"" + propertyDescription.getMaxCount() + "\",\n";
                 }
                 outputString = outputString.substring(0, outputString.length() - 2);
                 outputString += "},\n";
@@ -638,6 +654,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 "    \"person\": \"http://www.w3.org/ns/person#\",\n" +
                 "    \"rec\": \"http://www.w3.org/2001/02pd/rec54#\",\n" +
                 "    \"vann\": \"http://purl.org/vocab/vann/\",\n" +
+                "    \"sh\": \"http://w3.org/ns/shacl#\",\n" +
                 "\n" +
                 "    \"label\": {\n" +
                 "      \"@id\": \"rdfs:label\",\n" +
@@ -688,8 +705,11 @@ public class JSONLDOutputHandler implements OutputHandler {
                 "    \"range\": {\n" +
                 "      \"@id\": \"rdfs:range\"\n" +
                 "    },\n" +
-                "    \"cardinality\": {\n" +
-                "    \"@id\": \"owl:cardinality\"\n" +
+                "    \"minCardinality\": {\n" +
+                "    \"@id\": \"sh:minCount\"\n" +
+                "    },\n" +
+                "    \"maxCardinality\": {\n" +
+                "    \"@id\": \"sh:maxCount\"\n" +
                 "    },\n" +
                 "    \"generalization\": {\n" +
                 "      \"@id\": \"rdfs:subPropertyOf\"\n" +

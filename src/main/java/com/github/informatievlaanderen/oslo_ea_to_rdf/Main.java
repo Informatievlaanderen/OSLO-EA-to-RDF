@@ -119,7 +119,7 @@ public class Main {
                         JSONLDOutputHandler jsonldOutputHandler = new JSONLDOutputHandler(themaConfiguration.getName(), themaConfiguration.getContributors(), writer, tagHelper, diagram);
                         new Converter(repo, tagHelper, jsonldOutputHandler)
                                 .convertDiagram(diagram);
-                        jsonldOutputHandler.handleContributers(new URL("https://raw.githubusercontent.com/Informatievlaanderen/Data.Vlaanderen.be/test/src/stakeholders.csv"));
+                        jsonldOutputHandler.handleContributors(new URL("https://raw.githubusercontent.com/Informatievlaanderen/Data.Vlaanderen.be/test/src/stakeholders.csv"));
                         jsonldOutputHandler.writeToFile(outputFile.toPath());
                         jsonldOutputHandler.writeRapportToFile(reportFile.getAbsolutePath());
                     }
