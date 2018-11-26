@@ -258,7 +258,20 @@ public class JSONLDOutputHandler implements OutputHandler {
                 }
             }
         }
-        this.ontologyDescription.getClasses().add(classDescription);
+        if(classDescription.getName().size() < 1 && (classDescription.getUri() == null || classDescription.getUri().length() < 1)) {
+            this.addToReport("[!] Class without name or URI found, this class will be ignored");
+        } else if(classDescription.getName().size() < 1) {
+            this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
+        } else {
+            for (LanguageStringDescription name : classDescription.getName()) {
+                if (name.getLanguage() == "nl") {
+                    if (name.getValue() == null || name.getValue().length() < 1 || name.getValue().toLowerCase().trim().equals("todo")) {
+                        this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
+                    }
+                }
+            }
+            this.ontologyDescription.getClasses().add(classDescription);
+        }
     }
 
     private String extractURI(EAElement element) {
@@ -321,7 +334,21 @@ public class JSONLDOutputHandler implements OutputHandler {
         if(upperbound != null && upperbound.length() > 0) {
             propertyDescription.setMaxCount(upperbound);
         }
-        this.ontologyDescription.getProperties().add(propertyDescription);
+
+        if(propertyDescription.getName().size() < 1 && (propertyDescription.getUri() == null || propertyDescription.getUri().length() < 1)) {
+            this.addToReport("[!] Property without name or URI found, this class will be ignored");
+        } else if(propertyDescription.getName().size() < 1) {
+            this.addToReport("[!] Property with URI " + propertyDescription.getUri() + " has no proper name in dutch (nl).");
+        } else {
+            for (LanguageStringDescription name : propertyDescription.getName()) {
+                if (name.getLanguage() == "nl") {
+                    if (name.getValue() == null || name.getValue().length() < 1 || name.getValue().toLowerCase().trim().equals("todo")) {
+                        this.addToReport("[!] Property with URI " + propertyDescription.getUri() + " has no proper name in dutch (nl).");
+                    }
+                }
+            }
+            this.ontologyDescription.getProperties().add(propertyDescription);
+        }
     }
 
     private String getExternalName(String external) {
