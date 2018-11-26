@@ -15,9 +15,7 @@ import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -171,9 +169,45 @@ public class JSONLDOutputHandler implements OutputHandler {
         return result;
     }
 
+    private String extractVocabulary(String URI) {
+        if(URI.lastIndexOf("#") > -1) {
+            return URI.substring(0, URI.lastIndexOf("#"));
+        } else {
+            return URI.substring(0, URI.lastIndexOf("/"));
+        }
+    }
+
+    public void handleExternalVocabularies() {
+        // we want to ignore the protocols http and https when comparing
+        // URI's to decide whether or not a URI falls within this ontology
+        String ontologyURINoHttps = this.ontologyDescription.getUri().replace("https", "").replace("http", "");
+        Set<String> vocabularies = new HashSet<>();
+        for(PropertyDescription propertyDescription : this.ontologyDescription.getProperties()) {
+            if(!propertyDescription.getType().contains(ontologyURINoHttps)) {
+                vocabularies.add(extractVocabulary(propertyDescription.getType()));
+            }
+            for(String domain : propertyDescription.getDomain()) {
+                if(!domain.contains(ontologyURINoHttps)) {
+                    vocabularies.add(extractVocabulary(domain));
+                }
+            }
+            for(String range : propertyDescription.getRange()) {
+                if(!range.contains(ontologyURINoHttps)) {
+                    vocabularies.add(extractVocabulary(range));
+                }
+            }
+        }
+        for(ClassDescription classDescription : this.ontologyDescription.getClasses()) {
+            if(!classDescription.getType().contains(ontologyURINoHttps)) {
+                vocabularies.add(extractVocabulary(classDescription.getType()));
+            }
+        }
+        this.ontologyDescription.getExternals().addAll(vocabularies);
+    }
+
     @Override
     public void handleOntology(EAPackage sourcePackage, Resource ontology, String prefix, String baseURI) {
-        ontologyDescription.setUri("TODO");
+        ontologyDescription.setUri(ontology.getURI());
         ontologyDescription.setType(OWL.Ontology.getURI());
         ontologyDescription.setLabel(this.ontologyName);
         /*
@@ -261,22 +295,6 @@ public class JSONLDOutputHandler implements OutputHandler {
                 }
             }
         }
-
-//        if(source.connector != null) {
-//            DiagramConnector dConnector = findInDiagram(source.connector);
-//            EAConnector.Direction direction = dConnector.getLabelDirection();
-//            if (direction == EAConnector.Direction.UNSPECIFIED)
-//                direction = dConnector.getReferencedConnector().getDirection();
-//            if (EAConnector.Direction.SOURCE_TO_DEST.equals(direction)) {
-//                propertyDescription.getDomain().add(this.extractURI(source.connector.getSource()));
-//                propertyDescription.getRange().add(this.extractURI(source.connector.getDestination()));
-//            } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(direction)) {
-//                propertyDescription.getDomain().add(this.extractURI(source.connector.getDestination()));
-//                propertyDescription.getRange().add(this.extractURI(source.connector.getSource()));
-//            } else {
-//                this.conversionReport.addRemark("[ ] relation direction for source " + source.toString() + " was not found.");
-//            }
-//        }
         if(domain != null) {
             propertyDescription.getDomain().add(domain.getURI());
         }
@@ -289,25 +307,22 @@ public class JSONLDOutputHandler implements OutputHandler {
             propertyDescription.getGeneralization().add(parent);
         }
 
-        // this needs some work..
         if(lowerbound != null && lowerbound.length() > 0) {
             propertyDescription.setMinCount(lowerbound);
-//            String cardinality = "";
-//            cardinality = lowerbound;
-//            if(upperbound != null && upperbound.length() > 0) {
-//                cardinality += ".." + upperbound;
-//            }
-//            propertyDescription.setCardinality(cardinality);
-//        } else {
-//            if(upperbound != null && upperbound.length() > 0) {
-//                propertyDescription.setCardinality(upperbound);
-//            }
         }
 
         if(upperbound != null && upperbound.length() > 0) {
             propertyDescription.setMaxCount(upperbound);
         }
         this.ontologyDescription.getProperties().add(propertyDescription);
+    }
+
+    private String getExternalName(String external) {
+        if(external.lastIndexOf("/") > external.lastIndexOf("#")) {
+            return external.substring(external.lastIndexOf("/") + 1, external.length());
+        } else {
+            return external.substring(external.lastIndexOf("#") + 1, external.length());
+        }
     }
 
     private void writeOntology() {
@@ -499,7 +514,8 @@ public class JSONLDOutputHandler implements OutputHandler {
         "range": [
           "http://www.w3.org/2001/XMLSchema#integer"
         ],
-        "cardinality": "0..1",
+        "minCount": "1",
+        "maxCount": "1",
         "description": {
           "nl": "Totaal van het aantal boven- en ondergrondse gebouwlagen, bekeken over alle gebouwdelen heen.",
           "en": "to be translated"
@@ -572,8 +588,26 @@ public class JSONLDOutputHandler implements OutputHandler {
             }
             if(ontologyDescription.getProperties().size() > 0) {
                 outputString = outputString.substring(0, outputString.length() - 2);
+                outputString += "\n";
             }
-            outputString += "\n]\n";
+            outputString += "],\n";
+
+            outputString += "\"externals\": [\n";
+            for(String external : ontologyDescription.getExternals()) {
+                outputString += "{\n" +
+                        "   \"name\": {\n" +
+                        "       \"nl\": \"" + getExternalName(external) + "\"\n" +
+                        "   },\n" +
+                        "   \"@id\": \"" + external + "\"\n," +
+                        "   \"@type\": \"http://www.w3.org/2000/01/rdf-schema#Class\" " +
+                        "},\n";
+            }
+            if(ontologyDescription.getExternals().size() > 0) {
+                outputString = outputString.substring(0, outputString.length() - 2);
+                outputString += "\n";
+            }
+            outputString += "]\n";
+
             writer.write(outputString);
 
             writer.write("}");
@@ -585,28 +619,6 @@ public class JSONLDOutputHandler implements OutputHandler {
     @Override
     public void handleInstance(EAAttribute source, Resource instance, Scope scope,
                                Resource ontology, Resource clazz) {
-//        write("attribute"); // Type
-//        write(source.getElement().getPackage().getName()); // Package
-//        write(source.getName()); // Name
-//        write(source.getGuid()); // GUID
-//        write(""); // Parent
-//        write(source.getElement().getName()); // Domain
-//        write(source.getElement().getGuid()); // Domain GUID
-//        write(""); // Range
-//
-//        for (String tag : extactTagValues(tagHelper.getTagDataFor(source, tagHelper.getContentMappings(Scope.FULL_DEFINITON)))) {
-//            write(tag);
-//        }
-//
-//        write(Boolean.toString(scope != Scope.FULL_DEFINITON));
-//        write(instance.getNameSpace());
-//        write(instance.getURI());
-//        write(clazz.getURI());
-//        write("");
-//        write("");
-//        write("");
-//        write("");
-//        writeNl("");
     }
 
     private List<EAElement> findParents(DiagramElement child) {
@@ -715,6 +727,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 "      \"@id\": \"rdfs:subPropertyOf\"\n" +
                 "    },\n" +
                 "    \"externals\": {\n" +
+                "      \"@type\": \"http://www.w3.org/2000/01/rdf-schema#Class\",\n" +
                 "      \"@id\": \"rdfs:seeAlso\"\n" +
                 "      },\n" +
                 "    \"label\": {\n" +
@@ -727,26 +740,4 @@ public class JSONLDOutputHandler implements OutputHandler {
                 "    }\n" +
                 "  },\n";
     }
-
-//    private void write(String s) {
-//        try {
-//            writer.write("\"");
-//            writer.write(Strings.nullToEmpty(s).replaceAll("\"", "\"\""));
-//            writer.write("\"");
-//            writer.write("\t");
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-//
-//     private void writeNl(String s) {
-//         try {
-//             writer.write("\"");
-//             writer.write(Strings.nullToEmpty(s).replaceAll("\"", "\"\""));
-//             writer.write("\"");
-//             writer.write("\n");
-//         } catch (IOException e) {
-//             throw new RuntimeException(e);
-//         }
-//     }
 }

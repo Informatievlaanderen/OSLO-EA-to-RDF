@@ -1,7 +1,9 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.JSONLDOntology;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by langens-jonathan on 11/5/18.
@@ -16,6 +18,7 @@ public class OntologyDescription {
     private List<ContributorDescription> editors;
     private List<ContributorDescription> authors;
     private List<ContributorDescription> contributors;
+    private Set<String> externals;
 
     public OntologyDescription() {
         this.classes = new ArrayList<>();
@@ -24,6 +27,15 @@ public class OntologyDescription {
         this.editors = new ArrayList<>();
         this.authors = new ArrayList<>();
         this.contributors = new ArrayList<>();
+        this.externals = new HashSet<>();
+    }
+
+    public Set<String> getExternals() {
+        return externals;
+    }
+
+    public void setExternals(Set<String> externals) {
+        this.externals = externals;
     }
 
     public List<ContributorDescription> getEditors() {
