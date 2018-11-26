@@ -232,7 +232,7 @@ public class Main {
 
     @Parameters(commandDescription = "Create a JSONLD table of all term information.")
     private static class ConvertDiagramToJSONLDArgs {
-        @Parameter(names = {"-c", "--config"}, required = true, description = "Configuration for buildign the JSON-LD file.")
+        @Parameter(names = {"-c", "--config"}, required = true, description = "Configuration for building the JSON-LD file.")
         File config;
 
         @Parameter(names = {"-n", "--name"}, required = true, description = "The name of the ontology to be published. This name is expected to be found in the configuration file passed and expeceted to be unique therein.")
