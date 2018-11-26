@@ -22,11 +22,14 @@ import java.util.stream.Collectors;
  * Class that aggregates the conversion results in JSONLD file that follows the
  * context as it was defined for consumption by the OSLO-Specification-JS service.
  *
+ * TODO go throught the methods of this class and:
+ *   1. make sure their naming is consistent
+ *   2. make sure they are all needed
+ *
  * @author Jonathan Langens
  */
 public class JSONLDOutputHandler implements OutputHandler {
     private final static Joiner JOINER = Joiner.on(", ");
-
     private String contributorsList;
     private String ontologyName;
     private BufferedWriter writer;
@@ -121,7 +124,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         this.writeOntology();
     }
 
-    public void writeRapportToFile(String outputFile) {
+    public void writeReportToFile(String outputFile) {
         try {
             FileWriter writer = new FileWriter(outputFile, true);
             for(String remark : this.conversionReport.getRemarks()) {
@@ -133,6 +136,10 @@ public class JSONLDOutputHandler implements OutputHandler {
         } catch(IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void addToReport(String remark) {
+        this.conversionReport.addRemark(remark);
     }
 
     private DiagramElement findInDiagram(EAElement element) {

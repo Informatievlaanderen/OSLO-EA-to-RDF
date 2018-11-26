@@ -14,8 +14,8 @@ public class ThemaConfiguration {
     private String eap;
     @SerializedName("diagram")
     private String diagram;
-    @SerializedName("contributors")
-    private String contributors;
+    @SerializedName("contributors-column")
+    private String contributorsColumn;
     @SerializedName("template")
     private String template;
     @SerializedName("title")
@@ -34,6 +34,16 @@ public class ThemaConfiguration {
     private String previousState;
     @SerializedName("next-version")
     private String nextVersion;
+    @SerializedName("contributors-file")
+    private String contributorsFile;
+
+    public String getContributorsFile() {
+        return contributorsFile;
+    }
+
+    public void setContributorsFile(String contributorsFile) {
+        this.contributorsFile = contributorsFile;
+    }
 
     public String getName() {
         return name;
@@ -75,12 +85,12 @@ public class ThemaConfiguration {
         this.template = template;
     }
 
-    public String getContributors() {
-        return contributors;
+    public String getContributorsColumn() {
+        return contributorsColumn;
     }
 
-    public void setContributors(String contributors) {
-        this.contributors = contributors;
+    public void setContributorsColumn(String contributorsColumn) {
+        this.contributorsColumn = contributorsColumn;
     }
 
     public String getTitle() {

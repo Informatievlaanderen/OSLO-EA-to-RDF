@@ -116,12 +116,18 @@ public class Main {
                     try (BufferedWriter writer = Files.newBufferedWriter(outputFile.toPath(), Charsets.UTF_8)) {
                         EADiagram diagram = findByName(repo, themaConfiguration.getDiagram());
                         TagHelper tagHelper = new TagHelper(config);
-                        JSONLDOutputHandler jsonldOutputHandler = new JSONLDOutputHandler(themaConfiguration.getName(), themaConfiguration.getContributors(), writer, tagHelper, diagram);
+                        JSONLDOutputHandler jsonldOutputHandler = new JSONLDOutputHandler(themaConfiguration.getName(), themaConfiguration.getContributorsColumn(), writer, tagHelper, diagram);
                         new Converter(repo, tagHelper, jsonldOutputHandler)
                                 .convertDiagram(diagram);
-                        jsonldOutputHandler.handleContributors(new URL("https://raw.githubusercontent.com/Informatievlaanderen/Data.Vlaanderen.be/test/src/stakeholders.csv"));
+                        if(themaConfiguration.getContributorsFile() == null || themaConfiguration.getContributorsFile().length() == 0) {
+                            jsonldOutputHandler.addToReport("[W] Could not find contributors file configuration for " + themaConfiguration.getName());
+                            jsonldOutputHandler.handleContributors(new URL("https://raw.githubusercontent.com/Informatievlaanderen/Data.Vlaanderen.be/test/src/stakeholders.csv"));
+                        } else {
+                            jsonldOutputHandler.handleContributors(new File(themaConfiguration.getContributorsFile()));
+                        }
+                        jsonldOutputHandler.handleExternalVocabularies();
                         jsonldOutputHandler.writeToFile(outputFile.toPath());
-                        jsonldOutputHandler.writeRapportToFile(reportFile.getAbsolutePath());
+                        jsonldOutputHandler.writeReportToFile(reportFile.getAbsolutePath());
                     }
                 }
             } else {
