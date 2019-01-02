@@ -5,9 +5,11 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 
@@ -176,6 +178,20 @@ public class JSONLDOutputHandler implements OutputHandler {
         return result;
     }
 
+    private List<String> extractTagsJson(List<TagData> tagData) {
+        List<String> result = new ArrayList<>();
+
+        for (String tagName : tagNames) {
+            String s = tagData.stream()
+                    .filter(t -> tagName.equals(t.getOriginTag()))
+                    .findFirst()
+                    .map(t -> t.getValue().isLiteral() ? t.getValue().asLiteral().getString() : t.getValue().asResource().getURI())
+                    .orElse("");
+            result.add("\"" + tagName + "\" : \"" + StringEscapeUtils.escapeJson(s) + "\"");
+        }
+        return result;
+    }
+
     private String extractVocabulary(String URI) {
         if(URI.lastIndexOf("#") > -1) {
             return URI.substring(0, URI.lastIndexOf("#"));
@@ -217,6 +233,17 @@ public class JSONLDOutputHandler implements OutputHandler {
         ontologyDescription.setUri(ontology.getURI());
         ontologyDescription.setType(OWL.Ontology.getURI());
         ontologyDescription.setLabel(this.ontologyName);
+
+        String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + "\", \"EA-Guid\" : \"" + sourcePackage.getGuid() + "\"}"; 
+        ontologyDescription.setExtra(extra);
+        /*  
+           EA Details:
+             sourcePackage.getName();
+             sourcePackage.getGuid();
+           OntologyParsed Details:
+             ontology.getNameSpace();
+             ontology.getLocalName();
+        */
         /*
         TODO STILL ADD:
               "label": {
@@ -235,9 +262,42 @@ public class JSONLDOutputHandler implements OutputHandler {
     @Override
     public void handleClass(EAElement sourceElement, Resource clazz, Scope scope,
                             Resource ontology, List<Resource> parentClasses, List<Resource> allowedValues) {
+        /* EA details:
+           write(sourceElement.getType().toString());
+           write(sourceElement.getPackage().getName());
+           write(sourceElement.getName());
+           write(sourceElement.getGuid());
+           
+           write(String.valueOf(scope != Scope.FULL_DEFINITON)); # external term
+           Ontology details:
+             clazz.getNamespace
+             class.getLocalName();
+           write(JOINER.join(parentClasses));
+        */
+
+             
         ClassDescription classDescription = new ClassDescription();
         classDescription.setUri(clazz.getURI());
         classDescription.setType("http://www.w3.org/2002/07/owl#Class");
+        // write(RDFS.Class.getURI());
+
+        List<EAElement> parents = findParents(findInDiagram(sourceElement));
+        String eaparents = JOINER.join(Lists.transform(parents, EAElement::getName));
+
+        String tags = "";
+
+        List<String> tagJsons = extractTagsJson(tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
+        tags = JOINER.join(tagJsons);
+
+        String extra = "{\"EA-Name\" : \"" + sourceElement.getName() + 
+                         "\", \"EA-Guid\" : \"" + sourceElement.getGuid() + 
+                         "\", \"EA-Package\" : \"" + sourceElement.getPackage().getName()  +
+                         "\", \"EA-Type\" : \"" + sourceElement.getType() +
+                         "\", \"EA-Parents\" : \"" + eaparents +
+                         "\", " + tags +
+                       "}"; 
+
+        classDescription.setExtra(extra);
 
         List<String> tagValues = extactTagValues(tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
         for(String value : tagValues) {
@@ -295,6 +355,52 @@ public class JSONLDOutputHandler implements OutputHandler {
         propertyDescription.setUri(property.getURI());
         propertyDescription.setType(propertyType.getURI());
 
+        String tags = "";
+
+        List<String> tagJsons = extractTagsJson(tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
+        tags = JOINER.join(tagJsons);
+        String extra ="";
+
+        if (source.attribute != null) {
+           extra = "{\"EA-Name\" : \"" + source.attribute.getName() + 
+                         "\", \"EA-Guid\" : \"" + source.attribute.getGuid() + 
+                         "\", \"EA-Package\" : \"" + source.attribute.getElement().getPackage().getName()  +
+                         "\", \"EA-Type\" : \"" + "attribute" +
+                         "\", \"EA-Domain\" : \"" + source.attribute.getElement().getName() +
+                         "\", \"EA-Domain-Guid\" : \"" + source.attribute.getElement().getGuid() +
+                         "\", \"EA-Range\" : \"" + source.attribute.getType() +
+                         "\", " + tags +
+                       "}"; 
+        } else {
+            DiagramConnector dConnector = findInDiagram(source.connector);
+            EAConnector.Direction direction = dConnector.getLabelDirection();
+            String pdomain = "";
+            String pdomainguid = "";
+            String prange = "";
+            if (direction == EAConnector.Direction.UNSPECIFIED)
+                direction = dConnector.getReferencedConnector().getDirection();
+            if (EAConnector.Direction.SOURCE_TO_DEST.equals(direction)) {
+                pdomain = source.connector.getSource().getName(); // Domain
+                pdomainguid = source.connector.getSource().getGuid(); // Domain GUID
+                prange = source.connector.getDestination().getName(); // Range
+            } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(direction)) {
+                pdomain = source.connector.getDestination().getName(); // Domain
+                pdomainguid = source.connector.getDestination().getGuid(); // Domain GUID
+                prange = source.connector.getSource().getName(); // Range
+            } ; 
+		
+           extra = "{\"EA-Name\" : \"" + source.connector.getName() + 
+                         "\", \"EA-Guid\" : \"" + source.connector.getGuid() + 
+                         "\", \"EA-Package\" : \"" + "" +
+                         "\", \"EA-Type\" : \"" + "connector" +
+                         "\", \"EA-Domain\" : \"" + pdomain +
+                         "\", \"EA-Domain-Guid\" : \"" + pdomainguid +
+                         "\", \"EA-Range\" : \"" + prange +
+                         "\", " + tags +
+                       "}"; 
+        }
+
+        propertyDescription.setExtra(extra);
 
         List<String> tagValues = extactTagValues(tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
         for(String value : tagValues) {
@@ -360,7 +466,7 @@ public class JSONLDOutputHandler implements OutputHandler {
     }
 
     private void writeOntology() {
-        // todo instead of writing this through write statements we need the inclusion of a
+        // TODO instead of writing this through write statements we need the inclusion of a
         //      json manipulation library such as jackson
         try {
             writer.write("{\n");
@@ -386,6 +492,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                     "\",\n  \"en\": \"" +
                     ontologyDescription.getLabel() +
                     "\"\n},\n");
+            writer.write("\"extra\": " + ontologyDescription.getExtra() + ",\n");
 
             String authorsJSON = ""; // notice the authors (plural)
             writer.write("\"authors\": [\n");
@@ -504,6 +611,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "{\n";
                 outputString += "\"@id\": \"" + classDescription.getUri() + "\",\n";
                 outputString += "\"@type\": \"" + classDescription.getType() + "\",\n";
+                outputString += "\"extra\": " + classDescription.getExtra() + ",\n";
                 outputString += "\"name\": {\n";
 
                 for (LanguageStringDescription name : classDescription.getName()) {
@@ -515,7 +623,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "},\n";
                 outputString += "\"description\": {\n";
                 for (LanguageStringDescription description : classDescription.getDescription()) {
-                    outputString += "\"" + description.getLanguage() + "\": \"" + description.getValue().replace("\"", "\\\"") + "\",\n";
+                    outputString += "\"" + description.getLanguage() + "\": \"" + description.getValue().replace("\"", "\\\"") + "\",\n"; // TODO use escapefunction
                 }
                 if (classDescription.getDescription().size() > 0) {
                     outputString = outputString.substring(0, outputString.length() - 2) + "\n";
@@ -571,6 +679,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                     outputString = outputString.substring(0, outputString.length() - 2) + "\n";
                 }
                 outputString += "},\n";
+                outputString += "\"extra\": " + propertyDescription.getExtra() + ",\n";
                 outputString += "\"description\": {\n";
                 for (LanguageStringDescription description : propertyDescription.getDescription()) {
                     outputString += "\"" + description.getLanguage() + "\": \"" + description.getValue() + "\",\n";
@@ -681,6 +790,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 .collect(Collectors.toList());
     }
 
+  // TODO: read this from a file in the configuration
     private String generateContext() {
         return "  \"@context\": {\n" +
                 "    \"vlaanderen\": \"http://data.vlaanderen.be/ns/\",\n" +

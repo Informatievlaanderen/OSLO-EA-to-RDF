@@ -9,6 +9,7 @@ import java.util.List;
 public class ClassDescription {
     private String uri;
     private String type;
+    private String extra;
     private List<LanguageStringDescription> name;
     private List<LanguageStringDescription> description;
     private List<LanguageStringDescription> usage;
@@ -57,5 +58,13 @@ public class ClassDescription {
 
     public void setUsage(List<LanguageStringDescription> usage) {
         this.usage = usage;
+    }
+
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
     }
 }

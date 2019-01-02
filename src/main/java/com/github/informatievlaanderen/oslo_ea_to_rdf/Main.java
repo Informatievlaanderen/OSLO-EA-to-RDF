@@ -108,6 +108,7 @@ public class Main {
                     System.out.println("Could not find ontology with name: " + convertJSONLDArgs.name +
                     " in configuration file: " + convertJSONLDArgs.config);
                 } else {
+                    System.out.println("Load mapping config:" +  themaConfiguration.getConfig());
                     Configuration config = loadConfig(new File(themaConfiguration.getConfig()));
                     EARepository repo = new MemoryRepositoryBuilder().build(new File(themaConfiguration.getEap()));
                     File outputFile = new File(System.getProperty("user.dir") + "/" + themaConfiguration.getName() + ".jsonld");

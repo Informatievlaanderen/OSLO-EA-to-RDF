@@ -12,6 +12,7 @@ public class OntologyDescription {
     private String uri;
     private String type;
     private String label;
+    private String extra;
     private List<ClassDescription> classes;
     private List<PropertyDescription> properties;
     private List<DatatypeDescription> datatypes;
@@ -108,5 +109,13 @@ public class OntologyDescription {
 
     public void setDatatypes(List<DatatypeDescription> datatypes) {
         this.datatypes = datatypes;
+    }
+
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
     }
 }

@@ -9,6 +9,7 @@ import java.util.List;
 public class PropertyDescription {
     private String uri;
     private String type;
+    private String extra;
     private List<LanguageStringDescription> name;
     private List<LanguageStringDescription> description;
     private List<LanguageStringDescription> usage;
@@ -105,5 +106,13 @@ public class PropertyDescription {
 
     public void setRange(List<String> range) {
         this.range = range;
+    }
+
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
     }
 }
