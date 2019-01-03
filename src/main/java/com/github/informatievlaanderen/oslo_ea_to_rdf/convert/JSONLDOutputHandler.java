@@ -353,7 +353,13 @@ public class JSONLDOutputHandler implements OutputHandler {
             }
         }
         // always add the class
-        this.ontologyDescription.getClasses().add(classDescription);
+        // determin to which categorie the class belongs:
+        if (scope != Scope.FULL_DEFINITON) {
+          // external
+           this.ontologyDescription.getExternalClasses().add(classDescription);
+        } else {
+           this.ontologyDescription.getClasses().add(classDescription);
+         }
     }
 
     private String extractURI(EAElement element) {
@@ -493,7 +499,13 @@ public class JSONLDOutputHandler implements OutputHandler {
             }
         }
         // always add property
-        this.ontologyDescription.getProperties().add(propertyDescription);
+        // determin to which categorie the class belongs:
+        if (scope != Scope.FULL_DEFINITON) {
+          // external
+           this.ontologyDescription.getExternalProperties().add(propertyDescription);
+        } else {
+           this.ontologyDescription.getProperties().add(propertyDescription);
+         }
     }
 
     private String getExternalName(String external) {
@@ -652,29 +664,40 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "\"@type\": \"" + classDescription.getType() + "\",\n";
                 outputString += "\"extra\": " + classDescription.getExtra() + ",\n";
                 outputString += "\"name\": {\n";
+                outputString += print_languagetagged(classDescription.getName());
 
+/*
                 for (LanguageStringDescription name : classDescription.getName()) {
                     outputString += "\"" + name.getLanguage() + "\": \"" + name.getValue() + "\",\n";
                 }
                 if (classDescription.getName().size() > 0) {
                     outputString = outputString.substring(0, outputString.length() - 2) + "\n";
                 }
+*/
+
+                
                 outputString += "},\n";
                 outputString += "\"description\": {\n";
+                outputString += print_languagetagged(classDescription.getDescription());
+/*
                 for (LanguageStringDescription description : classDescription.getDescription()) {
                     outputString += "\"" + description.getLanguage() + "\": \"" + description.getValue().replace("\"", "\\\"") + "\",\n"; // TODO use escapefunction
                 }
                 if (classDescription.getDescription().size() > 0) {
                     outputString = outputString.substring(0, outputString.length() - 2) + "\n";
                 }
+*/
                 outputString += "},\n";
                 outputString += "\"usage\": {\n";
+                outputString += print_languagetagged(classDescription.getUsage());
+/*
                 for (LanguageStringDescription usage : classDescription.getUsage()) {
                     outputString += "\"" + usage.getLanguage() + "\": \"" + usage.getValue() + "\",\n";
                 }
                 if (classDescription.getUsage().size() > 0) {
                     outputString = outputString.substring(0, outputString.length() - 2) + "\n";
                 }
+*/
                 outputString += "}\n";
                 outputString += "},\n";
             }
@@ -710,6 +733,8 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "\"@id\": \"" + propertyDescription.getUri() + "\",\n";
                 outputString += "\"@type\": \"" + propertyDescription.getType() + "\",\n";
                 outputString += "\"name\": {\n";
+                outputString += print_languagetagged(propertyDescription.getName());
+/*
 
                 for (LanguageStringDescription name : propertyDescription.getName()) {
                     outputString += "\"" + name.getLanguage() + "\": \"" + name.getValue() + "\",\n";
@@ -717,23 +742,30 @@ public class JSONLDOutputHandler implements OutputHandler {
                 if (propertyDescription.getName().size() > 0) {
                     outputString = outputString.substring(0, outputString.length() - 2) + "\n";
                 }
+*/
                 outputString += "},\n";
                 outputString += "\"extra\": " + propertyDescription.getExtra() + ",\n";
                 outputString += "\"description\": {\n";
+                outputString += print_languagetagged(propertyDescription.getDescription());
+/*
                 for (LanguageStringDescription description : propertyDescription.getDescription()) {
                     outputString += "\"" + description.getLanguage() + "\": \"" + description.getValue() + "\",\n";
                 }
                 if (propertyDescription.getDescription().size() > 0) {
                     outputString = outputString.substring(0, outputString.length() - 2) + "\n";
                 }
+*/
                 outputString += "},\n";
                 outputString += "\"usage\": {\n";
+                outputString += print_languagetagged(propertyDescription.getUsage());
+/*
                 for (LanguageStringDescription usage : propertyDescription.getUsage()) {
                     outputString += "\"" + usage.getLanguage() + "\": \"" + usage.getValue() + "\",\n";
                 }
                 if (propertyDescription.getUsage().size() > 0) {
                     outputString = outputString.substring(0, outputString.length() - 2) + "\n";
                 }
+*/
                 outputString += "},\n";
                 outputString += "\"domain\": [\n";
                 for(String domain : propertyDescription.getDomain()) {
@@ -775,19 +807,22 @@ public class JSONLDOutputHandler implements OutputHandler {
             outputString += "],\n";
 
             outputString += "\"externals\": [\n";
-            for(String external : ontologyDescription.getExternals()) {
-                outputString += "{\n" +
-                        "   \"name\": {\n" +
-                        "       \"nl\": \"" + getExternalName(external) + "\"\n" +
-                        "   },\n" +
-                        "   \"@id\": \"" + external + "\"\n," +
-                        "   \"@type\": \"http://www.w3.org/2000/01/rdf-schema#Class\" " +
-                        "},\n";
+            
+            List<String> excls = new ArrayList<>();
+            String externalS = "";
+            for(ClassDescription external : ontologyDescription.getExternalClasses()) {
+                externalS += "{\n";
+                externalS += "\"@id\": \"" + external.getUri() + "\",\n";
+                externalS += "\"@type\": \"" + external.getType() + "\",\n";
+                externalS += "\"extra\": " + external.getExtra() + ",\n";
+                externalS += "\"name\": {\n";
+                externalS += print_languagetagged(external.getName());
+ 		externalS += "}\n";
+                externalS += "}\n";
+ 		excls.add(externalS);
+                externalS = "";
             }
-            if(ontologyDescription.getExternals().size() > 0) {
-                outputString = outputString.substring(0, outputString.length() - 2);
-                outputString += "\n";
-            }
+            outputString += JOINER.join(excls);
             outputString += "]\n";
 
             writer.write(outputString);
