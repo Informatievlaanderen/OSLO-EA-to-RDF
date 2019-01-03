@@ -92,7 +92,9 @@ public class JSONLDOutputHandler implements OutputHandler {
             }
             if(ontologyField == 0) {
                 // the ontology name was not found in the header
-                this.conversionReport.addRemark("[!] Error: The header with name: " + this.contributorsList + " was not found in the contributors.csv file");
+                
+//                this.conversionReport.addRemark("[!] Error: The header with name: " + this.contributorsList + " was not found in the contributors.csv file");
+                LOGGER.error("The header with name: {} was not found in the contributors.csv file", this.contributorsList);
                 return;
             }
             for(int i = 1; i < csvRecords.size(); ++i) {
@@ -112,7 +114,8 @@ public class JSONLDOutputHandler implements OutputHandler {
                     } else if (contributor.get((ontologyField)).equals("C")) {
                         this.ontologyDescription.getContributors().add(cd);
                     } else if(!contributor.get(ontologyField).trim().isEmpty()){
-                        this.conversionReport.addRemark("[ ] Warning: The contributor with name: " + contributor.get(0) + " " + contributor.get(1) + "'s code was not recognized. Code found was: " + contributor.get(ontologyField));
+                        LOGGER.warn("The contributor with name: {}  {}'s code was not recognized. Code found was: {} ", contributor.get(0), contributor.get(1), contributor.get(ontologyField));
+//                        this.conversionReport.addRemark("[ ] Warning: The contributor with name: " + contributor.get(0) + " " + contributor.get(1) + "'s code was not recognized. Code found was: " + contributor.get(ontologyField));
                     }
                 }
             }
@@ -244,7 +247,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         List<String> tagJsons = extractTagsJson(tagHelper.getTagDataFor(sourcePackage, tagHelper.getOntologyMappings()));
         tags = JOINER.join(tagJsons);
 
-        String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + "\", \"EA-Guid\" : \"," + sourcePackage.getGuid() + "\"" + tags + "}"; 
+        String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + "\", \"EA-Guid\" : \"," + sourcePackage.getGuid() + "\", " + tags + "}"; 
         ontologyDescription.setExtra(extra);
 
         /*  
@@ -332,21 +335,25 @@ public class JSONLDOutputHandler implements OutputHandler {
 		};
         };
 
-        // TODO: check the if cases - maybe not needed
+        // Quality Control
         if(classDescription.getName().size() < 1 && (classDescription.getUri() == null || classDescription.getUri().length() < 1)) {
-            this.addToReport("[!] Class without name or URI found, this class will be ignored");
+//            this.addToReport("[!] Class without name or URI found, this class will be ignored");
+            LOGGER.error(" Class {} without name or URI found, further processing this class will be incoherent", sourceElement.getName());
         } else if(classDescription.getName().size() < 1) {
-            this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
+//            this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
+            LOGGER.error(" Class {} without name in dutch, further processing this class will be incoherent", sourceElement.getName());
         } else {
             for (LanguageStringDescription name : classDescription.getName()) {
                 if (name.getLanguage() == "nl") {
                     if (name.getValue() == null || name.getValue().length() < 1 || name.getValue().toLowerCase().trim().equals("todo")) {
-                        this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
+//                        this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
+                        LOGGER.error(" Class {} with empty or dummy name in dutch, further processing this class will be incoherent", sourceElement.getName());
                     }
                 }
             }
-            this.ontologyDescription.getClasses().add(classDescription);
         }
+        // always add the class
+        this.ontologyDescription.getClasses().add(classDescription);
     }
 
     private String extractURI(EAElement element) {
@@ -357,7 +364,8 @@ public class JSONLDOutputHandler implements OutputHandler {
                 }
             }
         }
-        this.conversionReport.addRemark("[!] Severe warning: The EA element with name " + element.getName() + " does not have an associated URI within it's tags.");
+//        this.conversionReport.addRemark("[!] Severe warning: The EA element with name " + element.getName() + " does not have an associated URI within it's tags.");
+        LOGGER.warn("The EA element with name {} does not have an associated URI within it's tags.", element.getName());
         return element.getName();
     }
 
@@ -376,22 +384,24 @@ public class JSONLDOutputHandler implements OutputHandler {
         tags = JOINER.join(tagJsons);
         String extra ="";
 
+        String pdomain = "";
+        String pdomainguid = "";
+        String prange = "";
         if (source.attribute != null) {
+           pdomain = source.attribute.getElement().getName();
+           prange = source.attribute.getType() ;
            extra = "{\"EA-Name\" : \"" + source.attribute.getName() + 
                          "\", \"EA-Guid\" : \"" + source.attribute.getGuid() + 
                          "\", \"EA-Package\" : \"" + source.attribute.getElement().getPackage().getName()  +
                          "\", \"EA-Type\" : \"" + "attribute" +
-                         "\", \"EA-Domain\" : \"" + source.attribute.getElement().getName() +
+                         "\", \"EA-Domain\" : \"" + pdomain + 
                          "\", \"EA-Domain-Guid\" : \"" + source.attribute.getElement().getGuid() +
-                         "\", \"EA-Range\" : \"" + source.attribute.getType() +
+                         "\", \"EA-Range\" : \"" + prange +
                          "\", " + tags +
                        "}"; 
         } else {
             DiagramConnector dConnector = findInDiagram(source.connector);
             EAConnector.Direction direction = dConnector.getLabelDirection();
-            String pdomain = "";
-            String pdomainguid = "";
-            String prange = "";
             if (direction == EAConnector.Direction.UNSPECIFIED)
                 direction = dConnector.getReferencedConnector().getDirection();
             if (EAConnector.Direction.SOURCE_TO_DEST.equals(direction)) {
@@ -416,6 +426,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         }
 
         propertyDescription.setExtra(extra);
+        LOGGER.info("-------------------------------------------------");
 
         // support via the mapping rules calculated tags - these tags are not to be explicitely encoded, but used to extract 
         // data for later processing
@@ -438,11 +449,16 @@ public class JSONLDOutputHandler implements OutputHandler {
         };
 
 
+        // TODO: this is a quickfix, but does not resolve the case for the following scenario
+        // if there are 2 classes mapped on the same URI and one of the classes is used as domain/range the label maight get wrong
+        // Therefore the label should be part of the domain/range resolvement. => Impact on other processing parts
         if(domain != null) {
-            propertyDescription.getDomain().add(domain.getURI());
+	    String propdomain = "{ \"uri\": \"" + domain.getURI() + "\", \"name\" : \"" + pdomain + "\" }";
+            propertyDescription.getDomain().add(propdomain);
         }
         if(range != null) {
-            propertyDescription.getRange().add(range.getURI());
+	    String proprange= "{ \"uri\": \"" + range.getURI() + "\", \"name\" : \"" + prange + "\" }";
+            propertyDescription.getRange().add(proprange);
         }
 
         String parent = JOINER.join(Iterables.transform(superProperties, Resource::getURI));
@@ -458,21 +474,26 @@ public class JSONLDOutputHandler implements OutputHandler {
             propertyDescription.setMaxCount(upperbound);
         }
 
-        // TODO: check the if conditions if these are to be checked 
+        // Quality control
+        String pname = MoreObjects.firstNonNull(source.attribute, source.connector).getName();
         if(propertyDescription.getName().size() < 1 && (propertyDescription.getUri() == null || propertyDescription.getUri().length() < 1)) {
-            this.addToReport("[!] Property without name or URI found, this class will be ignored");
+//            this.addToReport("[!] Property without name or URI found, this class will be ignored");
+            LOGGER.error(" Property {} without name or URI found, further processing this property will be incoherent", pname);
         } else if(propertyDescription.getName().size() < 1) {
-            this.addToReport("[!] Property with URI " + propertyDescription.getUri() + " has no proper name in dutch (nl).");
+//            this.addToReport("[!] Property with URI " + propertyDescription.getUri() + " has no proper name in dutch (nl).");
+            LOGGER.error(" Property {} without name in dutch, further processing this property will be incoherent", pname);
         } else {
             for (LanguageStringDescription name : propertyDescription.getName()) {
                 if (name.getLanguage() == "nl") {
                     if (name.getValue() == null || name.getValue().length() < 1 || name.getValue().toLowerCase().trim().equals("todo")) {
-                        this.addToReport("[!] Property with URI " + propertyDescription.getUri() + " has no proper name in dutch (nl).");
+//                        this.addToReport("[!] Property with URI " + propertyDescription.getUri() + " has no proper name in dutch (nl).");
+                        LOGGER.error(" Property {} without with empty or dummy name in dutch, further processing this property will be incoherent", pname);
                     }
                 }
             }
-            this.ontologyDescription.getProperties().add(propertyDescription);
         }
+        // always add property
+        this.ontologyDescription.getProperties().add(propertyDescription);
     }
 
     private String getExternalName(String external) {
@@ -716,7 +737,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "},\n";
                 outputString += "\"domain\": [\n";
                 for(String domain : propertyDescription.getDomain()) {
-                    outputString += "\"" + domain + "\",\n";
+                    outputString += "" + domain + ",\n";
                 }
                 if(propertyDescription.getDomain().size() > 0) {
                     outputString = outputString.substring(0, outputString.length() - 2);
@@ -724,7 +745,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "\n],\n";
                 outputString += "\"range\": [\n";
                 for(String range : propertyDescription.getRange()) {
-                    outputString += "\"" + range + "\",\n";
+                    outputString += "" + range + ",\n";
                 }
                 if(propertyDescription.getRange().size() > 0) {
                     outputString = outputString.substring(0, outputString.length() - 2);
@@ -775,6 +796,17 @@ public class JSONLDOutputHandler implements OutputHandler {
         }catch(IOException e){
             e.printStackTrace();
         }
+    }
+
+
+    private String print_languagetagged(List<LanguageStringDescription> lvalues) {
+
+       List<String> results = new ArrayList<>();
+       for (LanguageStringDescription lsd : lvalues ) {
+                    results.add("\"" + lsd.getLanguage() + "\": \"" + StringEscapeUtils.escapeJson(lsd.getValue()) + "\"");
+                }
+       String result = JOINER.join(results);
+       return result;
     }
 
     @Override
