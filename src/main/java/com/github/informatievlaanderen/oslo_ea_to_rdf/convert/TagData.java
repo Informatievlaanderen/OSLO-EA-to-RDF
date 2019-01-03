@@ -12,15 +12,21 @@ public class TagData {
     private String originTag;
     private Property property;
     private RDFNode value;
+    private String originValue;
 
-    public TagData(String originTag, Property property, RDFNode value) {
+    public TagData(String originTag, Property property, RDFNode value, String originValue) {
         this.originTag = originTag;
         this.property = property;
         this.value = value;
+        this.originValue = originValue;
     }
 
     public String getOriginTag() {
         return originTag;
+    }
+
+    public String getOriginValue() {
+        return originValue;
     }
 
     public Property getProperty() {

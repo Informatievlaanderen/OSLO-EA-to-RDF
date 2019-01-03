@@ -66,12 +66,12 @@ public class TagHelper {
                 continue;
 
             if (RDFS.Resource.getURI().equals(mapping.getType())) {
-                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(value)));
+                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(value), value));
             } else if (Strings.isNullOrEmpty(mapping.getType()) || RDF.dtLangString.getURI().equals(mapping.getType())) {
-                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(value, mapping.getLang())));
+                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(value, mapping.getLang()), value));
             } else {
                 RDFDatatype datatype = NodeFactory.getType(mapping.getType());
-                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createTypedLiteral(value, datatype)));
+                result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createTypedLiteral(value, datatype), value));
             }
         }
 
@@ -100,14 +100,14 @@ public class TagHelper {
 
             if (RDFS.Resource.getURI().equals(mapping.getType())) {
                 for (String tagValue : tagValues)
-                    result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(tagValue)));
+                    result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(tagValue), tagValue));
             } else if (Strings.isNullOrEmpty(mapping.getType()) || RDF.dtLangString.getURI().equals(mapping.getType())) {
                 for (String tagValue : tagValues)
-                    result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(tagValue, mapping.getLang())));
+                    result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(tagValue, mapping.getLang()), tagValue));
             } else {
                 RDFDatatype datatype = NodeFactory.getType(mapping.getType());
                 for (String tagValue : tagValues)
-                    result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createTypedLiteral(tagValue, datatype)));
+                    result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createTypedLiteral(tagValue, datatype), tagValue));
             }
         }
 

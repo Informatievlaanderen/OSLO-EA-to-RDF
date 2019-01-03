@@ -87,6 +87,7 @@ public class Converter {
 
         // Convert package
         Resource ontology = convertPackage(diagram.getPackage(), uris.ontologyURIs, uris.packageURIs);
+        LOGGER.info("handle ontology");
 
         // Convert elements.
         for (DiagramElement diagramElement : diagram.getElements()) {
@@ -105,6 +106,7 @@ public class Converter {
             else if (customURI && refersToThisPackage)
                 scope = Scope.TRANSLATIONS_ONLY;
 
+            LOGGER.info("Scope of covertion for diagram elements is \"{}\"", scope);
             convertElement(diagramElement, uris.elementURIs, uris.instanceURIs, ontology, scope);
         }
 
@@ -163,6 +165,7 @@ public class Converter {
                     scope = Scope.FULL_DEFINITON;
                 else if (externalTerm && currentPackageTerm)
                     scope = Scope.TRANSLATIONS_ONLY;
+                LOGGER.info("Scope of covertion for attributes is \"{}\"", scope);
                 convertAttribute(attribute, nameToElements, uris.elementURIs, uris.attributeURIs, ontology, scope);
             }
         }
@@ -221,6 +224,8 @@ public class Converter {
                 prefix,
                 baseUri
         );
+
+      LOGGER.info("Ontology {}", ontology);
 
         return ontology;
     }
@@ -401,6 +406,7 @@ public class Converter {
                     scope = Scope.FULL_DEFINITON;
                 else if (externalTerm && packageExported == PackageExported.ACTIVE_PACKAGE)
                     scope = Scope.TRANSLATIONS_ONLY;
+               LOGGER.info("Scope of covertion for connector is \"{}\"", scope);
 
                 outputHandler.handleProperty(
                         OutputHandler.PropertySource.from(connector),

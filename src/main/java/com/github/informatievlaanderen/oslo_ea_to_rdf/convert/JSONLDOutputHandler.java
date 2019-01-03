@@ -13,6 +13,9 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
@@ -40,6 +43,8 @@ public class JSONLDOutputHandler implements OutputHandler {
     private List<String> tagNames;
     private OntologyDescription ontologyDescription = new OntologyDescription();
     private JSONLDConversionReport conversionReport = new JSONLDConversionReport();
+
+    private final Logger LOGGER = LoggerFactory.getLogger(JSONLDOutputHandler.class);
 
     public JSONLDOutputHandler(String ontologyName, String contributorsList, BufferedWriter writer, TagHelper tagHelper, EADiagram diagram) throws IOException {
         this.contributorsList = contributorsList;
@@ -164,7 +169,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         return null;
     }
 
-    private List<String> extactTagValues(List<TagData> tagData) {
+    private List<String> extractTagValues(List<TagData> tagData) {
         List<String> result = new ArrayList<>();
 
         for (String tagName : tagNames) {
@@ -234,8 +239,14 @@ public class JSONLDOutputHandler implements OutputHandler {
         ontologyDescription.setType(OWL.Ontology.getURI());
         ontologyDescription.setLabel(this.ontologyName);
 
-        String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + "\", \"EA-Guid\" : \"" + sourcePackage.getGuid() + "\"}"; 
+
+        String tags = "";
+        List<String> tagJsons = extractTagsJson(tagHelper.getTagDataFor(sourcePackage, tagHelper.getOntologyMappings()));
+        tags = JOINER.join(tagJsons);
+
+        String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + "\", \"EA-Guid\" : \"," + sourcePackage.getGuid() + "\"" + tags + "}"; 
         ontologyDescription.setExtra(extra);
+
         /*  
            EA Details:
              sourcePackage.getName();
@@ -274,7 +285,9 @@ public class JSONLDOutputHandler implements OutputHandler {
              class.getLocalName();
            write(JOINER.join(parentClasses));
         */
-
+  
+        
+        LOGGER.info("handle class \"{}\" .", sourceElement.getName());
              
         ClassDescription classDescription = new ClassDescription();
         classDescription.setUri(clazz.getURI());
@@ -299,25 +312,27 @@ public class JSONLDOutputHandler implements OutputHandler {
 
         classDescription.setExtra(extra);
 
-        List<String> tagValues = extactTagValues(tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
-        for(String value : tagValues) {
-            if(value != null && !value.equals("")) {
-                String tag = this.tagNames.get(tagValues.indexOf(value));
-                int cutOff = ((tag.indexOf('-') > -1)?tag.indexOf('-'):0);
-                String puretag = tag.substring(0, cutOff);
-                switch(puretag) {
-                    case "definition":
-                        classDescription.getDescription().add(new LanguageStringDescription(tag.substring(11,tag.length()), value));
-                        break;
-                    case "label":
-                        classDescription.getName().add(new LanguageStringDescription(tag.substring(6, tag.length()), value));
-                        break;
-                    case "usage":
-                        classDescription.getUsage().add(new LanguageStringDescription(tag.substring(6, tag.length()), value));
-                        break;
-                }
-            }
-        }
+        // support via the mapping rules calculated tags - these tags are not to be explicitely encoded, but used to extract 
+        // data for later processing
+        String tv = "";
+        for (TagData t : tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON))) {
+                LOGGER.info("process class-tag \"{}\" having value {}.", t.getOriginTag(), t.getValue().toString());
+		tv = t.getOriginValue();
+           switch (t.getOriginTag()) {
+		case "label":
+                        classDescription.getName().add(new LanguageStringDescription("nl", tv));
+			break;
+		case "definition":
+                        classDescription.getDescription().add(new LanguageStringDescription("nl", tv));
+			break;
+		case "usage":
+                        classDescription.getUsage().add(new LanguageStringDescription("nl", tv));
+			break;
+			
+		};
+        };
+
+        // TODO: check the if cases - maybe not needed
         if(classDescription.getName().size() < 1 && (classDescription.getUri() == null || classDescription.getUri().length() < 1)) {
             this.addToReport("[!] Class without name or URI found, this class will be ignored");
         } else if(classDescription.getName().size() < 1) {
@@ -402,25 +417,27 @@ public class JSONLDOutputHandler implements OutputHandler {
 
         propertyDescription.setExtra(extra);
 
-        List<String> tagValues = extactTagValues(tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
-        for(String value : tagValues) {
-            if(value != null && !value.equals("")) {
-                String tag = this.tagNames.get(tagValues.indexOf(value));
-                int cutOff = ((tag.indexOf('-') > -1)?tag.indexOf('-'):0);
-                String puretag = tag.substring(0, cutOff);
-                switch(puretag) {
-                    case "definition":
-                        propertyDescription.getDescription().add(new LanguageStringDescription(tag.substring(11,tag.length()), value));
-                        break;
-                    case "label":
-                        propertyDescription.getName().add(new LanguageStringDescription(tag.substring(6, tag.length()), value));
-                        break;
-                    case "usage":
-                        propertyDescription.getUsage().add(new LanguageStringDescription(tag.substring(6, tag.length()), value));
-                        break;
-                }
-            }
-        }
+        // support via the mapping rules calculated tags - these tags are not to be explicitely encoded, but used to extract 
+        // data for later processing
+        String tv = "";
+        for (TagData t : tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON)) ) {
+                LOGGER.info("process class-tag \"{}\" having value {}.", t.getOriginTag(), t.getValue().toString());
+		tv = t.getOriginValue();
+           switch (t.getOriginTag()) {
+		case "label":
+                        propertyDescription.getName().add(new LanguageStringDescription("nl", tv));
+			break;
+		case "definition":
+                        propertyDescription.getDescription().add(new LanguageStringDescription("nl", tv));
+			break;
+		case "usage":
+                        propertyDescription.getUsage().add(new LanguageStringDescription("nl", tv));
+			break;
+			
+		};
+        };
+
+
         if(domain != null) {
             propertyDescription.getDomain().add(domain.getURI());
         }
@@ -441,6 +458,7 @@ public class JSONLDOutputHandler implements OutputHandler {
             propertyDescription.setMaxCount(upperbound);
         }
 
+        // TODO: check the if conditions if these are to be checked 
         if(propertyDescription.getName().size() < 1 && (propertyDescription.getUri() == null || propertyDescription.getUri().length() < 1)) {
             this.addToReport("[!] Property without name or URI found, this class will be ignored");
         } else if(propertyDescription.getName().size() < 1) {
