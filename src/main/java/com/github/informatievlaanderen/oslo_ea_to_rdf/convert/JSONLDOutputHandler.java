@@ -240,9 +240,12 @@ public class JSONLDOutputHandler implements OutputHandler {
         ontologyDescription.setLabel(this.ontologyName);
 
 
-        String tags = "";
         List<String> tagJsons = extractTagsJson(tagHelper.getTagDataFor(sourcePackage, tagHelper.getOntologyMappings()));
-        tags = JOINER.join(tagJsons);
+        String tags = "";
+	if (!tagJsons.isEmpty) {
+	    tags = ", ";
+	}
+        tags = tags + JOINER.join(tagJsons);
 
         String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + "\", \"EA-Guid\" : \"," + sourcePackage.getGuid() + "\"" + tags + "}"; 
         ontologyDescription.setExtra(extra);
