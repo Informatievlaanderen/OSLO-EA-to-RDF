@@ -665,39 +665,12 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "\"extra\": " + classDescription.getExtra() + ",\n";
                 outputString += "\"name\": {\n";
                 outputString += print_languagetagged(classDescription.getName());
-
-/*
-                for (LanguageStringDescription name : classDescription.getName()) {
-                    outputString += "\"" + name.getLanguage() + "\": \"" + name.getValue() + "\",\n";
-                }
-                if (classDescription.getName().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
-
-                
                 outputString += "},\n";
                 outputString += "\"description\": {\n";
                 outputString += print_languagetagged(classDescription.getDescription());
-/*
-                for (LanguageStringDescription description : classDescription.getDescription()) {
-                    outputString += "\"" + description.getLanguage() + "\": \"" + description.getValue().replace("\"", "\\\"") + "\",\n"; // TODO use escapefunction
-                }
-                if (classDescription.getDescription().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "},\n";
                 outputString += "\"usage\": {\n";
                 outputString += print_languagetagged(classDescription.getUsage());
-/*
-                for (LanguageStringDescription usage : classDescription.getUsage()) {
-                    outputString += "\"" + usage.getLanguage() + "\": \"" + usage.getValue() + "\",\n";
-                }
-                if (classDescription.getUsage().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "}\n";
                 outputString += "},\n";
             }
@@ -734,38 +707,13 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "\"@type\": \"" + propertyDescription.getType() + "\",\n";
                 outputString += "\"name\": {\n";
                 outputString += print_languagetagged(propertyDescription.getName());
-/*
-
-                for (LanguageStringDescription name : propertyDescription.getName()) {
-                    outputString += "\"" + name.getLanguage() + "\": \"" + name.getValue() + "\",\n";
-                }
-                if (propertyDescription.getName().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "},\n";
                 outputString += "\"extra\": " + propertyDescription.getExtra() + ",\n";
                 outputString += "\"description\": {\n";
                 outputString += print_languagetagged(propertyDescription.getDescription());
-/*
-                for (LanguageStringDescription description : propertyDescription.getDescription()) {
-                    outputString += "\"" + description.getLanguage() + "\": \"" + description.getValue() + "\",\n";
-                }
-                if (propertyDescription.getDescription().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "},\n";
                 outputString += "\"usage\": {\n";
                 outputString += print_languagetagged(propertyDescription.getUsage());
-/*
-                for (LanguageStringDescription usage : propertyDescription.getUsage()) {
-                    outputString += "\"" + usage.getLanguage() + "\": \"" + usage.getValue() + "\",\n";
-                }
-                if (propertyDescription.getUsage().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "},\n";
                 outputString += "\"domain\": [\n";
                 for(String domain : propertyDescription.getDomain()) {
