@@ -126,7 +126,6 @@ public class Main {
                         } else {
                             jsonldOutputHandler.handleContributors(new File(themaConfiguration.getContributorsFile()));
                         }
-                        jsonldOutputHandler.handleExternalVocabularies();
                         jsonldOutputHandler.writeToFile(outputFile.toPath());
                         jsonldOutputHandler.writeReportToFile(reportFile.getAbsolutePath());
                     }

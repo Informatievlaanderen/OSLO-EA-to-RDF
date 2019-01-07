@@ -20,6 +20,8 @@ public class OntologyDescription {
     private List<ContributorDescription> authors;
     private List<ContributorDescription> contributors;
     private Set<String> externals;
+    private List<ClassDescription> externalClasses;
+    private List<PropertyDescription> externalProperties;
 
     public OntologyDescription() {
         this.classes = new ArrayList<>();
@@ -29,6 +31,8 @@ public class OntologyDescription {
         this.authors = new ArrayList<>();
         this.contributors = new ArrayList<>();
         this.externals = new HashSet<>();
+        this.externalClasses = new ArrayList<>();
+        this.externalProperties = new ArrayList<>();
     }
 
     public Set<String> getExternals() {
@@ -109,6 +113,22 @@ public class OntologyDescription {
 
     public void setDatatypes(List<DatatypeDescription> datatypes) {
         this.datatypes = datatypes;
+    }
+
+    public List<ClassDescription> getExternalClasses() {
+        return externalClasses;
+    }
+
+    public void setExternalClasses(List<ClassDescription> classes) {
+        this.externalClasses = classes;
+    }
+
+    public List<PropertyDescription> getExternalProperties() {
+        return externalProperties;
+    }
+
+    public void setExternalProperties(List<PropertyDescription> properties) {
+        this.externalProperties = properties;
     }
 
     public String getExtra() {
