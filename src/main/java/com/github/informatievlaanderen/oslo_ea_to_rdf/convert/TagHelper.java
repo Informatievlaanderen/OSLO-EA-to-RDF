@@ -89,7 +89,7 @@ public class TagHelper {
         for (Mapping mapping : mappings) {
             List<String> tagValues = getTagValues(object.getTags(), mapping.getTag());
             LOGGER.debug("search tag {}", mapping.getTag());
-            LOGGER.debug("fallback {}", mapping.getFallbackTags().toString());
+            // fallback tags field should not be empty for this debug line: LOGGER.debug("fallback {}", mapping.getFallbackTags().toString());
 
             Iterator<String> backupIterator = mapping.getFallbackTags() != null ? mapping.getFallbackTags().iterator() : Collections.emptyIterator();
              String b = "";
