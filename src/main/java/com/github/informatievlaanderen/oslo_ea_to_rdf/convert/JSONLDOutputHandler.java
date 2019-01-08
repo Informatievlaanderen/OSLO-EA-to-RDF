@@ -681,6 +681,7 @@ public class JSONLDOutputHandler implements OutputHandler {
             writer.write(outputString);
 
             writer.write("\"properties\": [\n");
+            outputString = "";
             outputString += print_propertydescription(ontologyDescription.getProperties());
             outputString += "],\n";
 
