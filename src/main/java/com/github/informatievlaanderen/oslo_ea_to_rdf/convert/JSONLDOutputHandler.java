@@ -322,7 +322,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         // data for later processing
         String tv = "";
         for (TagData t : tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON))) {
-                LOGGER.info("process class-tag \"{}\" having value {}.", t.getOriginTag(), t.getValue().toString());
+                LOGGER.debug("process class-tag \"{}\" having value {}.", t.getOriginTag(), t.getValue().toString());
 		tv = t.getOriginValue();
            switch (t.getOriginTag()) {
 		case "label":
@@ -435,13 +435,12 @@ public class JSONLDOutputHandler implements OutputHandler {
         }
 
         propertyDescription.setExtra(extra);
-        LOGGER.info("-------------------------------------------------");
 
         // support via the mapping rules calculated tags - these tags are not to be explicitely encoded, but used to extract 
         // data for later processing
         String tv = "";
         for (TagData t : tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON)) ) {
-                LOGGER.info("process class-tag \"{}\" having value {}.", t.getOriginTag(), t.getValue().toString());
+                LOGGER.debug("process property-tag \"{}\" having value {}.", t.getOriginTag(), t.getValue().toString());
 		tv = t.getOriginValue();
            switch (t.getOriginTag()) {
 		case "label":
@@ -462,11 +461,11 @@ public class JSONLDOutputHandler implements OutputHandler {
         // if there are 2 classes mapped on the same URI and one of the classes is used as domain/range the label maight get wrong
         // Therefore the label should be part of the domain/range resolvement. => Impact on other processing parts
         if(domain != null) {
-	    String propdomain = "{ \"uri\": \"" + domain.getURI() + "\", \"name\" : \"" + pdomain + "\" }";
+	    String propdomain = "{ \"uri\": \"" + domain.getURI() + "\", \"EA-Name\" : \"" + pdomain + "\" }";
             propertyDescription.getDomain().add(propdomain);
         }
         if(range != null) {
-	    String proprange= "{ \"uri\": \"" + range.getURI() + "\", \"name\" : \"" + prange + "\" }";
+	    String proprange= "{ \"uri\": \"" + range.getURI() + "\", \"EA-Name\" : \"" + prange + "\" }";
             propertyDescription.getRange().add(proprange);
         }
 
@@ -501,10 +500,11 @@ public class JSONLDOutputHandler implements OutputHandler {
                 }
             }
         }
+
         // always add property
         // determin to which categorie the class belongs:
         if (scope != Scope.FULL_DEFINITON) {
-          // external
+          // external for the vocabulary definition
            this.ontologyDescription.getExternalProperties().add(propertyDescription);
         } else {
            this.ontologyDescription.getProperties().add(propertyDescription);
@@ -668,39 +668,12 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "\"extra\": " + classDescription.getExtra() + ",\n";
                 outputString += "\"name\": {\n";
                 outputString += print_languagetagged(classDescription.getName());
-
-/*
-                for (LanguageStringDescription name : classDescription.getName()) {
-                    outputString += "\"" + name.getLanguage() + "\": \"" + name.getValue() + "\",\n";
-                }
-                if (classDescription.getName().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
-
-                
                 outputString += "},\n";
                 outputString += "\"description\": {\n";
                 outputString += print_languagetagged(classDescription.getDescription());
-/*
-                for (LanguageStringDescription description : classDescription.getDescription()) {
-                    outputString += "\"" + description.getLanguage() + "\": \"" + description.getValue().replace("\"", "\\\"") + "\",\n"; // TODO use escapefunction
-                }
-                if (classDescription.getDescription().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "},\n";
                 outputString += "\"usage\": {\n";
                 outputString += print_languagetagged(classDescription.getUsage());
-/*
-                for (LanguageStringDescription usage : classDescription.getUsage()) {
-                    outputString += "\"" + usage.getLanguage() + "\": \"" + usage.getValue() + "\",\n";
-                }
-                if (classDescription.getUsage().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "}\n";
                 outputString += "},\n";
             }
@@ -712,63 +685,57 @@ public class JSONLDOutputHandler implements OutputHandler {
 
             writer.write("\"properties\": [\n");
             outputString = "";
-            for (PropertyDescription propertyDescription : ontologyDescription.getProperties()) {
-                /*
-                        "domain": [
-          "http://data.vlaanderen.be/ns/gebouw#Gebouw",
-          "http://data.vlaanderen.be/ns/gebouw#Gebouweenheid"
-        ],
-        "range": [
-          "http://www.w3.org/2001/XMLSchema#integer"
-        ],
-        "minCount": "1",
-        "maxCount": "1",
-        "description": {
-          "nl": "Totaal van het aantal boven- en ondergrondse gebouwlagen, bekeken over alle gebouwdelen heen.",
-          "en": "to be translated"
-        },
-        "generalization": [
-          "http://www.w3.org/ns/regorg#orgType"
-        ],
+            outputString += print_propertydescription(ontologyDescription.getProperties());
+            outputString += "],\n";
 
-                 */
+            outputString += "\"externals\": [\n";
+            
+            List<String> excls = new ArrayList<>();
+            String externalS = "";
+            for(ClassDescription external : ontologyDescription.getExternalClasses()) {
+                externalS += "{\n";
+                externalS += "\"@id\": \"" + external.getUri() + "\",\n";
+                externalS += "\"@type\": \"" + external.getType() + "\",\n";
+                externalS += "\"extra\": " + external.getExtra() + ",\n";
+                externalS += "\"name\": {\n";
+                externalS += print_languagetagged(external.getName());
+ 		externalS += "}\n";
+                externalS += "}\n";
+ 		excls.add(externalS);
+                externalS = "";
+            }
+            outputString += JOINER.join(excls);
+            outputString += "],\n";
+            outputString += "\"externalproperties\": [\n";
+            outputString += print_propertydescription(ontologyDescription.getExternalProperties());
+            outputString += "]\n";
+
+            writer.write(outputString);
+
+            writer.write("}");
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+    }
+
+
+    private String print_propertydescription(List<PropertyDescription> properties) {
+            List<String> props = new ArrayList<>();
+            String outputString = "";
+            for (PropertyDescription propertyDescription : properties) {
+                outputString = "";
                 outputString += "{\n";
                 outputString += "\"@id\": \"" + propertyDescription.getUri() + "\",\n";
                 outputString += "\"@type\": \"" + propertyDescription.getType() + "\",\n";
                 outputString += "\"name\": {\n";
                 outputString += print_languagetagged(propertyDescription.getName());
-/*
-
-                for (LanguageStringDescription name : propertyDescription.getName()) {
-                    outputString += "\"" + name.getLanguage() + "\": \"" + name.getValue() + "\",\n";
-                }
-                if (propertyDescription.getName().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "},\n";
                 outputString += "\"extra\": " + propertyDescription.getExtra() + ",\n";
                 outputString += "\"description\": {\n";
                 outputString += print_languagetagged(propertyDescription.getDescription());
-/*
-                for (LanguageStringDescription description : propertyDescription.getDescription()) {
-                    outputString += "\"" + description.getLanguage() + "\": \"" + description.getValue() + "\",\n";
-                }
-                if (propertyDescription.getDescription().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "},\n";
                 outputString += "\"usage\": {\n";
                 outputString += print_languagetagged(propertyDescription.getUsage());
-/*
-                for (LanguageStringDescription usage : propertyDescription.getUsage()) {
-                    outputString += "\"" + usage.getLanguage() + "\": \"" + usage.getValue() + "\",\n";
-                }
-                if (propertyDescription.getUsage().size() > 0) {
-                    outputString = outputString.substring(0, outputString.length() - 2) + "\n";
-                }
-*/
                 outputString += "},\n";
                 outputString += "\"domain\": [\n";
                 for(String domain : propertyDescription.getDomain()) {
@@ -801,41 +768,12 @@ public class JSONLDOutputHandler implements OutputHandler {
                     outputString += "\"maxCardinality\": \"" + propertyDescription.getMaxCount() + "\",\n";
                 }
                 outputString = outputString.substring(0, outputString.length() - 2);
-                outputString += "},\n";
+                outputString += "}\n";
+ 		props.add(outputString);
             }
-            if(ontologyDescription.getProperties().size() > 0) {
-                outputString = outputString.substring(0, outputString.length() - 2);
-                outputString += "\n";
-            }
-            outputString += "],\n";
+            return JOINER.join(props);
 
-            outputString += "\"externals\": [\n";
-            
-            List<String> excls = new ArrayList<>();
-            String externalS = "";
-            for(ClassDescription external : ontologyDescription.getExternalClasses()) {
-                externalS += "{\n";
-                externalS += "\"@id\": \"" + external.getUri() + "\",\n";
-                externalS += "\"@type\": \"" + external.getType() + "\",\n";
-                externalS += "\"extra\": " + external.getExtra() + ",\n";
-                externalS += "\"name\": {\n";
-                externalS += print_languagetagged(external.getName());
- 		externalS += "}\n";
-                externalS += "}\n";
- 		excls.add(externalS);
-                externalS = "";
-            }
-            outputString += JOINER.join(excls);
-            outputString += "]\n";
-
-            writer.write(outputString);
-
-            writer.write("}");
-        }catch(IOException e){
-            e.printStackTrace();
-        }
     }
-
 
     private String print_languagetagged(List<LanguageStringDescription> lvalues) {
 
@@ -850,6 +788,7 @@ public class JSONLDOutputHandler implements OutputHandler {
     @Override
     public void handleInstance(EAAttribute source, Resource instance, Scope scope,
                                Resource ontology, Resource clazz) {
+       LOGGER.warn("INSTANCE NOT HANDLED: {} - {}", source.getName(), source.getGuid());
     }
 
     private List<EAElement> findParents(DiagramElement child) {
@@ -857,7 +796,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 .map(dConn -> {
                     EAConnector conn = dConn.getReferencedConnector();
                     if (!EAConnector.TYPE_GENERALIZATION.equals(conn.getType())
-                            || Boolean.valueOf(tagHelper.getOptionalTag(conn, Tag.IGNORE, "false"))
+                            || Boolean.valueOf(tagHelper.getOptionalTag(conn, Tag.1IGNORE, "false"))
                             || dConn.isHidden()
                             || EAConnector.Direction.BIDIRECTIONAL.equals(conn.getDirection())
                             || EAConnector.Direction.UNSPECIFIED.equals(conn.getDirection()))

@@ -88,16 +88,23 @@ public class TagHelper {
         List<TagData> result = new ArrayList<>();
         for (Mapping mapping : mappings) {
             List<String> tagValues = getTagValues(object.getTags(), mapping.getTag());
+            LOGGER.debug("search tag {}", mapping.getTag());
+            // fallback tags field should not be empty for this debug line: LOGGER.debug("fallback {}", mapping.getFallbackTags().toString());
 
             Iterator<String> backupIterator = mapping.getFallbackTags() != null ? mapping.getFallbackTags().iterator() : Collections.emptyIterator();
-            while (tagValues.isEmpty() && backupIterator.hasNext())
-                tagValues = getTagValues(object.getTags(), backupIterator.next());
+             String b = "";
+            while (tagValues.isEmpty() && backupIterator.hasNext()) {
+                b = backupIterator.next();
+                tagValues = getTagValues(object.getTags(), b);
+                LOGGER.debug("found tag value {} {} in object {} using {}", mapping.getTag(), tagValues.toString(), object.getTags().toString(), b);
+            };
 
             if (tagValues.isEmpty() && mapping.isMandatory()) {
                 LOGGER.warn("Missing \"{}\" tag for \"{}\".", mapping.getTag(), object.getPath());
                 tagValues = Collections.singletonList("TODO");
             }
 
+            LOGGER.debug("found tagvalues {}", tagValues.toString());
             if (RDFS.Resource.getURI().equals(mapping.getType())) {
                 for (String tagValue : tagValues)
                     result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(tagValue), tagValue));
