@@ -245,12 +245,12 @@ public class JSONLDOutputHandler implements OutputHandler {
 
         List<String> tagJsons = extractTagsJson(tagHelper.getTagDataFor(sourcePackage, tagHelper.getOntologyMappings()));
         String tags = "";
-	if (!tagJsons.isEmpty) {
+	if (!tagJsons.isEmpty()) {
 	    tags = ", ";
 	}
         tags = tags + JOINER.join(tagJsons);
 
-        String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + "\", \"EA-Guid\" : \"," + sourcePackage.getGuid() + "\", " + tags + "}"; 
+        String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + "\", \"EA-Guid\" : \"," + sourcePackage.getGuid() + "\" " + tags + "}"; 
         ontologyDescription.setExtra(extra);
 
         /*  
@@ -313,6 +313,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"EA-Package\" : \"" + sourceElement.getPackage().getName()  +
                          "\", \"EA-Type\" : \"" + sourceElement.getType() +
                          "\", \"EA-Parents\" : \"" + eaparents +
+                         "\", \"parentclasses\" : \"" + JOINER.join(parentClasses) +
                          "\", " + tags +
                        "}"; 
 
@@ -796,7 +797,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 .map(dConn -> {
                     EAConnector conn = dConn.getReferencedConnector();
                     if (!EAConnector.TYPE_GENERALIZATION.equals(conn.getType())
-                            || Boolean.valueOf(tagHelper.getOptionalTag(conn, Tag.1IGNORE, "false"))
+                            || Boolean.valueOf(tagHelper.getOptionalTag(conn, Tag.IGNORE, "false"))
                             || dConn.isHidden()
                             || EAConnector.Direction.BIDIRECTIONAL.equals(conn.getDirection())
                             || EAConnector.Direction.UNSPECIFIED.equals(conn.getDirection()))
