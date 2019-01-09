@@ -276,7 +276,7 @@ public class UriAssigner {
 
                 String localName = tagHelper.getOptionalTag(connector, LOCALNAME, connector.getName());
                 if (localName == null) {
-                    LOGGER.error("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
+                    LOGGER.warn("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
                     continue;
                 }
                 connectorURI = packageURI + localName;
