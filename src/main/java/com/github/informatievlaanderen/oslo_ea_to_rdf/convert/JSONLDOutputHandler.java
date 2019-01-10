@@ -340,31 +340,49 @@ public class JSONLDOutputHandler implements OutputHandler {
         };
 
         // Quality Control
+        // always add the class
+        // determin to which categorie the class belongs:
+        if (scope != Scope.FULL_DEFINITON) {
+          // external
+           qualitycontrol_classdescription(1, classDescription, sourceElement);
+           this.ontologyDescription.getExternalClasses().add(classDescription);
+        } else {
+           qualitycontrol_classdescription(-1, classDescription, sourceElement);
+           this.ontologyDescription.getClasses().add(classDescription);
+         }
+    }
+
+    private void qualitycontrol_classdescription(int severity, ClassDescription classDescription, EAElement sourceElement) {
         if(classDescription.getName().size() < 1 && (classDescription.getUri() == null || classDescription.getUri().length() < 1)) {
 //            this.addToReport("[!] Class without name or URI found, this class will be ignored");
-            LOGGER.error(" Class {} without name or URI found, further processing this class will be incoherent", sourceElement.getName());
+            if (severity < 0) {
+            	LOGGER.error(" Class {} without name or URI found, further processing this class will be incoherent", sourceElement.getName());
+	    } else {
+            	LOGGER.warn(" Class {} without name or URI found, further processing this class will be incoherent", sourceElement.getName());
+		}
         } else if(classDescription.getName().size() < 1) {
 //            this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
+            if (severity < 0) {
             LOGGER.error(" Class {} without name in dutch, further processing this class will be incoherent", sourceElement.getName());
+	    } else {
+            LOGGER.warn(" Class {} without name in dutch, further processing this class will be incoherent", sourceElement.getName());
+	    }
         } else {
             for (LanguageStringDescription name : classDescription.getName()) {
                 if (name.getLanguage() == "nl") {
                     if (name.getValue() == null || name.getValue().length() < 1 || name.getValue().toLowerCase().trim().equals("todo")) {
 //                        this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
+            if (severity < 0) {
                         LOGGER.error(" Class {} with empty or dummy name in dutch, further processing this class will be incoherent", sourceElement.getName());
+	    } else {
+                        LOGGER.warn(" Class {} with empty or dummy name in dutch, further processing this class will be incoherent", sourceElement.getName());
+	    }
                     }
                 }
             }
         }
-        // always add the class
-        // determin to which categorie the class belongs:
-        if (scope != Scope.FULL_DEFINITON) {
-          // external
-           this.ontologyDescription.getExternalClasses().add(classDescription);
-        } else {
-           this.ontologyDescription.getClasses().add(classDescription);
-         }
-    }
+
+	};
 
     private String extractURI(EAElement element) {
         for(EAAttribute attribute : element.getAttributes()) {
@@ -485,32 +503,46 @@ public class JSONLDOutputHandler implements OutputHandler {
 
         // Quality control
         String pname = MoreObjects.firstNonNull(source.attribute, source.connector).getName();
-        if(propertyDescription.getName().size() < 1 && (propertyDescription.getUri() == null || propertyDescription.getUri().length() < 1)) {
-//            this.addToReport("[!] Property without name or URI found, this class will be ignored");
-            LOGGER.error(" Property {} without name or URI found, further processing this property will be incoherent", pname);
-        } else if(propertyDescription.getName().size() < 1) {
-//            this.addToReport("[!] Property with URI " + propertyDescription.getUri() + " has no proper name in dutch (nl).");
-            LOGGER.error(" Property {} without name in dutch, further processing this property will be incoherent", pname);
-        } else {
-            for (LanguageStringDescription name : propertyDescription.getName()) {
-                if (name.getLanguage() == "nl") {
-                    if (name.getValue() == null || name.getValue().length() < 1 || name.getValue().toLowerCase().trim().equals("todo")) {
-//                        this.addToReport("[!] Property with URI " + propertyDescription.getUri() + " has no proper name in dutch (nl).");
-                        LOGGER.error(" Property {} without with empty or dummy name in dutch, further processing this property will be incoherent", pname);
-                    }
-                }
-            }
-        }
 
         // always add property
         // determin to which categorie the class belongs:
         if (scope != Scope.FULL_DEFINITON) {
           // external for the vocabulary definition
+           qualitycontrol_propertydescription(10, propertyDescription, pname);
            this.ontologyDescription.getExternalProperties().add(propertyDescription);
         } else {
+           qualitycontrol_propertydescription(-1, propertyDescription, pname);
            this.ontologyDescription.getProperties().add(propertyDescription);
          }
     }
+
+    private void qualitycontrol_propertydescription(int severity, PropertyDescription propertyDescription, String pname) {
+        if(propertyDescription.getName().size() < 1 && (propertyDescription.getUri() == null || propertyDescription.getUri().length() < 1)) {
+	    if (severity <0) {
+            LOGGER.error(" Property {} without name or URI found, further processing this property will be incoherent", pname);
+            } else {
+            LOGGER.warn(" Property {} without name or URI found, further processing this property will be incoherent", pname);
+	    }
+        } else if(propertyDescription.getName().size() < 1) {
+	    if (severity <0) {
+            LOGGER.error(" Property {} without name in dutch, further processing this property will be incoherent", pname);
+            } else {
+            LOGGER.warn(" Property {} without name in dutch, further processing this property will be incoherent", pname);
+	    }
+        } else {
+            for (LanguageStringDescription name : propertyDescription.getName()) {
+                if (name.getLanguage() == "nl") {
+                    if (name.getValue() == null || name.getValue().length() < 1 || name.getValue().toLowerCase().trim().equals("todo")) {
+	    		if (severity <0) {
+                        LOGGER.error(" Property {} without with empty or dummy name in dutch, further processing this property will be incoherent", pname);
+            		} else {
+                        LOGGER.warn(" Property {} without with empty or dummy name in dutch, further processing this property will be incoherent", pname);
+	    		}
+                    }
+                }
+            }
+        }
+    };
 
     private String getExternalName(String external) {
         if(external.lastIndexOf("/") > external.lastIndexOf("#")) {
