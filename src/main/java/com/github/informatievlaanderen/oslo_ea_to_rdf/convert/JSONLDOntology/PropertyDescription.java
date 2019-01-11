@@ -1,5 +1,6 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.JSONLDOntology;
 
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.PackageExported;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ public class PropertyDescription {
     private String uri;
     private String type;
     private String extra;
+    private PackageExported inpackage;
     private List<LanguageStringDescription> name;
     private List<LanguageStringDescription> description;
     private List<LanguageStringDescription> usage;
@@ -42,6 +44,14 @@ public class PropertyDescription {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public PackageExported getInPackage() {
+        return inpackage;
+    }
+
+    public void setInPackage(PackageExported inpackage) {
+        this.inpackage = inpackage;
     }
 
     public List<LanguageStringDescription> getName() {

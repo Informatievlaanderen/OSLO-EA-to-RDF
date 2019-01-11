@@ -299,6 +299,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         ClassDescription classDescription = new ClassDescription();
         classDescription.setUri(clazz.getURI());
         classDescription.setType("http://www.w3.org/2002/07/owl#Class");
+        classDescription.setInPackage( scope == Scope.FULL_DEFINITON ? PackageExported.ACTIVE_PACKAGE : PackageExported.OTHER_PACKAGE);
         // write(RDFS.Class.getURI());
 
         List<EAElement> parents = findParents(findInDiagram(sourceElement));
@@ -403,6 +404,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         PropertyDescription propertyDescription = new PropertyDescription();
         propertyDescription.setUri(property.getURI());
         propertyDescription.setType(propertyType.getURI());
+	propertyDescription.setInPackage(packageExported);
 
         String tags = "";
 
@@ -697,6 +699,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "\"@id\": \"" + classDescription.getUri() + "\",\n";
                 outputString += "\"@type\": \"" + classDescription.getType() + "\",\n";
                 outputString += "\"extra\": " + classDescription.getExtra() + ",\n";
+                outputString += "\"inpackage\": \"" + classDescription.getInPackage().toString() + "\",\n";
                 outputString += "\"name\": {\n";
                 outputString += print_languagetagged(classDescription.getName());
                 outputString += "},\n";
@@ -727,6 +730,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 externalS += "{\n";
                 externalS += "\"@id\": \"" + external.getUri() + "\",\n";
                 externalS += "\"@type\": \"" + external.getType() + "\",\n";
+                externalS += "\"inpackage\": \"" + external.getInPackage().toString() + "\",\n";
                 externalS += "\"extra\": " + external.getExtra() + ",\n";
                 externalS += "\"name\": {\n";
                 externalS += print_languagetagged(external.getName());
@@ -761,6 +765,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "\"name\": {\n";
                 outputString += print_languagetagged(propertyDescription.getName());
                 outputString += "},\n";
+                outputString += "\"inpackage\": \"" + propertyDescription.getInPackage().toString() + "\",\n";
                 outputString += "\"extra\": " + propertyDescription.getExtra() + ",\n";
                 outputString += "\"description\": {\n";
                 outputString += print_languagetagged(propertyDescription.getDescription());
