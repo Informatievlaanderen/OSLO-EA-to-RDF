@@ -110,6 +110,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                     if(contributor.get((ontologyField)).equals("A")) {
                         this.ontologyDescription.getAuthors().add(cd);
                     } else if (contributor.get((ontologyField)).equals("E")) {
+                        LOGGER.info("Add Editor {}", contributor.get(0)); 
                         this.ontologyDescription.getEditors().add(cd);
                     } else if (contributor.get((ontologyField)).equals("C")) {
                         this.ontologyDescription.getContributors().add(cd);
@@ -354,14 +355,12 @@ public class JSONLDOutputHandler implements OutputHandler {
 
     private void qualitycontrol_classdescription(int severity, ClassDescription classDescription, EAElement sourceElement) {
         if(classDescription.getName().size() < 1 && (classDescription.getUri() == null || classDescription.getUri().length() < 1)) {
-//            this.addToReport("[!] Class without name or URI found, this class will be ignored");
             if (severity < 0) {
             	LOGGER.error(" Class {} without name or URI found, further processing this class will be incoherent", sourceElement.getName());
 	    } else {
             	LOGGER.warn(" Class {} without name or URI found, further processing this class will be incoherent", sourceElement.getName());
 		}
         } else if(classDescription.getName().size() < 1) {
-//            this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
             if (severity < 0) {
             LOGGER.error(" Class {} without name in dutch, further processing this class will be incoherent", sourceElement.getName());
 	    } else {
@@ -371,7 +370,6 @@ public class JSONLDOutputHandler implements OutputHandler {
             for (LanguageStringDescription name : classDescription.getName()) {
                 if (name.getLanguage() == "nl") {
                     if (name.getValue() == null || name.getValue().length() < 1 || name.getValue().toLowerCase().trim().equals("todo")) {
-//                        this.addToReport("[!] Class with URI " + classDescription.getUri() + " has no proper name in dutch (nl).");
             if (severity < 0) {
                         LOGGER.error(" Class {} with empty or dummy name in dutch, further processing this class will be incoherent", sourceElement.getName());
 	    } else {
