@@ -337,7 +337,6 @@ public class JSONLDOutputHandler implements OutputHandler {
 		case "usage":
                         classDescription.getUsage().add(new LanguageStringDescription("nl", tv));
 			break;
-			
 		};
         };
 
@@ -470,6 +469,9 @@ public class JSONLDOutputHandler implements OutputHandler {
 			break;
 		case "usage":
                         propertyDescription.getUsage().add(new LanguageStringDescription("nl", tv));
+			break;
+		case "codelist":
+                        if (tv != null) { propertyDescription.getCodelist().add(tv); };
 			break;
 			
 		};
@@ -734,7 +736,13 @@ public class JSONLDOutputHandler implements OutputHandler {
                 externalS += "\"extra\": " + external.getExtra() + ",\n";
                 externalS += "\"name\": {\n";
                 externalS += print_languagetagged(external.getName());
- 		externalS += "}\n";
+ 		externalS += "},\n";
+                externalS += "\"description\": {\n";
+                externalS += print_languagetagged(external.getDescription());
+                externalS += "},\n";
+                externalS += "\"usage\": {\n";
+                externalS += print_languagetagged(external.getUsage());
+                externalS += "}\n";
                 externalS += "}\n";
  		excls.add(externalS);
                 externalS = "";
@@ -773,6 +781,9 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "\"usage\": {\n";
                 outputString += print_languagetagged(propertyDescription.getUsage());
                 outputString += "},\n";
+                outputString += "\"codelist\": [\n";
+                outputString += print_list(propertyDescription.getCodelist());
+                outputString += "],\n";
                 outputString += "\"domain\": [\n";
                 for(String domain : propertyDescription.getDomain()) {
                     outputString += "" + domain + ",\n";
@@ -820,6 +831,15 @@ public class JSONLDOutputHandler implements OutputHandler {
        String result = JOINER.join(results);
        return result;
     }
+
+    private String print_list(List<String> lvalues) {
+       List<String> results = new ArrayList<>();
+       for (String lsd : lvalues ) {
+                    results.add("\"" + lsd + "\"");
+                }
+       String result = JOINER.join(results);
+       return result;
+    };
 
     @Override
     public void handleInstance(EAAttribute source, Resource instance, Scope scope,

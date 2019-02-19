@@ -18,6 +18,7 @@ public class PropertyDescription {
     private List<String> domain;
     private List<String> range;
     private List<String> generalization;
+    private List<String> codelist;
     private String minCount;
     private String maxCount;
 
@@ -28,6 +29,7 @@ public class PropertyDescription {
         this.domain = new ArrayList<>();
         this.range = new ArrayList<>();
         this.generalization = new ArrayList<>();
+        this.codelist = new ArrayList<>();
     }
 
     public String getUri() {
@@ -84,6 +86,14 @@ public class PropertyDescription {
 
     public void setDomain(List<String> domain) {
         this.domain = domain;
+    }
+
+    public List<String> getCodelist() {
+        return codelist;
+    }
+
+    public void setCodelist(List<String> codelist) {
+        this.codelist = codelist;
     }
 
     public List<String> getGeneralization() {
