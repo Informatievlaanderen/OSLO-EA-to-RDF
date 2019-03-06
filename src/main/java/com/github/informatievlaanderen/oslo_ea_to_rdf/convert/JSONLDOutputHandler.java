@@ -187,7 +187,8 @@ public class JSONLDOutputHandler implements OutputHandler {
         return result;
     }
 
-    private List<String> extractTagsJson(List<TagData> tagData) {
+    /* filter the extracted names w.r.t. the default list of tagnames in the configuration as this.tagNames */ 
+    private List<String> extractTagsJsonFilterDefault(List<TagData> tagData) {
         List<String> result = new ArrayList<>();
 
         for (String tagName : tagNames) {
@@ -200,6 +201,45 @@ public class JSONLDOutputHandler implements OutputHandler {
         }
         return result;
     }
+
+    /* filter the extracted names w.r.t. the provided list of tagnames */
+    private List<String> extractTagsJsonFilter(List<TagData> tagData, List<String> tagnames) {
+        List<String> result = new ArrayList<>();
+
+        for (String tagName : tagnames) {
+            String s = tagData.stream()
+                    .filter(t -> tagName.equals(t.getOriginTag()))
+                    .findFirst()
+                    .map(t -> t.getValue().isLiteral() ? t.getValue().asLiteral().getString() : t.getValue().asResource().getURI())
+                    .orElse("");
+            result.add("\"" + tagName + "\" : \"" + StringEscapeUtils.escapeJson(s) + "\"");
+        }
+        return result;
+    }
+
+    /* no filtering on additional tagnams */
+    private List<String> extractTagsJson(List<TagData> tagData) {
+        List<String> result = new ArrayList<>();
+
+        for (TagData td : tagData ) {
+            result.add("\"" + td.getOriginTag() + "\" : \"" + StringEscapeUtils.escapeJson(td.getOriginValue()) + "\"");
+        }
+        return result;
+    }
+
+    private String extractRawTags(EAObject eaobj) {
+        String rawTags = "";
+        List<String> allRawTags = new ArrayList<>();
+        for (EATag t :   eaobj.getTags()) {
+             allRawTags.add("{ \"key\": \"" + StringEscapeUtils.escapeJson(t.getKey()) + 
+                              "\", \"value\": \"" + StringEscapeUtils.escapeJson(t.getValue()) +  
+                              "\", \"note\": \"" + StringEscapeUtils.escapeJson(t.getNotes()) + "\" }"
+                  );
+	};
+        rawTags = JOINER.join(allRawTags);
+
+        return rawTags;
+    };
 
     private String extractVocabulary(String URI) {
         if(URI.lastIndexOf("#") > -1) {
@@ -243,15 +283,24 @@ public class JSONLDOutputHandler implements OutputHandler {
         ontologyDescription.setType(OWL.Ontology.getURI());
         ontologyDescription.setLabel(this.ontologyName);
 
+        LOGGER.debug("Tag Helper OntologyMapping \"{}\" .", tagHelper.getOntologyMappings());
+        List<TagData> oTagData = tagHelper.getTagDataFor(sourcePackage, tagHelper.getOntologyMappings());
+        LOGGER.debug("oTags \"{}\".", oTagData);
+        List<String> tagJsons = extractTagsJson(oTagData);
+        
+        LOGGER.debug("Tags \"{}\".", tagJsons);
 
-        List<String> tagJsons = extractTagsJson(tagHelper.getTagDataFor(sourcePackage, tagHelper.getOntologyMappings()));
         String tags = "";
 	if (!tagJsons.isEmpty()) {
 	    tags = ", ";
 	}
         tags = tags + JOINER.join(tagJsons);
 
-        String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + "\", \"EA-Guid\" : \"," + sourcePackage.getGuid() + "\" " + tags + "}"; 
+        String extra = "{\"EA-Name\" : \"" + sourcePackage.getName() + 
+                        "\", \"EA-Guid\" : \"" + sourcePackage.getGuid() + "\" " +
+                        tags + 
+                        ", \"RawTags\" : [" + extractRawTags(sourcePackage) + "]" +
+                        "}"; 
         ontologyDescription.setExtra(extra);
 
         /*  
@@ -307,7 +356,7 @@ public class JSONLDOutputHandler implements OutputHandler {
 
         String tags = "";
 
-        List<String> tagJsons = extractTagsJson(tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
+        List<String> tagJsons = extractTagsJsonFilterDefault(tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
         tags = JOINER.join(tagJsons);
 
         String extra = "{\"EA-Name\" : \"" + sourceElement.getName() + 
@@ -317,6 +366,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"EA-Parents\" : \"" + eaparents +
                          "\", \"parentclasses\" : \"" + JOINER.join(parentClasses) +
                          "\", " + tags +
+                        ", \"RawTags\" : [" + extractRawTags(sourceElement) + "]" +
                        "}"; 
 
         classDescription.setExtra(extra);
@@ -407,7 +457,7 @@ public class JSONLDOutputHandler implements OutputHandler {
 
         String tags = "";
 
-        List<String> tagJsons = extractTagsJson(tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
+        List<String> tagJsons = extractTagsJsonFilterDefault(tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
         tags = JOINER.join(tagJsons);
         String extra ="";
 
@@ -425,6 +475,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"EA-Domain-Guid\" : \"" + source.attribute.getElement().getGuid() +
                          "\", \"EA-Range\" : \"" + prange +
                          "\", " + tags +
+                        ", \"RawTags\" : [" + extractRawTags(MoreObjects.firstNonNull(source.attribute, source.connector)) + "]" +
                        "}"; 
         } else {
             DiagramConnector dConnector = findInDiagram(source.connector);
@@ -449,6 +500,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"EA-Domain-Guid\" : \"" + pdomainguid +
                          "\", \"EA-Range\" : \"" + prange +
                          "\", " + tags +
+                        ", \"RawTags\" : [" + extractRawTags(MoreObjects.firstNonNull(source.attribute, source.connector)) + "]" +
                        "}"; 
         }
 

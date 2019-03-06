@@ -118,6 +118,7 @@ public class TagHelper {
             }
         }
 
+            LOGGER.debug("tags found {}", result.toString());
         return result;
     }
 
