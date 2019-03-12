@@ -33,6 +33,14 @@ import java.util.stream.Collectors;
  *
  * @author Jonathan Langens
  */
+
+/*
+ * Scope.FULL_DEFINITON = internal term
+ * other scopes are external terms
+ * 
+ * Tag resultion is not anymore dependent on the scope: we use only ontologymappings and internalmappings
+ * distinction between vocabulary & applicationprofile/objectcatalog is controlled by the selected configuration
+ */
 public class JSONLDOutputHandler implements OutputHandler {
     private final static Joiner JOINER = Joiner.on(", ");
     private String contributorsList;
@@ -287,6 +295,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         List<TagData> oTagData = tagHelper.getTagDataFor(sourcePackage, tagHelper.getOntologyMappings());
         LOGGER.debug("oTags \"{}\".", oTagData);
         List<String> tagJsons = extractTagsJson(oTagData);
+
         
         LOGGER.debug("Tags \"{}\".", tagJsons);
 
@@ -302,6 +311,11 @@ public class JSONLDOutputHandler implements OutputHandler {
                         ", \"RawTags\" : [" + extractRawTags(sourcePackage) + "]" +
                         "}"; 
         ontologyDescription.setExtra(extra);
+
+        String scopedtags = "";
+        List<String> tagScoped= tagHelper.getTagDataForJson(sourcePackage, tagHelper.getOntologyMappings());
+        scopedtags = JOINER.join(tagScoped);
+        ontologyDescription.setScopetags(scopedtags);
 
         /*  
            EA Details:
@@ -355,9 +369,12 @@ public class JSONLDOutputHandler implements OutputHandler {
         String eaparents = JOINER.join(Lists.transform(parents, EAElement::getName));
 
         String tags = "";
+        String scopedtags = "";
 
         List<String> tagJsons = extractTagsJsonFilterDefault(tagHelper.getTagDataFor(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
         tags = JOINER.join(tagJsons);
+        List<String> tagScoped= tagHelper.getTagDataForJson(sourceElement, tagHelper.getContentMappings(Scope.FULL_DEFINITON));
+        scopedtags = JOINER.join(tagScoped);
 
         String extra = "{\"EA-Name\" : \"" + sourceElement.getName() + 
                          "\", \"EA-Guid\" : \"" + sourceElement.getGuid() + 
@@ -366,10 +383,12 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"EA-Parents\" : \"" + eaparents +
                          "\", \"parentclasses\" : \"" + JOINER.join(parentClasses) +
                          "\", " + tags +
-                        ", \"RawTags\" : [" + extractRawTags(sourceElement) + "]" +
+                         ", \"RawTags\" : [" + extractRawTags(sourceElement) + "]" +
+                         ", " + scopedtags  +
                        "}"; 
 
         classDescription.setExtra(extra);
+        classDescription.setScopetags(scopedtags);
 
         // support via the mapping rules calculated tags - these tags are not to be explicitely encoded, but used to extract 
         // data for later processing
@@ -456,10 +475,13 @@ public class JSONLDOutputHandler implements OutputHandler {
 	propertyDescription.setInPackage(packageExported);
 
         String tags = "";
+        String scopedtags = "";
 
         List<String> tagJsons = extractTagsJsonFilterDefault(tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
         tags = JOINER.join(tagJsons);
         String extra ="";
+        List<String> tagScoped= tagHelper.getTagDataForJson(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(Scope.FULL_DEFINITON));
+        scopedtags = JOINER.join(tagScoped);
 
         String pdomain = "";
         String pdomainguid = "";
@@ -476,6 +498,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"EA-Range\" : \"" + prange +
                          "\", " + tags +
                         ", \"RawTags\" : [" + extractRawTags(MoreObjects.firstNonNull(source.attribute, source.connector)) + "]" +
+                         ", " + scopedtags +
                        "}"; 
         } else {
             DiagramConnector dConnector = findInDiagram(source.connector);
@@ -501,10 +524,12 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"EA-Range\" : \"" + prange +
                          "\", " + tags +
                         ", \"RawTags\" : [" + extractRawTags(MoreObjects.firstNonNull(source.attribute, source.connector)) + "]" +
+                         ", " + scopedtags +
                        "}"; 
         }
 
         propertyDescription.setExtra(extra);
+        propertyDescription.setScopetags(scopedtags);
 
         // support via the mapping rules calculated tags - these tags are not to be explicitely encoded, but used to extract 
         // data for later processing
@@ -633,6 +658,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                     "\",\n  \"en\": \"" +
                     ontologyDescription.getLabel() +
                     "\"\n},\n");
+            writer.write(print_ifpresent(ontologyDescription.getScopetags()));
             writer.write("\"extra\": " + ontologyDescription.getExtra() + ",\n");
 
             String authorsJSON = ""; // notice the authors (plural)
@@ -752,6 +778,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "{\n";
                 outputString += "\"@id\": \"" + classDescription.getUri() + "\",\n";
                 outputString += "\"@type\": \"" + classDescription.getType() + "\",\n";
+                outputString += print_ifpresent(classDescription.getScopetags());
                 outputString += "\"extra\": " + classDescription.getExtra() + ",\n";
                 outputString += "\"inpackage\": \"" + classDescription.getInPackage().toString() + "\",\n";
                 outputString += "\"name\": {\n";
@@ -785,6 +812,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 externalS += "\"@id\": \"" + external.getUri() + "\",\n";
                 externalS += "\"@type\": \"" + external.getType() + "\",\n";
                 externalS += "\"inpackage\": \"" + external.getInPackage().toString() + "\",\n";
+                externalS += print_ifpresent(external.getScopetags());
                 externalS += "\"extra\": " + external.getExtra() + ",\n";
                 externalS += "\"name\": {\n";
                 externalS += print_languagetagged(external.getName());
@@ -813,6 +841,13 @@ public class JSONLDOutputHandler implements OutputHandler {
         }
     }
 
+    private String print_ifpresent(String v) {
+		if (v != null && v != "") {
+		   return v + ",\n";
+		} else {
+		   return "";
+		}
+	};
 
     private String print_propertydescription(List<PropertyDescription> properties) {
             List<String> props = new ArrayList<>();
@@ -826,6 +861,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += print_languagetagged(propertyDescription.getName());
                 outputString += "},\n";
                 outputString += "\"inpackage\": \"" + propertyDescription.getInPackage().toString() + "\",\n";
+                outputString += propertyDescription.getScopetags() + ",\n";
                 outputString += "\"extra\": " + propertyDescription.getExtra() + ",\n";
                 outputString += "\"description\": {\n";
                 outputString += print_languagetagged(propertyDescription.getDescription());

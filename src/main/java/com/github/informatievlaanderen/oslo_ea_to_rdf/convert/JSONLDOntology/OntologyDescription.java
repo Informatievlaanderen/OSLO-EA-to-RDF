@@ -12,6 +12,7 @@ public class OntologyDescription {
     private String uri;
     private String type;
     private String label;
+    private String scopetags;
     private String extra;
     private List<ClassDescription> classes;
     private List<PropertyDescription> properties;
@@ -138,4 +139,13 @@ public class OntologyDescription {
     public void setExtra(String extra) {
         this.extra = extra;
     }
+
+    public String getScopetags() {
+        return scopetags;
+    }
+
+    public void setScopetags(String scopetags) {
+        this.scopetags = scopetags;
+    }
+
 }

@@ -10,6 +10,7 @@ import java.util.List;
 public class ClassDescription {
     private String uri;
     private String type;
+    private String scopetags;
     private String extra;
     private PackageExported inpackage;
     private List<LanguageStringDescription> name;
@@ -76,5 +77,13 @@ public class ClassDescription {
 
     public void setExtra(String extra) {
         this.extra = extra;
+    }
+
+    public String getScopetags() {
+        return scopetags;
+    }
+
+    public void setScopetags(String scopetags) {
+        this.scopetags = scopetags;
     }
 }
