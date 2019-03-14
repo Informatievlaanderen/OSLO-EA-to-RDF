@@ -842,7 +842,7 @@ public class JSONLDOutputHandler implements OutputHandler {
     }
 
     private String print_ifpresent(String v) {
-		if (v != null && v != "") {
+		if (v != null  && ! v.isEmpty()) {
 		   return v + ",\n";
 		} else {
 		   return "";
