@@ -384,6 +384,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"parentclasses\" : \"" + JOINER.join(parentClasses) +
                          "\", " + tags +
                          ", \"RawTags\" : [" + extractRawTags(sourceElement) + "]" +
+                         ", \"Scope\" : \"" + scope.toString() + "\"" +
                          ", " + scopedtags  +
                        "}"; 
 
@@ -498,6 +499,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"EA-Range\" : \"" + prange +
                          "\", " + tags +
                         ", \"RawTags\" : [" + extractRawTags(MoreObjects.firstNonNull(source.attribute, source.connector)) + "]" +
+                         ", \"Scope\" : \"" + scope.toString() + "\"" +
                          ", " + scopedtags +
                        "}"; 
         } else {
@@ -524,6 +526,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                          "\", \"EA-Range\" : \"" + prange +
                          "\", " + tags +
                         ", \"RawTags\" : [" + extractRawTags(MoreObjects.firstNonNull(source.attribute, source.connector)) + "]" +
+                         ", \"Scope\" : \"" + scope.toString() + "\"" +
                          ", " + scopedtags +
                        "}"; 
         }
