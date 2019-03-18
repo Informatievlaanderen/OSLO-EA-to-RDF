@@ -679,10 +679,10 @@ public class JSONLDOutputHandler implements OutputHandler {
             for(ContributorDescription author : ontologyDescription.getAuthors()) {
                 String authorJSON = "{\n";
                 if(!author.getFirstName().isEmpty()) {
-                    authorJSON += "\"foaf:first_name\": \"" + author.getFirstName() + "\",\n";
+                    authorJSON += "\"foaf:firstName\": \"" + author.getFirstName() + "\",\n";
                 }
                 if(!author.getLastName().isEmpty()) {
-                    authorJSON += "\"foaf:last_name\": \"" + author.getLastName() + "\",\n";
+                    authorJSON += "\"foaf:lastName\": \"" + author.getLastName() + "\",\n";
                 }
                 if(!author.getAffiliation().isEmpty() || !author.getWebsite().isEmpty()) {
                     authorJSON += "\"affiliation\": {";
