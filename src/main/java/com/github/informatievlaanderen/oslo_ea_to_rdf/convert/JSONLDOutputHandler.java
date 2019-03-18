@@ -699,7 +699,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 }
                 if(!authorJSON.replace("{","").replace("}","").replace("\"","").replace("\n","").replace(" ","").replace(",", "").isEmpty()) {
                     // author has some fields
-                    authorJSON += "\"@type\": \"person:Person\"";
+                    authorJSON += "\"@type\": \"foaf:Person\"";
                     authorJSON += "\n},\n";
                     authorsJSON += authorJSON;
                 }
@@ -715,10 +715,10 @@ public class JSONLDOutputHandler implements OutputHandler {
             for(ContributorDescription editor : ontologyDescription.getEditors()) {
                 String editorJSON = "{\n";
                 if(!editor.getFirstName().isEmpty()) {
-                    editorJSON += "\"foaf:first_name\": \"" + editor.getFirstName() + "\",\n";
+                    editorJSON += "\"foaf:firstName\": \"" + editor.getFirstName() + "\",\n";
                 }
                 if(!editor.getLastName().isEmpty()) {
-                    editorJSON += "\"foaf:last_name\": \"" + editor.getLastName() + "\",\n";
+                    editorJSON += "\"foaf:lastName\": \"" + editor.getLastName() + "\",\n";
                 }
                 if(!editor.getAffiliation().isEmpty() || !editor.getWebsite().isEmpty()) {
                     editorJSON += "\"affiliation\": {";
@@ -736,7 +736,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 }
                 if(!editorJSON.replace("{","").replace("}","").replace("\"","").replace("\n","").replace(" ","").replace(",", "").isEmpty()) {
                     // editor has some fields
-                    editorJSON += "\"@type\": \"person:Person\"";
+                    editorJSON += "\"@type\": \"foaf:Person\"";
                     editorJSON += "\n},\n";
                     editorsJSON += editorJSON;
                 }
@@ -752,10 +752,10 @@ public class JSONLDOutputHandler implements OutputHandler {
             for(ContributorDescription contributor : ontologyDescription.getContributors()) {
                 String contributorJSON = "{\n";
                 if(!contributor.getFirstName().isEmpty()) {
-                    contributorJSON += "\"foaf:first_name\": \"" + contributor.getFirstName() + "\",\n";
+                    contributorJSON += "\"foaf:firstName\": \"" + contributor.getFirstName() + "\",\n";
                 }
                 if(!contributor.getLastName().isEmpty()) {
-                    contributorJSON += "\"foaf:last_name\": \"" + contributor.getLastName() + "\",\n";
+                    contributorJSON += "\"foaf:lastName\": \"" + contributor.getLastName() + "\",\n";
                 }
                 if(!contributor.getAffiliation().isEmpty() || !contributor.getWebsite().isEmpty()) {
                     contributorJSON += "\"affiliation\": {";
@@ -773,7 +773,7 @@ public class JSONLDOutputHandler implements OutputHandler {
                 }
                 if(!contributorJSON.replace("{","").replace("}","").replace("\"","").replace("\n","").replace(" ","").replace(",", "").isEmpty()) {
                     // contributor has some field
-                    contributorJSON += "\"@type\": \"person:Person\"";
+                    contributorJSON += "\"@type\": \"foaf:Person\"";
                     contributorJSON += "\n},\n";
                     contributorsJSON += contributorJSON;
                 }
@@ -1010,15 +1010,15 @@ public class JSONLDOutputHandler implements OutputHandler {
                 "      \"@id\": \"dcterms:issued\"\n" +
                 "    },\n" +
                 "    \"authors\": {\n" +
-                "      \"@type\": \"person:Person\",\n" +
+                "      \"@type\": \"foaf:Person\",\n" +
                 "      \"@id\": \"foaf:maker\"\n" +
                 "    },\n" +
                 "    \"editors\": {\n" +
-                "      \"@type\": \"person:Person\",\n" +
+                "      \"@type\": \"foaf:Person\",\n" +
                 "      \"@id\": \"rec:editor\"\n" +
                 "    },\n" +
                 "    \"contributors\": {\n" +
-                "      \"@type\": \"person:Person\",\n" +
+                "      \"@type\": \"foaf:Person\",\n" +
                 "      \"@id\": \"dcterms:contributor\"\n" +
                 "    },\n" +
                 "    \"affiliation\": {\n" +
