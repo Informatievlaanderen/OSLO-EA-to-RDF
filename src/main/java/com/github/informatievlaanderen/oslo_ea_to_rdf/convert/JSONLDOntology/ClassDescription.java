@@ -16,6 +16,7 @@ public class ClassDescription {
     private List<LanguageStringDescription> name;
     private List<LanguageStringDescription> description;
     private List<LanguageStringDescription> usage;
+    private List<String> parents;
 
     public ClassDescription() {
         this.name = new ArrayList<>();
@@ -86,4 +87,13 @@ public class ClassDescription {
     public void setScopetags(String scopetags) {
         this.scopetags = scopetags;
     }
+
+    public List<String> getParents() {
+        return parents;
+    }
+
+    public void setParents(List<String> parents) {
+        this.parents = parents;
+    }
+
 }

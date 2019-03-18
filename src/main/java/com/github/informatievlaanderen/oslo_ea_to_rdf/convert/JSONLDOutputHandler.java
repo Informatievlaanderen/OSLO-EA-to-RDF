@@ -390,6 +390,7 @@ public class JSONLDOutputHandler implements OutputHandler {
 
         classDescription.setExtra(extra);
         classDescription.setScopetags(scopedtags);
+        classDescription.setParents(resToString(parentClasses));
 
         // support via the mapping rules calculated tags - these tags are not to be explicitely encoded, but used to extract 
         // data for later processing
@@ -634,6 +635,15 @@ public class JSONLDOutputHandler implements OutputHandler {
         }
     }
 
+    private List<String> resToString(List<Resource> resources) {
+	
+        List<String> result = new ArrayList<>();
+	for (Resource r : resources) {
+		result.add(r.toString());
+	};
+        return result;
+    }
+
     private void writeOntology() {
         // TODO instead of writing this through write statements we need the inclusion of a
         //      json manipulation library such as jackson
@@ -792,7 +802,10 @@ public class JSONLDOutputHandler implements OutputHandler {
                 outputString += "},\n";
                 outputString += "\"usage\": {\n";
                 outputString += print_languagetagged(classDescription.getUsage());
-                outputString += "}\n";
+                outputString += "},\n";
+                outputString += "\"parents\": [\n";
+                outputString += print_list(classDescription.getParents());
+                outputString += "]\n";
                 outputString += "},\n";
             }
             if(ontologyDescription.getClasses().size() > 0) {
