@@ -571,10 +571,9 @@ public class JSONLDOutputHandler implements OutputHandler {
             propertyDescription.getRange().add(proprange);
         }
 
-        String parent = JOINER.join(Iterables.transform(superProperties, Resource::getURI));
-        if(parent.length() > 0) {
-            propertyDescription.getGeneralization().add(parent);
-        }
+        for (Resource suProp : superProperties) {
+            propertyDescription.getGeneralization().add(suProp.toString());
+	};
 
         if(lowerbound != null && lowerbound.length() > 0) {
             propertyDescription.setMinCount(lowerbound);
