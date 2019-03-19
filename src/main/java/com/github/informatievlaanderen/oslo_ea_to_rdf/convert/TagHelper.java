@@ -115,8 +115,11 @@ public class TagHelper {
                 for (String tagValue : tagValues)
                     result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createResource(tagValue), tagValue));
             } else if (Strings.isNullOrEmpty(mapping.getType()) || RDF.dtLangString.getURI().equals(mapping.getType())) {
-                for (String tagValue : tagValues)
+                for (String tagValue : tagValues) {
+                    if (tagValue != null) {
                     result.add(new TagData(mapping.getTag(), mapping.getProperty(), ResourceFactory.createLangLiteral(tagValue, mapping.getLang()), tagValue));
+		    };
+		};
             } else {
                 RDFDatatype datatype = NodeFactory.getType(mapping.getType());
                 for (String tagValue : tagValues)
