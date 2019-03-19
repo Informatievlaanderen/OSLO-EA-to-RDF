@@ -264,9 +264,11 @@ public class MemoryRepositoryBuilder {
                 String upperBound = rs.getString("UpperBound");
 
                 MemoryEAElement element = elements.get(objectID);
-                MemoryEAAttribute att = new MemoryEAAttribute(element, guid, name, notes, type, id, lowerBound, upperBound);
-                element.getAttributesOrig().add(att);
-                attributes.put(id, att);
+                if (element != null) {
+                    MemoryEAAttribute att = new MemoryEAAttribute(element, guid, name, notes, type, id, lowerBound, upperBound);
+                    element.getAttributesOrig().add(att);
+                    attributes.put(id, att);
+                }
             }
         }
         return attributes;
@@ -314,7 +316,9 @@ public class MemoryRepositoryBuilder {
                 int attributeId = rs.getInt("ElementID");
 
                 MemoryEAAttribute attribute = attributes.get(attributeId);
-                attribute.getTagsOrig().add(new MemoryEATag(key, value, notes));
+                if (attribute != null) {
+                    attribute.getTagsOrig().add(new MemoryEATag(key, value, notes));
+                }
             }
         }
     }
@@ -335,7 +339,9 @@ public class MemoryRepositoryBuilder {
                 int elementId = rs.getInt("ElementID");
 
                 MemoryEAConnector connector = connectors.get(elementId);
-                connector.getTagsOrig().add(new MemoryEATag(key, value, notes));
+                if (connector != null) {
+                    connector.getTagsOrig().add(new MemoryEATag(key, value, notes));
+                }
             }
         }
     }
