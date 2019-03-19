@@ -173,6 +173,7 @@ public class MemoryRepositoryBuilder {
 
     private Map<Integer, MemoryEAPackage> loadPackages(Connection connection) throws SQLException {
         Map<Integer, MemoryEAPackage> packages = new LinkedHashMap<>();
+        Map<Integer, Integer> parentIds = new LinkedHashMap<>();
 
         try (Statement s = connection.createStatement()) {
             ResultSet rs = s.executeQuery(
@@ -189,15 +190,23 @@ public class MemoryRepositoryBuilder {
                 String note = rs.getString("Note");
 
                 MemoryEAPackage newPackage = new MemoryEAPackage(name, guid, stereotype, note, objectId, packageId);
-
+                // put package here but do not link to parent package, because it might not have been encountered yet
+                packages.put(packageId, newPackage);
+                parentIds.put(packageId, parentId);
+            }
+            // link packages to their parents here; all parent packages should have been encountered now
+            parentIds.forEach((childId, parentId) -> {
                 if (parentId != 0) {
                     // This is not the root package
-                    packages.get(parentId).getPackagesOrig().add(newPackage);
-                    newPackage.setParent(packages.get(parentId));
+                    MemoryEAPackage childPackage = packages.get(childId);
+                    MemoryEAPackage parentPackage = packages.get(parentId);
+                    if (parentPackage == null) {
+                        throw new IllegalStateException(String.format("Package '%s' does not have a parent package.", childPackage.getName()));
+                    }
+                    parentPackage.getPackagesOrig().add(childPackage);
+                    childPackage.setParent(packages.get(parentId));
                 }
-
-                packages.put(packageId, newPackage);
-            }
+            });
         }
         return packages;
     }
