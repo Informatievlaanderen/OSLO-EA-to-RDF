@@ -281,7 +281,7 @@ public class MemoryRepositoryBuilder {
      */
     private void loadObjectTags(Connection connection, Map<Integer, MemoryEAElement> elements, Map<Integer, MemoryEAPackage> packages) throws SQLException {
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT Property, Value, Object_ID, Notes FROM t_objectproperties ORDER BY PropertyID ASC");
+            ResultSet rs = s.executeQuery("SELECT Property, Value, Object_ID, Notes FROM t_objectproperties WHERE Value IS NOT NULL ORDER BY PropertyID ASC");
 
             while (rs.next()) {
                 String key = rs.getString("Property");
@@ -307,7 +307,7 @@ public class MemoryRepositoryBuilder {
      */
     private void loadAttributeTags(Connection connection, Map<Integer, MemoryEAAttribute> attributes) throws SQLException {
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_attributetag ORDER BY PropertyID ASC");
+            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_attributetag WHERE VALUE IS NOT NULL ORDER BY PropertyID ASC");
 
             while (rs.next()) {
                 String key = rs.getString("Property");
@@ -330,7 +330,7 @@ public class MemoryRepositoryBuilder {
      */
     private void loadConnectorTags(Connection connection, Map<Integer, MemoryEAConnector> connectors) throws SQLException {
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_connectortag ORDER BY PropertyID ASC");
+            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_connectortag WHERE VALUE IS NOT NULL ORDER BY PropertyID ASC");
 
             while (rs.next()) {
                 String key = rs.getString("Property");

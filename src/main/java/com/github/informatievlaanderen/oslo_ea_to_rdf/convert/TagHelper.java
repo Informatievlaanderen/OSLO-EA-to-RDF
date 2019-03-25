@@ -161,7 +161,7 @@ public class TagHelper {
     private List<String> getTagValues(List<EATag> tags, String key) {
         return tags.stream()
                 .filter(t -> key.equals(t.getKey()))
-                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? t.getNotes() : t.getValue())
+                .map(t -> USE_NOTE_VALUE.equals(t.getValue()) ? (t.getNotes() == null ? "TODO" : t.getNotes()) : t.getValue())
                 .collect(Collectors.toList());
     }
 
