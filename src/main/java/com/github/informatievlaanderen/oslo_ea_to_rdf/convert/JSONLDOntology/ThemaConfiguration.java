@@ -2,158 +2,170 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.JSONLDOntology;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Created by langens-jonathan on 11/16/18.
- */
+/** Created by langens-jonathan on 11/16/18. */
 public class ThemaConfiguration {
-    @SerializedName("name")
-    private String name;
-    @SerializedName("type")
-    private String type;
-    @SerializedName("eap")
-    private String eap;
-    @SerializedName("diagram")
-    private String diagram;
-    @SerializedName("contributors-column")
-    private String contributorsColumn;
-    @SerializedName("template")
-    private String template;
-    @SerializedName("title")
-    private String title;
-    @SerializedName("github")
-    private String github;
-    @SerializedName("branch")
-    private String branch;
-    @SerializedName("config")
-    private String config;
-    @SerializedName("publication-state")
-    private String publicationState;
-    @SerializedName("publication-date")
-    private String publicationDate;
-    @SerializedName("previous-state")
-    private String previousState;
-    @SerializedName("next-version")
-    private String nextVersion;
-    @SerializedName("contributors-file")
-    private String contributorsFile;
+  @SerializedName("name")
+  private String name;
 
-    public String getContributorsFile() {
-        return contributorsFile;
-    }
+  @SerializedName("type")
+  private String type;
 
-    public void setContributorsFile(String contributorsFile) {
-        this.contributorsFile = contributorsFile;
-    }
+  @SerializedName("eap")
+  private String eap;
 
-    public String getName() {
-        return name;
-    }
+  @SerializedName("diagram")
+  private String diagram;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  @SerializedName("contributors-column")
+  private String contributorsColumn;
 
-    public String getType() {
-        return type;
-    }
+  @SerializedName("template")
+  private String template;
 
-    public void setType(String type) {
-        this.type = type;
-    }
+  @SerializedName("title")
+  private String title;
 
-    public String getEap() {
-        return eap;
-    }
+  @SerializedName("github")
+  private String github;
 
-    public void setEap(String eap) {
-        this.eap = eap;
-    }
+  @SerializedName("branch")
+  private String branch;
 
-    public String getDiagram() {
-        return diagram;
-    }
+  @SerializedName("config")
+  private String config;
 
-    public void setDiagram(String diagram) {
-        this.diagram = diagram;
-    }
+  @SerializedName("publication-state")
+  private String publicationState;
 
-    public String getTemplate() {
-        return template;
-    }
+  @SerializedName("publication-date")
+  private String publicationDate;
 
-    public void setTemplate(String template) {
-        this.template = template;
-    }
+  @SerializedName("previous-state")
+  private String previousState;
 
-    public String getContributorsColumn() {
-        return contributorsColumn;
-    }
+  @SerializedName("next-version")
+  private String nextVersion;
 
-    public void setContributorsColumn(String contributorsColumn) {
-        this.contributorsColumn = contributorsColumn;
-    }
+  @SerializedName("contributors-file")
+  private String contributorsFile;
 
-    public String getTitle() {
-        return title;
-    }
+  public String getContributorsFile() {
+    return contributorsFile;
+  }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+  public void setContributorsFile(String contributorsFile) {
+    this.contributorsFile = contributorsFile;
+  }
 
-    public String getBranch() {
-        return branch;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getGithub() {
-        return github;
-    }
+  public String getType() {
+    return type;
+  }
 
-    public void setGithub(String github) {
-        this.github = github;
-    }
+  public void setType(String type) {
+    this.type = type;
+  }
 
-    public String getConfig() {
-        return config;
-    }
+  public String getEap() {
+    return eap;
+  }
 
-    public void setConfig(String config) {
-        this.config = config;
-    }
+  public void setEap(String eap) {
+    this.eap = eap;
+  }
 
-    public String getPublicationDate() {
-        return publicationDate;
-    }
+  public String getDiagram() {
+    return diagram;
+  }
 
-    public void setPublicationDate(String publicationDate) {
-        this.publicationDate = publicationDate;
-    }
+  public void setDiagram(String diagram) {
+    this.diagram = diagram;
+  }
 
-    public String getPublicationState() {
-        return publicationState;
-    }
+  public String getTemplate() {
+    return template;
+  }
 
-    public void setPublicationState(String publicationState) {
-        this.publicationState = publicationState;
-    }
+  public void setTemplate(String template) {
+    this.template = template;
+  }
 
-    public String getPreviousState() {
-        return previousState;
-    }
+  public String getContributorsColumn() {
+    return contributorsColumn;
+  }
 
-    public void setPreviousState(String previousState) {
-        this.previousState = previousState;
-    }
+  public void setContributorsColumn(String contributorsColumn) {
+    this.contributorsColumn = contributorsColumn;
+  }
 
-    public String getNextVersion() {
-        return nextVersion;
-    }
+  public String getTitle() {
+    return title;
+  }
 
-    public void setNextVersion(String nextVersion) {
-        this.nextVersion = nextVersion;
-    }
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public String getBranch() {
+    return branch;
+  }
+
+  public void setBranch(String branch) {
+    this.branch = branch;
+  }
+
+  public String getGithub() {
+    return github;
+  }
+
+  public void setGithub(String github) {
+    this.github = github;
+  }
+
+  public String getConfig() {
+    return config;
+  }
+
+  public void setConfig(String config) {
+    this.config = config;
+  }
+
+  public String getPublicationDate() {
+    return publicationDate;
+  }
+
+  public void setPublicationDate(String publicationDate) {
+    this.publicationDate = publicationDate;
+  }
+
+  public String getPublicationState() {
+    return publicationState;
+  }
+
+  public void setPublicationState(String publicationState) {
+    this.publicationState = publicationState;
+  }
+
+  public String getPreviousState() {
+    return previousState;
+  }
+
+  public void setPreviousState(String previousState) {
+    this.previousState = previousState;
+  }
+
+  public String getNextVersion() {
+    return nextVersion;
+  }
+
+  public void setNextVersion(String nextVersion) {
+    this.nextVersion = nextVersion;
+  }
 }
