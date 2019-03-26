@@ -822,27 +822,19 @@ public class JSONLDOutputHandler implements OutputHandler {
     return result;
   }
 
-  /*
-  TODO implement sort on the different sublists
-  import java.util.*;
-  import java.lang.*;
-  import java.io.*;
-  class Sortbyroll implements Comparator<Student>
-  {
-      // Used for sorting in ascending order of
-      // roll number
-      public int compare(Student a, Student b)
-      {
-          return a.rollno - b.rollno;
-      }
-  }
-  Collections.sort(ar, new Sortbyroll());
-  */
 
   private void writeOntology() {
     // TODO instead of writing this through write statements we need the inclusion of a
     //      json manipulation library such as jackson
     try {
+    
+      List<ClassDescription> sortedc = this.ontologyDescription.getClasses(); 
+    Collections.sort(sortedc);
+    this.ontologyDescription.setClasses(sortedc);
+      List<PropertyDescription> sortedp = this.ontologyDescription.getProperties(); 
+    Collections.sort(sortedp);
+    this.ontologyDescription.setProperties(sortedp);
+      
       writer.write("{\n");
       writer.write(generateContext());
 

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Created by langens-jonathan on 11/5/18. */
-public class ClassDescription {
+public class ClassDescription implements Comparable<ClassDescription> {
   private String uri;
   private String type;
   private String scopetags;
@@ -93,4 +93,13 @@ public class ClassDescription {
   public void setParents(List<String> parents) {
     this.parents = parents;
   }
+
+  // Used for sorting in ascending order of
+  @Override
+  public int compareTo(ClassDescription b)
+      {
+          String avalue = this.uri;
+          String bvalue = b.getUri();
+          return avalue.compareTo(bvalue);
+      }
 }

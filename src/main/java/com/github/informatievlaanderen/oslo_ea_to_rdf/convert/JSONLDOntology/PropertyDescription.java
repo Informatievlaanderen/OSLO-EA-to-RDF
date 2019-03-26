@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Created by langens-jonathan on 11/5/18. */
-public class PropertyDescription {
+public class PropertyDescription implements Comparable<PropertyDescription> {
   private String uri;
   private String type;
   private String scopetags;
@@ -142,4 +142,13 @@ public class PropertyDescription {
   public void setScopetags(String scopetags) {
     this.scopetags = scopetags;
   }
+
+  // Used for sorting in ascending order of
+  @Override
+  public int compareTo(PropertyDescription b)
+      {
+          String avalue = this.uri;
+          String bvalue = b.getUri();
+          return avalue.compareTo(bvalue);
+      }
 }
