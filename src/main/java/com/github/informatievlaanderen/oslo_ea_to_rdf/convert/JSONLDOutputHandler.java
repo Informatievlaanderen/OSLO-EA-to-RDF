@@ -137,7 +137,17 @@ public class JSONLDOutputHandler implements OutputHandler {
             // recognized. Code found was: " + contributor.get(ontologyField));
           }
         }
-      }
+    }
+    List<ContributorDescription> sorteda = this.ontologyDescription.getAuthors(); 
+    Collections.sort(sorteda);
+    this.ontologyDescription.setAuthors(sorteda);
+    List<ContributorDescription> sortede = this.ontologyDescription.getEditors(); 
+    Collections.sort(sortede);
+    this.ontologyDescription.setEditors(sortede);
+    List<ContributorDescription> sortedc = this.ontologyDescription.getContributors(); 
+    Collections.sort(sortedc);
+    this.ontologyDescription.setContributors(sortedc);
+
     } catch (IOException e) {
       e.printStackTrace();
     }
