@@ -17,6 +17,13 @@ import static com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag.*;
  *
  * @author Dieter De Paepe
  */
+
+/**
+ * Nota Bert Van Nuffelen
+ * the interpretation of the ignore flags should better not be done here.
+ * it is mixing 2 concerns.
+ * probably it is a way to have less error reporting.
+ */
 public class UriAssigner {
     private final Logger LOGGER = LoggerFactory.getLogger(UriAssigner.class);
 
