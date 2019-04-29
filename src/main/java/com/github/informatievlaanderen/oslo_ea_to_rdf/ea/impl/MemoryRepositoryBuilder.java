@@ -173,6 +173,7 @@ public class MemoryRepositoryBuilder {
 
     private Map<Integer, MemoryEAPackage> loadPackages(Connection connection) throws SQLException {
         Map<Integer, MemoryEAPackage> packages = new LinkedHashMap<>();
+        Map<Integer, Integer> parentIds = new LinkedHashMap<>();
 
         try (Statement s = connection.createStatement()) {
             ResultSet rs = s.executeQuery(
@@ -189,15 +190,23 @@ public class MemoryRepositoryBuilder {
                 String note = rs.getString("Note");
 
                 MemoryEAPackage newPackage = new MemoryEAPackage(name, guid, stereotype, note, objectId, packageId);
-
+                // put package here but do not link to parent package, because it might not have been encountered yet
+                packages.put(packageId, newPackage);
+                parentIds.put(packageId, parentId);
+            }
+            // link packages to their parents here; all parent packages should have been encountered now
+            parentIds.forEach((childId, parentId) -> {
                 if (parentId != 0) {
                     // This is not the root package
-                    packages.get(parentId).getPackagesOrig().add(newPackage);
-                    newPackage.setParent(packages.get(parentId));
+                    MemoryEAPackage childPackage = packages.get(childId);
+                    MemoryEAPackage parentPackage = packages.get(parentId);
+                    if (parentPackage == null) {
+                        throw new IllegalStateException(String.format("Package '%s' does not have a parent package.", childPackage.getName()));
+                    }
+                    parentPackage.getPackagesOrig().add(childPackage);
+                    childPackage.setParent(packages.get(parentId));
                 }
-
-                packages.put(packageId, newPackage);
-            }
+            });
         }
         return packages;
     }
@@ -255,9 +264,11 @@ public class MemoryRepositoryBuilder {
                 String upperBound = rs.getString("UpperBound");
 
                 MemoryEAElement element = elements.get(objectID);
-                MemoryEAAttribute att = new MemoryEAAttribute(element, guid, name, notes, type, id, lowerBound, upperBound);
-                element.getAttributesOrig().add(att);
-                attributes.put(id, att);
+                if (element != null) {
+                    MemoryEAAttribute att = new MemoryEAAttribute(element, guid, name, notes, type, id, lowerBound, upperBound);
+                    element.getAttributesOrig().add(att);
+                    attributes.put(id, att);
+                }
             }
         }
         return attributes;
@@ -270,7 +281,7 @@ public class MemoryRepositoryBuilder {
      */
     private void loadObjectTags(Connection connection, Map<Integer, MemoryEAElement> elements, Map<Integer, MemoryEAPackage> packages) throws SQLException {
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT Property, Value, Object_ID, Notes FROM t_objectproperties ORDER BY PropertyID ASC");
+            ResultSet rs = s.executeQuery("SELECT Property, Value, Object_ID, Notes FROM t_objectproperties WHERE Value IS NOT NULL ORDER BY PropertyID ASC");
 
             while (rs.next()) {
                 String key = rs.getString("Property");
@@ -296,7 +307,7 @@ public class MemoryRepositoryBuilder {
      */
     private void loadAttributeTags(Connection connection, Map<Integer, MemoryEAAttribute> attributes) throws SQLException {
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_attributetag ORDER BY PropertyID ASC");
+            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_attributetag WHERE VALUE IS NOT NULL ORDER BY PropertyID ASC");
 
             while (rs.next()) {
                 String key = rs.getString("Property");
@@ -305,7 +316,9 @@ public class MemoryRepositoryBuilder {
                 int attributeId = rs.getInt("ElementID");
 
                 MemoryEAAttribute attribute = attributes.get(attributeId);
-                attribute.getTagsOrig().add(new MemoryEATag(key, value, notes));
+                if (attribute != null) {
+                    attribute.getTagsOrig().add(new MemoryEATag(key, value, notes));
+                }
             }
         }
     }
@@ -317,7 +330,7 @@ public class MemoryRepositoryBuilder {
      */
     private void loadConnectorTags(Connection connection, Map<Integer, MemoryEAConnector> connectors) throws SQLException {
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_connectortag ORDER BY PropertyID ASC");
+            ResultSet rs = s.executeQuery("SELECT Property, VALUE, NOTES, ElementID FROM t_connectortag WHERE VALUE IS NOT NULL ORDER BY PropertyID ASC");
 
             while (rs.next()) {
                 String key = rs.getString("Property");
@@ -326,7 +339,9 @@ public class MemoryRepositoryBuilder {
                 int elementId = rs.getInt("ElementID");
 
                 MemoryEAConnector connector = connectors.get(elementId);
-                connector.getTagsOrig().add(new MemoryEATag(key, value, notes));
+                if (connector != null) {
+                    connector.getTagsOrig().add(new MemoryEATag(key, value, notes));
+                }
             }
         }
     }
