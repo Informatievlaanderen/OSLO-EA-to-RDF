@@ -123,7 +123,7 @@ public class JSONLDOutputHandler implements OutputHandler {
           if (contributor.get((ontologyField)).equals("A")) {
             this.ontologyDescription.getAuthors().add(cd);
           } else if (contributor.get((ontologyField)).equals("E")) {
-            LOGGER.info("Add Editor {}", contributor.get(0));
+            LOGGER.debug("Add Editor {}", contributor.get(0));
             this.ontologyDescription.getEditors().add(cd);
           } else if (contributor.get((ontologyField)).equals("C")) {
             this.ontologyDescription.getContributors().add(cd);
@@ -882,6 +882,13 @@ public class JSONLDOutputHandler implements OutputHandler {
     Collections.sort(sortedp);
     this.ontologyDescription.setProperties(sortedp);
       
+      sortedc = this.ontologyDescription.getExternalClasses();
+    Collections.sort(sortedc);
+    this.ontologyDescription.setExternalClasses(sortedc);
+      sortedp = this.ontologyDescription.getExternalProperties(); 
+    Collections.sort(sortedp);
+    this.ontologyDescription.setExternalProperties(sortedp);
+
       writer.write("{\n");
       writer.write(generateContext());
 

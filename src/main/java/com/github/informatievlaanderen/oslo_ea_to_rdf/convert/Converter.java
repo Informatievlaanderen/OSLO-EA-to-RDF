@@ -87,7 +87,7 @@ public class Converter {
 
         // Convert package
         Resource ontology = convertPackage(diagram.getPackage(), uris.ontologyURIs, uris.packageURIs);
-        LOGGER.info("handle ontology");
+        LOGGER.debug("handle ontology");
 
         // Convert elements.
         for (DiagramElement diagramElement : diagram.getElements()) {
@@ -165,7 +165,7 @@ public class Converter {
                     scope = Scope.FULL_DEFINITON;
                 else if (externalTerm && currentPackageTerm)
                     scope = Scope.TRANSLATIONS_ONLY;
-                LOGGER.info("Scope of covertion for attributes is \"{}\"", scope);
+                LOGGER.debug("Scope of covertion for attributes is \"{}\"", scope);
                 convertAttribute(attribute, nameToElements, uris.elementURIs, uris.attributeURIs, ontology, scope);
             }
         }
@@ -225,7 +225,7 @@ public class Converter {
                 baseUri
         );
 
-      LOGGER.info("Ontology {}", ontology);
+      LOGGER.debug("Ontology {}", ontology);
 
         return ontology;
     }
@@ -258,7 +258,7 @@ public class Converter {
     private void convertAttribute(EAAttribute attribute, Multimap<String, EAElement> elementIndex,
                                   Map<EAElement, String> elementURIs, Map<EAAttribute, String> attributeURIs,
                                   Resource ontology, Scope scope) {
-                LOGGER.info("converting Attribute \"{}\".", attribute.getPath());
+                LOGGER.debug("converting Attribute \"{}\".", attribute.getPath());
         if (!attributeURIs.containsKey(attribute))
             return;
 
@@ -308,7 +308,7 @@ public class Converter {
                 .map(ResourceFactory::createResource)
                 .collect(Collectors.toList());
 
-        LOGGER.info("Attribute cardinality {} - {}", attribute.getLowerBound(), attribute.getUpperBound());
+        LOGGER.debug("Attribute cardinality {} - {}", attribute.getLowerBound(), attribute.getUpperBound());
 
         outputHandler.handleProperty(
                 OutputHandler.PropertySource.from(attribute),
@@ -328,7 +328,7 @@ public class Converter {
     private void convertConnector(EAConnector bareConnector, Map<EAConnector, EAConnector.Direction> directions,
                                   Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
                                   Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
-       LOGGER.info("converting Connector \"{}\".", bareConnector.getPath());
+       LOGGER.debug("converting Connector \"{}\".", bareConnector.getPath());
         EAConnector.Direction rawDirection = directions.getOrDefault(bareConnector, EAConnector.Direction.UNSPECIFIED);
         for (EAConnector connector : Util.extractAssociationElement(bareConnector, rawDirection)) {
             if (!connectorURIs.containsKey(connector))
@@ -378,7 +378,7 @@ public class Converter {
                     LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", connector.getPath());
                 }
 
-                LOGGER.info("Connector cardinality {}", cardinality);
+                LOGGER.debug("Connector cardinality {}", cardinality);
                 if (customDomain != null)
                     domain = ResourceFactory.createResource(customDomain);
                 if (customRange != null)
@@ -412,7 +412,7 @@ public class Converter {
                     scope = Scope.FULL_DEFINITON;
                 else if (externalTerm && packageExported == PackageExported.ACTIVE_PACKAGE)
                     scope = Scope.TRANSLATIONS_ONLY;
-               LOGGER.info("Scope of covertion for connector {} is \"{}\"", connector.getPath(), scope);
+               LOGGER.debug("Scope of covertion for connector {} is \"{}\"", connector.getPath(), scope);
 
 
                 outputHandler.handleProperty(
@@ -438,7 +438,7 @@ public class Converter {
         EAElement element = diagramElement.getReferencedElement();
         Resource classEntity = ResourceFactory.createResource(elementURIs.get(element));
 
-                LOGGER.info("converting element \"{}\".", element.getPath());
+                LOGGER.debug("converting element \"{}\".", element.getPath());
 
         List<Resource> allowedValues = null;
         if (element.getType().equals(EAElement.Type.ENUMERATION)) {
