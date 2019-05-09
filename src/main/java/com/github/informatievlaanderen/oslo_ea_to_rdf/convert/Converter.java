@@ -414,6 +414,7 @@ public class Converter {
                     scope = Scope.TRANSLATIONS_ONLY;
                LOGGER.info("Scope of covertion for connector {} is \"{}\"", connector.getPath(), scope);
 
+
                 outputHandler.handleProperty(
                         OutputHandler.PropertySource.from(connector),
                         connResource,
@@ -448,22 +449,27 @@ public class Converter {
         }
 
         List<Resource> parentClasses = new ArrayList<>();
+        List<EAElement> parentElements = new ArrayList<>();
 
         for (EAConnector connector : element.getConnectors()) {
             if (!EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
                 continue;
 
             if (connector.getDirection() == EAConnector.Direction.SOURCE_TO_DEST) {
-                if (connector.getSource().equals(element))
+                if (connector.getSource().equals(element)) {
                     parentClasses.add(ResourceFactory.createResource(elementURIs.get(connector.getDestination())));
+		    parentElements.add(connector.getDestination());
+		    };
             } else if (connector.getDirection() == EAConnector.Direction.DEST_TO_SOURCE) {
-                if (connector.getDestination().equals(element))
+                if (connector.getDestination().equals(element)) {
                     parentClasses.add(ResourceFactory.createResource(elementURIs.get(connector.getSource())));
+		    parentElements.add(connector.getSource());
+		};
             } else {
                 LOGGER.error("Generalization connector \"{}\" does not specify a direction - skipping.", connector.getPath());
             }
         }
 
-        outputHandler.handleClass(element, classEntity, scope, ontology, parentClasses, allowedValues);
+        outputHandler.handleClass(element, classEntity, scope, ontology, parentClasses, parentElements, elementURIs, allowedValues);
     }
 }

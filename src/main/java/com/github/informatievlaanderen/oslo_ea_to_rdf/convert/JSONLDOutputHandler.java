@@ -16,6 +16,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -220,6 +221,27 @@ public class JSONLDOutputHandler implements OutputHandler {
     return result;
   }
 
+  /* select the value for the tag */
+  private String selectTagValue(List<TagData> tagData, String tagName) {
+     
+        LOGGER.debug(
+            "Select Tag Value: {}",
+            tagData);
+
+      String s =
+          tagData.stream()
+              .filter(t -> tagName.equals(t.getOriginTag()))
+              .findFirst()
+              .map(
+                  t ->
+                      t.getValue().isLiteral()
+                          ? t.getValue().asLiteral().getString()
+                          : t.getValue().asResource().getURI())
+              .orElse("");
+      
+    return StringEscapeUtils.escapeJson(s) ;
+  }
+
   /* filter the extracted names w.r.t. the default list of tagnames in the configuration as this.tagNames */
   private List<String> extractTagsJsonFilterDefault(List<TagData> tagData) {
     List<String> result = new ArrayList<>();
@@ -401,6 +423,8 @@ public class JSONLDOutputHandler implements OutputHandler {
       Scope scope,
       Resource ontology,
       List<Resource> parentClasses,
+      List<EAElement> parentElements,
+      Map<EAElement, String> elementURIs,
       List<Resource> allowedValues) {
     /* EA details:
        write(sourceElement.getType().toString());
@@ -426,8 +450,23 @@ public class JSONLDOutputHandler implements OutputHandler {
             : PackageExported.OTHER_PACKAGE);
     // write(RDFS.Class.getURI());
 
+    // the following is not yet exposed, should be done
+    // for the html regenerator we need also to expose the EA-Name/label of the parent class
     List<EAElement> parents = findParents(findInDiagram(sourceElement));
     String eaparents = JOINER.join(Lists.transform(parents, EAElement::getName));
+
+
+    List<String> pps = new ArrayList<>();
+    for (EAElement p : parentElements) {
+        String pLabel = selectTagValue(tagHelper.getTagDataFor(p, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
+        String pPackage = p.getPackage().getName();
+        Resource pURIres = ResourceFactory.createResource(elementURIs.get(p));
+	String pURI = pURIres.getURI();
+	// determining the URI is hard
+	pps.add("{ \"name\": \"" + p.getName() +  "\", \"label\" : \"" + pLabel +  "\", \"package\" : \"" + pPackage +  "\", \"uri\" : \"" + pURI + "\" }");
+	};
+    //String eaparents2 = JOINER.join(Lists.transform(parentElements, EAElement::getName));
+    String eaparents2 = JOINER.join(pps);
 
     String tags = "";
     String scopedtags = "";
@@ -453,7 +492,9 @@ public class JSONLDOutputHandler implements OutputHandler {
             + sourceElement.getType()
             + "\", \"EA-Parents\" : \""
             + eaparents
-            + "\", \"parentclasses\" : \""
+            + "\", \"EA-Parents2\" : ["
+            + eaparents2
+            + "], \"parentclasses\" : \""
             + JOINER.join(parentClasses)
             + "\", "
             + tags
@@ -581,7 +622,8 @@ public class JSONLDOutputHandler implements OutputHandler {
       Resource range,
       String lowerbound,
       String upperbound,
-      List<Resource> superProperties) {
+      List<Resource> superProperties
+      ) {
     PropertyDescription propertyDescription = new PropertyDescription();
     propertyDescription.setUri(property.getURI());
     propertyDescription.setType(propertyType.getURI());
@@ -648,8 +690,9 @@ public class JSONLDOutputHandler implements OutputHandler {
         pdomain = source.connector.getDestination().getName(); // Domain
         pdomainguid = source.connector.getDestination().getGuid(); // Domain GUID
         prange = source.connector.getSource().getName(); // Range
-      }
-      ;
+      };
+      String sRole = source.connector.getSourceRole();	
+      String dRole = source.connector.getDestRole();	
 
       extra =
           "{\"EA-Name\" : \""
@@ -666,6 +709,10 @@ public class JSONLDOutputHandler implements OutputHandler {
               + pdomainguid
               + "\", \"EA-Range\" : \""
               + prange
+              + "\", \"sourceRole\" : \""
+	      + sRole
+              + "\", \"destRole\" : \""
+	      + dRole
               + "\", "
               + tags
               + ", \"RawTags\" : ["

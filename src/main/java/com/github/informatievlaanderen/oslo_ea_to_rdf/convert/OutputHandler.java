@@ -7,6 +7,7 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
 import org.apache.jena.rdf.model.Resource;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A class that receives the results of a conversion and does something appropriate with it.
@@ -30,10 +31,14 @@ public interface OutputHandler {
      * @param scope hint on how to handle this element in output
      * @param ontology the ontology in which this class is defined
      * @param parentClasses parent classes of this class
+     * @param parentElements parent classes of this class 
+     * @param elementURIs a auxiliary map to find the URI of elements
      * @param allowedValues nullable, an optional list of valid values that restricts the class
      */
     void handleClass(EAElement sourceElement, Resource clazz, Scope scope, Resource ontology,
-                     List<Resource> parentClasses, List<Resource> allowedValues);
+                     List<Resource> parentClasses, List<EAElement> parentElemnts, 
+                     Map<EAElement, String> elementURIs,
+		     List<Resource> allowedValues);
 
     /**
      * Handles the definition of a property.

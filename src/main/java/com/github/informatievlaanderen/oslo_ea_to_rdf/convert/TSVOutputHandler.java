@@ -14,6 +14,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -122,7 +123,9 @@ public class TSVOutputHandler implements OutputHandler {
 
     @Override
     public void handleClass(EAElement sourceElement, Resource clazz, Scope scope,
-                            Resource ontology, List<Resource> parentClasses, List<Resource> allowedValues) {
+                            Resource ontology, List<Resource> parentClasses, List<EAElement> parentElements, 
+                            Map<EAElement, String> elementURIs,
+		            List<Resource> allowedValues) {
         write(sourceElement.getType().toString());
         write(sourceElement.getPackage().getName());
         write(sourceElement.getName());

@@ -82,7 +82,9 @@ public class RDFOutputHandler implements OutputHandler {
 
     @Override
     public void handleClass(EAElement sourceElement, Resource clazz, Scope scope, Resource ontology,
-                            List<Resource> parentClasses, List<Resource> allowedValues) {
+                            List<Resource> parentClasses, List<EAElement> parentElements, 
+                            Map<EAElement, String> elementURIs,
+			    List<Resource> allowedValues) {
         if (!forceFullOutput && scope == Scope.NOTHING)
             return;
 
