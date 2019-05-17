@@ -4,6 +4,7 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.SortedOutputModel;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAAttribute;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RangeData;
 import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
 import org.apache.jena.rdf.model.Model;
@@ -111,6 +112,7 @@ public class RDFOutputHandler implements OutputHandler {
     public void handleProperty(PropertySource source, Resource property, Scope scope,
                                PackageExported packageExported, Resource ontology,
                                Resource propertyType, Resource domain, Resource range,
+			       RangeData rangedata,
                                String lowerbound, String upperbound, List<Resource> superProperties) {
         if (!forceFullOutput && scope == Scope.NOTHING)
             return;

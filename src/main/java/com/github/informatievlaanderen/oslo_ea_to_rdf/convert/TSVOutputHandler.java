@@ -1,6 +1,7 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RangeData;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
@@ -156,6 +157,7 @@ public class TSVOutputHandler implements OutputHandler {
     public void handleProperty(PropertySource source, Resource property, Scope scope,
                                PackageExported packageExported, Resource ontology,
                                Resource propertyType, Resource domain, Resource range,
+			       RangeData rangedata,
                                String lowerbound, String upperbound, List<Resource> superProperties) {
         if (source.attribute != null) {
             write("attribute"); // Type

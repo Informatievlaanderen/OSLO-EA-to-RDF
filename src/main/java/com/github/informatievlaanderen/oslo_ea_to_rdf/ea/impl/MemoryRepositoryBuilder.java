@@ -10,6 +10,8 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.sql.*;
@@ -24,6 +26,7 @@ import java.util.regex.Pattern;
  * @author Dieter De Paepe
  */
 public class MemoryRepositoryBuilder {
+    private final Logger LOGGER = LoggerFactory.getLogger(MemoryRepositoryBuilder.class);
     /**
      * Creates a new memory-based repository from the given Enterprise Architect project file. After calling this
      * method, the builder should not be reused.
@@ -236,6 +239,9 @@ public class MemoryRepositoryBuilder {
 
                 elements.put(newClass.getObjectID(), newClass);
                 packages.get(packageID).getElementsOrig().add(newClass);
+		
+		LOGGER.debug(
+            		"loaded EA element {} from package {} ", name, packageID);
             }
         }
 
@@ -262,6 +268,9 @@ public class MemoryRepositoryBuilder {
                 String notes = rs.getString("Notes");
                 String lowerBound = rs.getString("LowerBound");
                 String upperBound = rs.getString("UpperBound");
+
+		LOGGER.debug(
+            		"loaded EA attribute {} with type {} ", name, type);
 
                 MemoryEAElement element = elements.get(objectID);
                 if (element != null) {

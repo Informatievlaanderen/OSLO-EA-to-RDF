@@ -1,7 +1,11 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.NormalizedEAConnector;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.RoleEAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -11,7 +15,47 @@ import java.util.*;
  * @author Dieter De Paepe
  */
 public class Util {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
+
     private Util() {}
+
+    /**
+     * Converts a connector either without directions, either connected to an association class
+     * class.
+     * @param conn connector that may have an association class
+     * @param direction direction of the connector, determines which end is source and destination for extracting the
+     *                  tags from a connector with an association class
+     * @return a collections of connectors 
+     */
+
+    public static Collection<EAConnector> extractAssociationElement2(EAConnector conn, EAConnector.Direction direction) {
+        Collection<EAConnector> result = new ArrayList<>();
+        if ( conn.getAssociationClass() != null) {
+		// handling association classes has priority
+		result = extractAssociationElement(conn, direction) ;
+	} else {
+		if (direction == EAConnector.Direction.UNSPECIFIED) {
+        	LOGGER.warn("handle unspecified connectors");
+		result = extractAssociationElement3(conn, direction);
+		} 
+		else { 
+		if (direction == EAConnector.Direction.BIDIRECTIONAL) {
+        	LOGGER.warn("handle bidirectional connectors");
+		result = extractAssociationElement3(conn, direction);
+		} else {
+            	result = Collections.singleton(conn);
+		}}
+	};
+		return result;
+	
+	};
+
+    public static Collection<EAConnector> extractAssociationElement3(EAConnector conn, EAConnector.Direction direction) {
+        Collection<EAConnector> result = new ArrayList<>(2);
+        result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST));
+        result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE));
+	return result;
+	};
 
     /**
      * Converts a connector in one or four connectors so that the resulting connectors do not have any association

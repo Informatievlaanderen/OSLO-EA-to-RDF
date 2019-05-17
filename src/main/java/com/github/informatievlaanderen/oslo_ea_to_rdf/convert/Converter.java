@@ -1,6 +1,7 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RangeData.*;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import org.apache.jena.rdf.model.Property;
@@ -10,6 +11,7 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,8 +105,13 @@ public class Converter {
             Scope scope = Scope.NOTHING;
             if (currentPackageTerm && !customURI)
                 scope = Scope.FULL_DEFINITON;
-            else if (customURI && refersToThisPackage)
-                scope = Scope.TRANSLATIONS_ONLY;
+            else if (customURI ) {
+	          boolean customURIsamePrefix = StringUtils.startsWith(tagHelper.getOptionalTag(element, Tag.EXTERNAL_URI, null), ontology.toString());
+		  if (refersToThisPackage) { scope = Scope.TRANSLATIONS_ONLY ; };
+                  if (customURIsamePrefix) { scope = Scope.FULL_DEFINITON ; 
+		         LOGGER.warn("Element {} has same prefix as package: simplify by removing the extra tag uri", element.getName());
+			};
+	   }
 
             LOGGER.debug("Scope of covertion for diagram elements is \"{}\"", scope);
             convertElement(diagramElement, uris.elementURIs, uris.instanceURIs, ontology, scope);
@@ -159,13 +166,19 @@ public class Converter {
 
                 String definingPackageName = tagHelper.getOptionalTag(attribute, Tag.DEFINING_PACKAGE, attribute.getElement().getPackage().getName());
                 boolean currentPackageTerm = diagram.getPackage().getName().equals(definingPackageName);
-                boolean externalTerm = tagHelper.getOptionalTag(attribute, Tag.EXTERNAL_URI, null) != null;
+                boolean customURI = tagHelper.getOptionalTag(attribute, Tag.EXTERNAL_URI, null) != null;
                 Scope scope = Scope.NOTHING;
-                if (!externalTerm && currentPackageTerm)
+                if (!customURI && currentPackageTerm)
                     scope = Scope.FULL_DEFINITON;
-                else if (externalTerm && currentPackageTerm)
-                    scope = Scope.TRANSLATIONS_ONLY;
+                else if (customURI ) {
+	          boolean customURIsamePrefix = StringUtils.startsWith(tagHelper.getOptionalTag(attribute, Tag.EXTERNAL_URI, null), ontology.toString());
+		  if (currentPackageTerm) { scope = Scope.TRANSLATIONS_ONLY ; };
+                  if (customURIsamePrefix) { scope = Scope.FULL_DEFINITON ; 
+		         LOGGER.warn("Element {} has same prefix as package: simplify by removing the extra tag uri", attribute.getName());
+			};
+	        }
                 LOGGER.debug("Scope of covertion for attributes is \"{}\"", scope);
+
                 convertAttribute(attribute, nameToElements, uris.elementURIs, uris.attributeURIs, ontology, scope);
             }
         }
@@ -208,7 +221,12 @@ public class Converter {
                 for (EAConnector innerConnector : Util.extractAssociationElement(connector.getReferencedConnector(), direction)) {
                     builder.put(innerConnector, innerConnector.getDirection());
                 }
-            }
+            } else {
+            if (direction == EAConnector.Direction.UNSPECIFIED || direction == EAConnector.Direction.BIDIRECTIONAL) {
+                for (EAConnector innerConnector : Util.extractAssociationElement2(connector.getReferencedConnector(), direction)) {
+                    builder.put(innerConnector, innerConnector.getDirection());
+                }
+            }}
         }
         return builder.build();
     }
@@ -248,8 +266,13 @@ public class Converter {
             Scope scope = Scope.NOTHING;
             if (!customURI && currentPackageTerm)
                 scope = Scope.FULL_DEFINITON;
-            else if (customURI && currentPackageTerm)
-                scope = Scope.TRANSLATIONS_ONLY;
+            else if (customURI ) {
+	          boolean customURIsamePrefix = StringUtils.startsWith(tagHelper.getOptionalTag(attribute, Tag.EXTERNAL_URI, null), ontology.toString());
+		  if (currentPackageTerm) { scope = Scope.TRANSLATIONS_ONLY ; };
+                  if (customURIsamePrefix) { scope = Scope.FULL_DEFINITON ; 
+		         LOGGER.warn("Element {} has same prefix as package: simplify by removing the extra tag uri", attribute.getName());
+			};
+	   }
 
             outputHandler.handleInstance(attribute, attResource, scope, ontology, elementRes);
         }
@@ -276,15 +299,19 @@ public class Converter {
         }
 
         String customRange = tagHelper.getOptionalTag(attribute, Tag.RANGE, null);
+ 	RangeData rangedata = new RangeData();
 
         // Type and range
         if (customRange != null) {
             boolean rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(attribute, Tag.IS_LITERAL, "false"));
             propertyType = rangeIsLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty;
             range = ResourceFactory.createProperty(customRange);
+ 	    rangedata = new RangeData("", "", range);
+	    
         } else if (DATATYPES.containsKey(attribute.getType())){
             propertyType = OWL.DatatypeProperty;
             range = DATATYPES.get(attribute.getType());
+ 	    rangedata = new RangeData(attribute.getType().toString(), "", range);
         } else if (elementIndex.containsKey(attribute.getType())) {
             Collection<EAElement> refElements = elementIndex.get(attribute.getType());
             if (refElements.size() > 1) {
@@ -292,9 +319,14 @@ public class Converter {
                 LOGGER.warn("Ambiguous data type \"{}\" for attribute \"{}\": {}.", attribute.getType(), attribute.getPath(), Joiner.on(", ").join(names));
             }
             EAElement selectedElement = refElements.iterator().next();
+		LOGGER.debug(
+            		"Attribute range is EA Element {} from type {} ", selectedElement.getName(), attribute.getType());
+		LOGGER.debug(
+            		"Attribute range package {} ", selectedElement.getPackage().getName());
             boolean isLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(selectedElement, Tag.IS_LITERAL, "false"));
             propertyType = isLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty;
             range = ResourceFactory.createResource(elementURIs.get(selectedElement));
+ 	    rangedata = new RangeData(selectedElement.getName(), selectedElement.getPackage().getName(), range, selectedElement);
         } else {
             propertyType = RDF.Property;
             LOGGER.warn("Missing data type for attribute \"{}\".", attribute.getPath());
@@ -319,6 +351,7 @@ public class Converter {
                 propertyType,
                 domain,
                 range,
+		rangedata,
                 attribute.getLowerBound(),
                 attribute.getUpperBound(),
                 superProperties
@@ -331,8 +364,10 @@ public class Converter {
        LOGGER.debug("converting Connector \"{}\".", bareConnector.getPath());
         EAConnector.Direction rawDirection = directions.getOrDefault(bareConnector, EAConnector.Direction.UNSPECIFIED);
         for (EAConnector connector : Util.extractAssociationElement(bareConnector, rawDirection)) {
+            LOGGER.debug("Connector \"{}\" trying for processing.", connector.getPath());
             if (!connectorURIs.containsKey(connector))
                 continue;
+            LOGGER.debug("Connector \"{}\" is processed.", connector.getPath());
 
             Resource connResource = ResourceFactory.createResource(connectorURIs.get(connector));
 
@@ -361,19 +396,24 @@ public class Converter {
 
                 String cardinality = null;
                 boolean rangeIsLiteral = false;
+ 		RangeData rangedata = new RangeData();
 
                 // Range, domain & cardinality
                 EAConnector.Direction connectorDirection = directions.getOrDefault(connector, EAConnector.Direction.UNSPECIFIED);
+                LOGGER.debug("Connector direction \"{}\" is processed.", connectorDirection);
+		
                 if (connectorDirection == EAConnector.Direction.SOURCE_TO_DEST) {
                     domain = sourceRes;
                     range = targetRes;
                     cardinality = connector.getDestinationCardinality();
                     rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(target, Tag.IS_LITERAL, "false"));
+ 	    	    rangedata = new RangeData(target.getName(), target.getPackage().getName(), range, target);
                 } else if (connectorDirection == EAConnector.Direction.DEST_TO_SOURCE) {
                     domain = targetRes;
                     range = sourceRes;
                     cardinality = connector.getSourceCardinality();
-                    rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(target, Tag.IS_LITERAL, "false"));
+                    rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(target, Tag.IS_LITERAL, "false")); // XXX is this not a BUG? SHOULD target NOT BE source?
+ 	    	    rangedata = new RangeData(source.getName(), source.getPackage().getName(), range, source);
                 } else {
                     LOGGER.error("Connector \"{}\" has no specified direction - domain/range unspecified.", connector.getPath());
                 }
@@ -424,6 +464,7 @@ public class Converter {
                         rangeIsLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty,
                         domain,
                         range,
+			rangedata,
                         lowerCardinality,
                         higherCardinality,
                         superProperties);

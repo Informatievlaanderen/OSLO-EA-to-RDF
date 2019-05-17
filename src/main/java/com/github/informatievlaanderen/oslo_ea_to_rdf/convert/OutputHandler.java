@@ -4,6 +4,7 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAAttribute;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RangeData;
 import org.apache.jena.rdf.model.Resource;
 
 import java.util.List;
@@ -50,12 +51,14 @@ public interface OutputHandler {
      * @param propertyType the type of the property (owl:Property, owl:ObjectProperty, owl:DataProperty)
      * @param domain nullable, domain of the property
      * @param range nullable, range of the property
+     * @param rangedata nullable, range of the property in structured form
      * @param superProperties all super properties of this property
      * @param lowerbound lower cardinality
      * @param upperbound higher cardinality
      */
     void handleProperty(PropertySource source, Resource property, Scope scope, PackageExported packageExported,
                         Resource ontology, Resource propertyType, Resource domain, Resource range,
+			RangeData rangedata,
                         String lowerbound, String upperbound, List<Resource> superProperties);
 
     /**

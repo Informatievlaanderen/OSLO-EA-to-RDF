@@ -1,6 +1,7 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.JSONLDOntology.*;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RangeData.*;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -620,6 +621,7 @@ public class JSONLDOutputHandler implements OutputHandler {
       Resource propertyType,
       Resource domain,
       Resource range,
+      RangeData rangedata,
       String lowerbound,
       String upperbound,
       List<Resource> superProperties
@@ -648,9 +650,16 @@ public class JSONLDOutputHandler implements OutputHandler {
     String pdomain = "";
     String pdomainguid = "";
     String prange = "";
+    EAElement prangeObject;
+    String prangeLabel = "";
+    String prangePackage = "";
     if (source.attribute != null) {
       pdomain = source.attribute.getElement().getName();
       prange = source.attribute.getType();
+//        prangeLabel = selectTagValue(tagHelper.getTagDataFor(prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
+//        prangePackage = prangeObject.getPackage().getName();
+        prangeLabel = "";
+        prangePackage = "";
       extra =
           "{\"EA-Name\" : \""
               + source.attribute.getName()
@@ -666,7 +675,9 @@ public class JSONLDOutputHandler implements OutputHandler {
               + source.attribute.getElement().getGuid()
               + "\", \"EA-Range\" : \""
               + prange
-              + "\", "
+              + "\", \"RangeData\" : "
+              + rangedata.toJson() 
+              + ", "
               + tags
               + ", \"RawTags\" : ["
               + extractRawTags(MoreObjects.firstNonNull(source.attribute, source.connector))
@@ -685,11 +696,17 @@ public class JSONLDOutputHandler implements OutputHandler {
       if (EAConnector.Direction.SOURCE_TO_DEST.equals(direction)) {
         pdomain = source.connector.getSource().getName(); // Domain
         pdomainguid = source.connector.getSource().getGuid(); // Domain GUID
-        prange = source.connector.getDestination().getName(); // Range
+        prangeObject = source.connector.getDestination(); // Range
+        prange = prangeObject.getName(); // Range
+        prangeLabel = selectTagValue(tagHelper.getTagDataFor(prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
+        prangePackage = prangeObject.getPackage().getName();
       } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(direction)) {
         pdomain = source.connector.getDestination().getName(); // Domain
         pdomainguid = source.connector.getDestination().getGuid(); // Domain GUID
-        prange = source.connector.getSource().getName(); // Range
+        prangeObject = source.connector.getSource(); // Range
+        prange = prangeObject.getName(); // Range
+        prangeLabel = selectTagValue(tagHelper.getTagDataFor(prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
+        prangePackage = prangeObject.getPackage().getName();
       };
       String sRole = source.connector.getSourceRole();	
       String dRole = source.connector.getDestRole();	
@@ -709,7 +726,9 @@ public class JSONLDOutputHandler implements OutputHandler {
               + pdomainguid
               + "\", \"EA-Range\" : \""
               + prange
-              + "\", \"sourceRole\" : \""
+              + "\", \"RangeData\" : "
+              + rangedata.toJson() 
+              + ", \"sourceRole\" : \""
 	      + sRole
               + "\", \"destRole\" : \""
 	      + dRole
@@ -775,7 +794,11 @@ public class JSONLDOutputHandler implements OutputHandler {
     }
     if (range != null) {
       String proprange =
-          "{ \"uri\": \"" + range.getURI() + "\", \"EA-Name\" : \"" + prange + "\" }";
+          "{ \"uri\": \"" + range.getURI() 
+           + "\", \"EA-Name\" : \"" + prange 
+           + "\", \"label\" : \"" + prangeLabel
+           + "\", \"EA-Package\" : \"" + prangePackage
+           + "\" }";
       propertyDescription.getRange().add(proprange);
     }
 
