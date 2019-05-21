@@ -210,7 +210,8 @@ public class Converter {
                 .flatMap(o -> o.getConnectors().stream())
                 .collect(Collectors.toSet());
 
-        ImmutableMap.Builder<EAConnector, EAConnector.Direction> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<EAConnector, EAConnector.Direction> builder2 = ImmutableMap.builder();
+        Map<EAConnector, EAConnector.Direction> builder = new LinkedHashMap<>();
         for (DiagramConnector connector : connectors) {
             EAConnector.Direction direction = connector.getLabelDirection();
             if (direction == EAConnector.Direction.UNSPECIFIED)
@@ -224,11 +225,16 @@ public class Converter {
             } else {
             if (direction == EAConnector.Direction.UNSPECIFIED || direction == EAConnector.Direction.BIDIRECTIONAL) {
                 for (EAConnector innerConnector : Util.extractAssociationElement2(connector.getReferencedConnector(), direction)) {
-                    builder.put(innerConnector, innerConnector.getDirection());
+		    if (builder.containsKey(innerConnector)) {
+			LOGGER.warn("Connector {} without explicit direction already added to the set of directions", innerConnector.getName());
+		    } else {
+                    	builder.put(innerConnector, innerConnector.getDirection());
+			};
                 }
             }}
         }
-        return builder.build();
+	builder2.putAll(builder);
+        return builder2.build();
     }
 
     private Resource convertPackage(EAPackage aPackage, Map<EAPackage, String> ontologyURIs, Map<EAPackage, String> baseURIs) {

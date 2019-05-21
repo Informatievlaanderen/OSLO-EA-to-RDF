@@ -407,7 +407,18 @@ public class MemoryRepositoryBuilder {
                 String labelStyling = rs.getString("Geometry"); //Yes, this is correct
                 boolean hidden = rs.getBoolean("Hidden");
 
+                MemoryEAConnector connector = connectors.get(connectorId);
+                // Ignore connectors between unsupported elements (eg Notes)
+                if (connector == null)
+                    continue;
+
+                MemoryEADiagram diagram = diagrams.get(diagramId);
                 EAConnector.Direction labelDirection = EAConnector.Direction.UNSPECIFIED;
+	
+		if (labelStyling == null) {
+		  LOGGER.error("Connector {} has no explicit direction in the diagram", connector.getName());
+		} else{
+
                 Matcher matcher1 = p1.matcher(labelStyling);
                 if (matcher1.find()) {
                     Matcher matcher2 = p2.matcher(matcher1.group(0));
@@ -420,13 +431,9 @@ public class MemoryRepositoryBuilder {
                         }
                     }
                 }
+		}
 
-                MemoryEADiagram diagram = diagrams.get(diagramId);
-                MemoryEAConnector connector = connectors.get(connectorId);
 
-                // Ignore connectors between unsupported elements (eg Notes)
-                if (connector == null)
-                    continue;
 
                 MemoryDiagramElement source = diagramElementIndex.get(diagram, connector.getSource());
                 MemoryDiagramElement dest = diagramElementIndex.get(diagram, connector.getDestination());
