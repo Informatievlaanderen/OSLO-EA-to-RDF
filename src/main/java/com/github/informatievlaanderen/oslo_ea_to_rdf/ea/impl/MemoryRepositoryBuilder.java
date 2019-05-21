@@ -49,10 +49,12 @@ public class MemoryRepositoryBuilder {
 
         try (Connection conn = DriverManager.getConnection(uri, prop)){
             packages = loadPackages(conn);
+            Map<Integer, MemoryEAPackage> objectIndexPackages = getObjectIndexPackages(packages);
             elements = loadElements(conn, packages);
             attributes = loadAttributes(conn, elements);
             connectors = loadElementConnectors(conn, elements);
-            loadObjectTags(conn, elements, Maps.uniqueIndex(packages.values(), MemoryEAPackage::getObjectID));
+	    
+            loadObjectTags(conn, elements, objectIndexPackages);
             loadAttributeTags(conn, attributes);
             loadConnectorTags(conn, connectors);
             diagrams = loadDiagrams(conn, packages);
@@ -70,6 +72,7 @@ public class MemoryRepositoryBuilder {
                 Collections.unmodifiableList(new ArrayList<>(elements.values())),
                 Collections.unmodifiableList(new ArrayList<>(diagrams.values())));
     }
+
 
     private Map<Integer, MemoryEAConnector> loadElementConnectors(Connection connection, Map<Integer, MemoryEAElement> elements) throws SQLException {
         Map<Integer, MemoryEAConnector> connectors = new HashMap<>();
@@ -184,6 +187,7 @@ public class MemoryRepositoryBuilder {
                     "FROM t_package LEFT JOIN t_object ON t_package.ea_guid = t_object.ea_guid");
 
             while (rs.next()) {
+		
                 int packageId = rs.getInt("Package_ID");
                 String name = rs.getString("Name");
                 int parentId = rs.getInt("Parent_ID");
@@ -192,10 +196,17 @@ public class MemoryRepositoryBuilder {
                 String stereotype = rs.getString("Stereotype");
                 String note = rs.getString("Note");
 
+		LOGGER.debug("load package {} with id {} and objectid {}", name, packageId, objectId);
+
                 MemoryEAPackage newPackage = new MemoryEAPackage(name, guid, stereotype, note, objectId, packageId);
                 // put package here but do not link to parent package, because it might not have been encountered yet
+	        if (packages.containsKey(packageId)) {
+			LOGGER.error("load another package {} with id {} and objectid {}", name, packageId, objectId);
+			LOGGER.error("Existing package is {}, new will be ignored.", packages.get(packageId).getName());
+		} else {
                 packages.put(packageId, newPackage);
                 parentIds.put(packageId, parentId);
+		}
             }
             // link packages to their parents here; all parent packages should have been encountered now
             parentIds.forEach((childId, parentId) -> {
@@ -214,6 +225,25 @@ public class MemoryRepositoryBuilder {
         return packages;
     }
 
+    /**
+     * make a package index based on the objectID.
+     * Test if the invariant holds: that no 2 objectIds are being used. If so ignore one, but log an error.
+     *
+     */
+  
+    private Map<Integer, MemoryEAPackage> getObjectIndexPackages(Map<Integer, MemoryEAPackage> packages) {
+        Map<Integer, MemoryEAPackage> objectIndexPackages= new LinkedHashMap<>();
+	for(MemoryEAPackage p : packages.values()) {
+		if (objectIndexPackages.containsKey(p.getObjectID())) {
+			LOGGER.error("load another package {} with id {} and objectid {}", p.getName(), p.getPackageID(), p.getPackageID());
+			LOGGER.error("This package will be ignored");
+		} else {
+			objectIndexPackages.put(p.getObjectID(), p);
+		}
+		
+	};
+	return objectIndexPackages;
+	}
     /**
      * Assumes packages are fully loaded.
      *
@@ -298,6 +328,7 @@ public class MemoryRepositoryBuilder {
                 String notes = rs.getString("Notes");
                 int objectId = rs.getInt("Object_ID");
 
+		LOGGER.debug("handle tag {} having value {}", key, value);
                 if (elements.containsKey(objectId)) {
                     MemoryEAElement element = elements.get(objectId);
                     element.getTagsOrig().add(new MemoryEATag(key, value, notes));
@@ -305,8 +336,8 @@ public class MemoryRepositoryBuilder {
                     MemoryEAPackage pack = packages.get(objectId);
                     pack.getTagsOrig().add(new MemoryEATag(key, value, notes));
                 }
-            }
-        }
+            } 
+        } 
     }
 
     /**
