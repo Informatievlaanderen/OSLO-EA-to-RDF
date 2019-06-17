@@ -39,12 +39,13 @@ public class Util {
 		result = extractAssociationElement3(conn, direction);
 		} 
 		else { 
-		if (direction == EAConnector.Direction.BIDIRECTIONAL) {
-        	LOGGER.warn("handle bidirectional connectors");
-		result = extractAssociationElement3(conn, direction);
-		} else {
+//		if (direction == EAConnector.Direction.BIDIRECTIONAL) {
+//        	LOGGER.warn("handle bidirectional connectors");
+//		result = extractAssociationElement3(conn, direction);
+//		} else {
             	result = Collections.singleton(conn);
-		}}
+//		}
+		}
 	};
 		return result;
 	

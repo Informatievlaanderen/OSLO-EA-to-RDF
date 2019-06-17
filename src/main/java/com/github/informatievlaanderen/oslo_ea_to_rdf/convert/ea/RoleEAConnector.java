@@ -10,12 +10,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A virtual connector that represents one of four parts of a (non-virtual) connector with an association class.
+ * A directed connector derived from another connector
  *
- * Regular connectors can have an association class, effectively linking 3 elements together. In order to have a more
- * streamlined workflow, this class can be used to split such a connector into 4 instances of this class, effectively
- * acting as a wrapper. Most methods are forwarded to the original connector, except those relating to source, target
- * and associations. Connector tags are a filtered version of the original tags.
  */
 public class RoleEAConnector implements EAConnector {
     private EAConnector inner;
@@ -53,20 +49,27 @@ public class RoleEAConnector implements EAConnector {
 
     @Override
     public String getSourceRole() {
+        String role = null;
         if (part == ConnectionPart.SOURCE_TO_DEST)
-            return inner.getSourceRole();
+            role = inner.getSourceRole();
         if (part == ConnectionPart.DEST_TO_SOURCE)
-            return inner.getDestRole();
-        return null;
+            role = inner.getDestRole();
+	if (role == null)
+	    role = inner.getName(); // does not uses the tags-label
+        return role;
     }
 
     @Override
     public String getDestRole() {
+        String role = null;
         if (part == ConnectionPart.SOURCE_TO_DEST)
-            return inner.getDestRole();
+            role = inner.getDestRole();
         if (part == ConnectionPart.DEST_TO_SOURCE)
-            return inner.getSourceRole();
-        return null;
+            role = inner.getSourceRole();
+	if (role == null)
+	    role = inner.getName(); // does not uses the tags label
+
+        return role;
     }
 
     @Override
@@ -104,6 +107,7 @@ public class RoleEAConnector implements EAConnector {
 
     @Override
     public List<EATag> getTags() {
+        // here must the directionality taken into account
         return inner.getTags();
     }
 

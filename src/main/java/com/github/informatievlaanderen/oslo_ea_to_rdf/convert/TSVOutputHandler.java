@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class that aggregates the conversion results in tab separated value file.
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
  */
 public class TSVOutputHandler implements OutputHandler {
     private final static Joiner JOINER = Joiner.on(", ");
+    private final Logger LOGGER = LoggerFactory.getLogger(Converter.class);
 
     private BufferedWriter writer;
     private TagHelper tagHelper;
@@ -234,6 +237,27 @@ public class TSVOutputHandler implements OutputHandler {
         write("");
         writeNl("");
     }
+
+  @Override
+  // expected input is a directed connector
+  public void handlePropertyConnector(
+      Boolean derived,
+      EAConnector source,
+      Resource property,
+      Scope scope,
+      PackageExported packageExported,
+      Resource ontology,
+      Resource propertyType,
+      Resource domain,
+      Resource range,
+      RangeData rangedata,
+      String lowerbound,
+      String upperbound,
+      List<Resource> superProperties
+      ) {
+    LOGGER.warn("HANDLEPROPERTYCONNECTOR NOT HANDLED: {} - {}", source.getName(), source.getGuid());
+    }
+
 
     private List<EAElement> findParents(DiagramElement child) {
         return child.getConnectors().stream()

@@ -16,6 +16,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.CaseUtils;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.OWL;
@@ -194,7 +195,7 @@ public class JSONLDOutputHandler implements OutputHandler {
     for (DiagramElement element : diagram.getElements()) {
       for (DiagramConnector rawConnector : element.getConnectors()) {
         for (EAConnector conn :
-            Util.extractAssociationElement(
+            Util.extractAssociationElement2(
                 rawConnector.getReferencedConnector(), rawConnector.getLabelDirection())) {
           if (connector.equals(conn)) return rawConnector;
         }
@@ -653,6 +654,7 @@ public class JSONLDOutputHandler implements OutputHandler {
     EAElement prangeObject;
     String prangeLabel = "";
     String prangePackage = "";
+
     if (source.attribute != null) {
       pdomain = source.attribute.getElement().getName();
       prange = source.attribute.getType();
@@ -752,6 +754,7 @@ public class JSONLDOutputHandler implements OutputHandler {
     // but used to extract
     // data for later processing
     String tv = "";
+    String camelCaseName ="";
     for (TagData t :
         tagHelper.getTagDataFor(
             MoreObjects.firstNonNull(source.attribute, source.connector),
@@ -764,6 +767,7 @@ public class JSONLDOutputHandler implements OutputHandler {
       switch (t.getOriginTag()) {
         case "label":
           propertyDescription.getName().add(new LanguageStringDescription("nl", tv));
+    	  camelCaseName = CaseUtils.toCamelCase(tv, false, null);
           break;
         case "definition":
           propertyDescription.getDescription().add(new LanguageStringDescription("nl", tv));
@@ -793,12 +797,14 @@ public class JSONLDOutputHandler implements OutputHandler {
       propertyDescription.getDomain().add(propdomain);
     }
     if (range != null) {
-      String proprange =
+      String proprange = rangedata.toJson() ;
+/*
           "{ \"uri\": \"" + range.getURI() 
            + "\", \"EA-Name\" : \"" + prange 
            + "\", \"label\" : \"" + prangeLabel
            + "\", \"EA-Package\" : \"" + prangePackage
            + "\" }";
+*/
       propertyDescription.getRange().add(proprange);
     }
 
@@ -829,6 +835,182 @@ public class JSONLDOutputHandler implements OutputHandler {
       this.ontologyDescription.getProperties().add(propertyDescription);
     }
   }
+
+
+
+  @Override
+  // expected input is a directed connector
+  public void handlePropertyConnector(
+      Boolean derived,
+      EAConnector source,
+      Resource property,
+      Scope scope,
+      PackageExported packageExported,
+      Resource ontology,
+      Resource propertyType,
+      Resource domain,
+      Resource range,
+      RangeData rangedata,
+      String lowerbound,
+      String upperbound,
+      List<Resource> superProperties
+      ) {
+
+    PropertyDescription propertyDescription = new PropertyDescription();
+    propertyDescription.setUri(property.getURI());
+    propertyDescription.setType(propertyType.getURI());
+    propertyDescription.setInPackage(packageExported);
+
+    String extra = "";
+    String tags = "";
+    String scopedtags = "";
+
+    List<String> tagJsons =
+        extractTagsJsonFilterDefault(
+            tagHelper.getTagDataFor(
+                source,
+                tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
+    tags = JOINER.join(tagJsons);
+    List<String> tagScoped =
+        tagHelper.getTagDataForJson(
+            source,
+            tagHelper.getContentMappings(Scope.FULL_DEFINITON));
+    scopedtags = JOINER.join(tagScoped);
+
+    String pdomain = "";
+    String pdomainguid = "";
+    String prange = "";
+    EAElement prangeObject;
+    String prangeLabel = "";
+    String prangePackage = "";
+    String sRole = "";
+    String dRole = "";	
+
+    pdomain = source.getSource().getName(); // Domain
+    pdomainguid = source.getSource().getGuid(); // Domain GUID
+    prangeObject = source.getDestination(); // Range
+    prange = prangeObject.getName(); // Range
+    prangeLabel = selectTagValue(tagHelper.getTagDataFor(prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
+    prangePackage = prangeObject.getPackage().getName();
+    sRole = source.getSourceRole();	
+    dRole = source.getDestRole();	
+
+    extra =
+          "{\"EA-Name\" : \""
+              + source.getName()
+              + "\", \"EA-Guid\" : \""
+              + source.getGuid()
+              + "\", \"derived\" : \""
+              + derived 
+              + "\", \"EA-Package\" : \""
+              + ""
+              + "\", \"EA-Type\" : \""
+              + "connector"
+              + "\", \"EA-Domain\" : \""
+              + pdomain
+              + "\", \"EA-Domain-Guid\" : \""
+              + pdomainguid
+              + "\", \"EA-Range\" : \""
+              + prange
+              + "\", \"RangeData\" : "
+              + rangedata.toJson() 
+              + ", \"sourceRole\" : \""
+	      + sRole
+              + "\", \"destRole\" : \""
+	      + dRole
+              + "\", "
+              + tags
+              + ", \"RawTags\" : ["
+              + extractRawTags(source)
+              + "]"
+              + ", \"Scope\" : \""
+              + scope.toString()
+              + "\""
+              + ", "
+              + scopedtags
+              + "}";
+
+    propertyDescription.setExtra(extra);
+    propertyDescription.setScopetags(scopedtags);
+
+    // support via the mapping rules calculated tags - these tags are not to be explicitely encoded,
+    // but used to extract
+    // data for later processing
+    String tv = "";
+    String camelCaseName ="";
+    for (TagData t : tagHelper.getTagDataFor( source, tagHelper.getContentMappings(Scope.FULL_DEFINITON))) {
+      LOGGER.debug( "process property-tag \"{}\" having value {}.", t.getOriginTag(), t.getValue().toString());
+      tv = t.getOriginValue();
+      switch (t.getOriginTag()) {
+        case "label":
+          propertyDescription.getName().add(new LanguageStringDescription("nl", tv));
+    	  camelCaseName = CaseUtils.toCamelCase(tv, false, null);
+          break;
+        case "definition":
+          propertyDescription.getDescription().add(new LanguageStringDescription("nl", tv));
+          break;
+        case "usage":
+          propertyDescription.getUsage().add(new LanguageStringDescription("nl", tv));
+          break;
+        case "codelist":
+          if (tv != null) {
+            propertyDescription.getCodelist().add(tv);
+          }
+          ;
+          break;
+      }
+      ;
+    }
+    ;
+
+    // TODO: this is a quickfix, but does not resolve the case for the following scenario
+    // if there are 2 classes mapped on the same URI and one of the classes is used as domain/range
+    // the label maight get wrong
+    // Therefore the label should be part of the domain/range resolvement. => Impact on other
+    // processing parts
+    if (domain != null) {
+      String propdomain =
+          "{ \"uri\": \"" + domain.getURI() + "\", \"EA-Name\" : \"" + pdomain + "\" }";
+      propertyDescription.getDomain().add(propdomain);
+    }
+    if (range != null) {
+      String proprange = rangedata.toJson() ;
+      propertyDescription.getRange().add(proprange);
+    }
+
+    for (Resource suProp : superProperties) {
+      propertyDescription.getGeneralization().add(suProp.toString());
+    }
+    ;
+
+    if (lowerbound != null && lowerbound.length() > 0) {
+      propertyDescription.setMinCount(lowerbound);
+    }
+
+    if (upperbound != null && upperbound.length() > 0) {
+      propertyDescription.setMaxCount(upperbound);
+    }
+
+    // Quality control
+    String pname = source.getName();
+
+    // always add property
+    // determin to which categorie the class belongs:
+    if (scope != Scope.FULL_DEFINITON) {
+      // external for the vocabulary definition
+      qualitycontrol_propertydescription(10, propertyDescription, pname);
+      this.ontologyDescription.getExternalProperties().add(propertyDescription);
+    } else {
+      qualitycontrol_propertydescription(-1, propertyDescription, pname);
+      this.ontologyDescription.getProperties().add(propertyDescription);
+    }
+  }
+
+
+
+
+
+
 
   private void qualitycontrol_propertydescription(
       int severity, PropertyDescription propertyDescription, String pname) {

@@ -2,6 +2,7 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RangeData.*;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.RoleEAConnector;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import org.apache.jena.rdf.model.Property;
@@ -140,7 +141,8 @@ public class Converter {
                 continue;
             }
 
-            convertConnector(dConnector.getReferencedConnector(), connectorDirections, uris.elementURIs,
+//            convertConnector(dConnector, dConnector.getReferencedConnector(), connectorDirections, uris.elementURIs,
+            convertConnector2(dConnector, connectorDirections, uris.elementURIs,
                     uris.connectorURIs, uris.definingPackages, ontology, diagram.getPackage());
         }
 
@@ -364,12 +366,164 @@ public class Converter {
         );
     }
 
-    private void convertConnector(EAConnector bareConnector, Map<EAConnector, EAConnector.Direction> directions,
+    // process a single a Diagramconnector by determining its derived connectors:
+    private void convertConnector2(DiagramConnector dconnector, Map<EAConnector, EAConnector.Direction> directions,
                                   Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
                                   Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
-       LOGGER.debug("converting Connector \"{}\".", bareConnector.getPath());
+   
+    EAConnector bareConnector = dconnector.getReferencedConnector();
+    if ( bareConnector.getAssociationClass() != null ) {
+	// connector with AssociationClass
         EAConnector.Direction rawDirection = directions.getOrDefault(bareConnector, EAConnector.Direction.UNSPECIFIED);
         for (EAConnector connector : Util.extractAssociationElement(bareConnector, rawDirection)) {
+            convertConnector_base(true, dconnector, connector, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+	}
+    } else {
+        EAConnector.Direction rawDirection = directions.getOrDefault(bareConnector, EAConnector.Direction.UNSPECIFIED);
+	if ( rawDirection == EAConnector.Direction.SOURCE_TO_DEST ) {
+            // simple directed connector
+            convertConnector_base(false, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+	} else { if ( rawDirection == EAConnector.Direction.DEST_TO_SOURCE ) {
+            // simple directed connector
+            convertConnector_base(false, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+        } else {
+            // not directed connector => both directions are created
+            LOGGER.debug("undirected Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath() );
+            convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+            LOGGER.debug("undirected Connector \"{}\" DEST_TO_SOURCE ", bareConnector.getPath() );
+            convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+        }}
+    }
+
+    }
+
+    // process a single combination of a Diagramconnector and its derived connector
+    // the connector here should be a directed connector with all tags at the right place
+    private void convertConnector_base(
+                  		  Boolean derived,  
+                                  DiagramConnector dconnector, EAConnector connector, Map<EAConnector, EAConnector.Direction> directions,
+                                  Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
+                                  Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
+        LOGGER.debug("initiating conversion Connector \"{}\" in a directed form.", connector.getPath() );
+
+        if (connector.getAssociationClass() != null)
+                throw new AssertionError("Association class should not be present.");
+
+        if (connectorURIs.containsKey(connector)) {
+            // must have a URI
+
+            if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
+            // must not be a is-a or aggregation type
+
+                LOGGER.debug("Connector \"{}\" is processed.", connector.getPath());
+
+                Resource connResource = ResourceFactory.createResource(connectorURIs.get(connector));
+
+                // source and target are the two ends of the connector
+                // which element is source or target is determined by the drawing order
+                EAElement source = connector.getSource();
+                EAElement target = connector.getDestination();
+                Resource sourceRes = ResourceFactory.createResource(elementURIs.get(source));
+                Resource targetRes = ResourceFactory.createResource(elementURIs.get(target));
+
+
+                // Subproperties
+                List<Resource> superProperties = connector.getTags()
+                        .stream()
+                        .filter(t -> tagHelper.getTagKey(Tag.SUBPROPERTY_OF).equals(t.getKey()))
+                        .map(tag -> TagHelper.USE_NOTE_VALUE.equals(tag.getValue()) ? tag.getNotes() : tag.getValue())
+                        .map(ResourceFactory::createResource)
+                        .collect(Collectors.toList());
+
+                Resource domain = null;
+                Resource range = null;
+
+                String customDomain = tagHelper.getOptionalTag(connector, Tag.DOMAIN, null);
+                String customRange = tagHelper.getOptionalTag(connector, Tag.RANGE, null);
+
+                String cardinality = null;
+                boolean rangeIsLiteral = false;
+ 		RangeData rangedata = new RangeData();
+
+                // Range, domain & cardinality
+                domain = sourceRes;
+                range = targetRes;
+                cardinality = connector.getDestinationCardinality();
+                rangeIsLiteral = Boolean.parseBoolean(tagHelper.getOptionalTag(target, Tag.IS_LITERAL, "false"));
+ 	    	rangedata = new RangeData(target.getName(), target.getPackage().getName(), range, target);
+
+                if (customDomain != null) {
+                    domain = ResourceFactory.createResource(customDomain);
+		    LOGGER.warn("Connector {} overwrites domain with custom domain {} ", connector.getPath(), domain);
+		};
+                if (customRange != null) {
+                    range = ResourceFactory.createResource(customRange);
+		    LOGGER.warn("Connector {} overwrites range with custom range {} ", connector.getPath(), range);
+		};
+
+
+                // split cardinality
+                String lowerCardinality = null;
+                String higherCardinality = null;
+
+                if (cardinality != null && cardinality.contains("..")) {
+                    String[] parts = cardinality.split("\\.\\.");
+                    lowerCardinality = parts[0];
+                    higherCardinality = parts[1];
+                } else if (cardinality != null) {
+                    lowerCardinality = cardinality;
+                    higherCardinality = cardinality;
+                }
+
+                EAPackage definingPackage = definingPackages.get(connector);
+                PackageExported packageExported;
+                if (definingPackage == null) {
+                    packageExported = PackageExported.UNKNOWN;
+                    LOGGER.warn("Package for connector {} is unknown", connector.getPath());
+                } else if (convertedPackage.equals(definingPackage))
+                    packageExported = PackageExported.ACTIVE_PACKAGE;
+                else
+                    packageExported = PackageExported.OTHER_PACKAGE;
+
+                boolean externalTerm = tagHelper.getOptionalTag(connector, Tag.EXTERNAL_URI, null) != null;
+                Scope scope = Scope.NOTHING;
+                if (!externalTerm && packageExported == PackageExported.ACTIVE_PACKAGE)
+                    scope = Scope.FULL_DEFINITON;
+                else if (externalTerm && packageExported == PackageExported.ACTIVE_PACKAGE)
+                    scope = Scope.TRANSLATIONS_ONLY;
+               LOGGER.debug("Scope of covertion for connector {} is \"{}\"", connector.getPath(), scope);
+
+
+                outputHandler.handlePropertyConnector(
+		        derived,
+                        connector,
+                        connResource,
+                        scope,
+                        packageExported,
+                        ontology,
+                        rangeIsLiteral ? OWL.DatatypeProperty : OWL.ObjectProperty,
+                        domain,
+                        range,
+			rangedata,
+                        lowerCardinality,
+                        higherCardinality,
+                        superProperties);
+            } else {
+                LOGGER.error("Unsupported connector type for \"{}\" - skipping.", connector.getPath());
+            }
+        }
+    }
+
+
+    private void convertConnector(DiagramConnector dconnector, EAConnector bareConnector, Map<EAConnector, EAConnector.Direction> directions,
+                                  Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
+                                  Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
+        LOGGER.debug("converting Connector \"{}\".", bareConnector.getPath());
+        EAConnector.Direction rawDirection = directions.getOrDefault(bareConnector, EAConnector.Direction.UNSPECIFIED);
+        for (EAConnector connector : Util.extractAssociationElement2(bareConnector, rawDirection)) {
+            if (connector.getAssociationClass() != null)
+                throw new AssertionError("Association class should not be present.");
+
             LOGGER.debug("Connector \"{}\" trying for processing.", connector.getPath());
             if (!connectorURIs.containsKey(connector))
                 continue;
@@ -382,8 +536,6 @@ public class Converter {
             Resource sourceRes = ResourceFactory.createResource(elementURIs.get(source));
             Resource targetRes = ResourceFactory.createResource(elementURIs.get(target));
 
-            if (connector.getAssociationClass() != null)
-                throw new AssertionError("Association class should not be present.");
 
             if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
                 // Subproperty
@@ -462,7 +614,7 @@ public class Converter {
 
 
                 outputHandler.handleProperty(
-                        OutputHandler.PropertySource.from(connector),
+                	OutputHandler.PropertySource.from(connector),
                         connResource,
                         scope,
                         packageExported,

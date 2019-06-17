@@ -4,6 +4,7 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.SortedOutputModel;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAAttribute;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAPackage;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.RangeData;
 import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
@@ -143,6 +144,26 @@ public class RDFOutputHandler implements OutputHandler {
         for (TagData tag : tagHelper.getTagDataFor(MoreObjects.firstNonNull(source.attribute, source.connector), tagHelper.getContentMappings(scope))) {
             model.add(property, tag.getProperty(), tag.getValue());
         }
+    }
+
+  @Override
+  // expected input is a directed connector
+  public void handlePropertyConnector(
+      Boolean derived,
+      EAConnector source,
+      Resource property,
+      Scope scope,
+      PackageExported packageExported,
+      Resource ontology,
+      Resource propertyType,
+      Resource domain,
+      Resource range,
+      RangeData rangedata,
+      String lowerbound,
+      String upperbound,
+      List<Resource> superProperties
+      ) {
+    LOGGER.warn("HANDLEPROPERTYCONNECTOR NOT HANDLED: {} - {}", source.getName(), source.getGuid());
     }
 
     @Override

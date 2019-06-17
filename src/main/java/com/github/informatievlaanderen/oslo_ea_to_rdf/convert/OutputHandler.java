@@ -60,6 +60,27 @@ public interface OutputHandler {
                         Resource ontology, Resource propertyType, Resource domain, Resource range,
 			RangeData rangedata,
                         String lowerbound, String upperbound, List<Resource> superProperties);
+    /**
+     * Handles the definition of a property originating form a UML connector
+     * @param derived indicates if the property has been derived from an other 
+     * @param source the to be processed directed connector derived from a connector
+     * @param property the resource representing the property
+     * @param scope hint on how to handle this property in the output
+     * @param packageExported info which package the property belongs to
+     * @param ontology the ontology in which the property is defined
+     * @param propertyType the type of the property (owl:Property, owl:ObjectProperty, owl:DataProperty)
+     * @param domain nullable, domain of the property
+     * @param range nullable, range of the property
+     * @param rangedata nullable, range of the property in structured form
+     * @param superProperties all super properties of this property
+     * @param lowerbound lower cardinality
+     * @param upperbound higher cardinality
+     */
+    void handlePropertyConnector(Boolean derived, EAConnector source, 
+                        Resource property, Scope scope, PackageExported packageExported,
+                        Resource ontology, Resource propertyType, Resource domain, Resource range,
+			RangeData rangedata,
+                        String lowerbound, String upperbound, List<Resource> superProperties);
 
     /**
      * Handles the definition of an instance of a class.
