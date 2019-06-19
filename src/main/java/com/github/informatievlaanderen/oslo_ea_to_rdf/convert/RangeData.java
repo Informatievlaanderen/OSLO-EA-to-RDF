@@ -49,11 +49,21 @@ public class RangeData {
     }
 
    public String toJson() {
-	String json = "{" +
+	String json = "";
+        if (origin != null) {
+	  json = "{" +
+             "\"EA-Name\" : \"" +  eaname +
+             "\", \"EA-GUID\" : \"" +  origin.getGuid() +
+             "\", \"EA-Package\" : \"" + eapackage +
+             "\", \"uri\" : \"" + uri +
+	     "\" }";
+	} else {
+	  json = "{" +
              "\"EA-Name\" : \"" +  eaname +
              "\", \"EA-Package\" : \"" + eapackage +
              "\", \"uri\" : \"" + uri +
 	     "\" }";
+	}
 	
 	return json ;
 	}

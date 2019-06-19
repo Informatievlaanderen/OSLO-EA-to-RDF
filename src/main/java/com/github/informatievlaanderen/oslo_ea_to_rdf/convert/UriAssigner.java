@@ -288,6 +288,7 @@ public class UriAssigner {
                 }
                 connectorURI = packageURI + localName;
             }
+            LOGGER.debug("Connector \"{}\" has uri <{}>.", connector.getPath(), connectorURI);
 
             try {
                 ResourceFactory.createProperty(connectorURI);
@@ -295,6 +296,9 @@ public class UriAssigner {
                 connectorURIs.put(connector, connectorURI);
             } catch (InvalidPropertyURIException e) {
                 LOGGER.error("Invalid property URI \"{}\", will ignore connector {}.", connectorURI, connector.getPath());
+	    } catch (Exception e) {
+               LOGGER.debug("Exception \"{}\" has happend", e);
+	       throw e;
             }
         }
     }

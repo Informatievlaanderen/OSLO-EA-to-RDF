@@ -382,10 +382,12 @@ public class Converter {
         EAConnector.Direction rawDirection = directions.getOrDefault(bareConnector, EAConnector.Direction.UNSPECIFIED);
 	if ( rawDirection == EAConnector.Direction.SOURCE_TO_DEST ) {
             // simple directed connector
-            convertConnector_base(false, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+            LOGGER.debug("directed Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath() );
+            convertConnector_base(false, dconnector, bareConnector, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	} else { if ( rawDirection == EAConnector.Direction.DEST_TO_SOURCE ) {
             // simple directed connector
-            convertConnector_base(false, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+            LOGGER.debug("directed Connector \"{}\" DEST_TO_SOURCE", bareConnector.getPath() );
+            convertConnector_base(false, dconnector, bareConnector, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
         } else {
             // not directed connector => both directions are created
             LOGGER.debug("undirected Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath() );
@@ -511,7 +513,16 @@ public class Converter {
             } else {
                 LOGGER.error("Unsupported connector type for \"{}\" - skipping.", connector.getPath());
             }
-        }
+        } else {
+                LOGGER.debug("connector \"{}\" has no uri - skipping.", connector.getPath());
+/*
+		for ( EAConnector k : connectorURIs.keySet()) {
+			LOGGER.error("contains key {}", k.getPath());
+		};
+                LOGGER.error("connector \"{}\" has no uri - skipping.", connector.getPath());
+*/
+	}
+	
     }
 
 
