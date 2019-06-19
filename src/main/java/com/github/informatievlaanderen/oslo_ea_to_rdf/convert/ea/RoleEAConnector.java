@@ -29,7 +29,8 @@ public class RoleEAConnector implements EAConnector {
 
     @Override
     public String getName() {
-        return inner.getName();
+	// for a role connector is the name the role
+        return this.getDestRole();
     }
 
     @Override
