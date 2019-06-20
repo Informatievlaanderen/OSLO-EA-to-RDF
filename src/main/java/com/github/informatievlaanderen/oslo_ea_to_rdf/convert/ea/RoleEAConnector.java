@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A directed connector derived from another connector
  *
@@ -16,6 +19,7 @@ import java.util.Objects;
 public class RoleEAConnector implements EAConnector {
     private EAConnector inner;
     private ConnectionPart part;
+    private final Logger LOGGER = LoggerFactory.getLogger(RoleEAConnector.class);
 
     /**
      * Creates a new connector to represent one of four parts of a connector with an association class.
@@ -23,6 +27,7 @@ public class RoleEAConnector implements EAConnector {
      * @param part the part of the base connector to be represented by this connector
      */
     public RoleEAConnector(EAConnector inner, ConnectionPart part) {
+	
         this.inner = inner;
         this.part = part;
     }
@@ -128,6 +133,7 @@ public class RoleEAConnector implements EAConnector {
     // for a Role connector are the tags those of the Role and not of the main one
     // we could consider an overwrite approach TODO XXX
     public List<EATag> getTags() {
+	LOGGER.debug("Role Tags");
         return this.getDestRoleTags();
     }
 

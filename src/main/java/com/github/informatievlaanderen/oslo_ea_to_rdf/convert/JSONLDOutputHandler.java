@@ -318,6 +318,45 @@ public class JSONLDOutputHandler implements OutputHandler {
     return rawTags;
   };
 
+  private String extractSourceRoleTags(EAConnector eaobj) {
+    String rawTags = "";
+    List<String> allRawTags = new ArrayList<>();
+    for (EATag t : eaobj.getSourceRoleTags()) {
+      allRawTags.add(
+          "{ \"key\": \""
+              + StringEscapeUtils.escapeJson(t.getKey())
+              + "\", \"value\": \""
+              + StringEscapeUtils.escapeJson(t.getValue())
+              + "\", \"note\": \""
+              + StringEscapeUtils.escapeJson(t.getNotes())
+              + "\" }");
+    }
+    ;
+    rawTags = JOINER.join(allRawTags);
+
+    return rawTags;
+  };
+
+  private String extractDestRoleTags(EAConnector eaobj) {
+    String rawTags = "";
+    List<String> allRawTags = new ArrayList<>();
+    for (EATag t : eaobj.getDestRoleTags()) {
+      allRawTags.add(
+          "{ \"key\": \""
+              + StringEscapeUtils.escapeJson(t.getKey())
+              + "\", \"value\": \""
+              + StringEscapeUtils.escapeJson(t.getValue())
+              + "\", \"note\": \""
+              + StringEscapeUtils.escapeJson(t.getNotes())
+              + "\" }");
+    }
+    ;
+    rawTags = JOINER.join(allRawTags);
+
+    return rawTags;
+  };
+
+
   private String extractVocabulary(String URI) {
     if (URI.lastIndexOf("#") > -1) {
       return URI.substring(0, URI.lastIndexOf("#"));
@@ -922,6 +961,9 @@ public class JSONLDOutputHandler implements OutputHandler {
               + tags
               + ", \"RawTags\" : ["
               + extractRawTags(source)
+              + "]"
+              + ", \"DestRoleTags\" : ["
+              + extractDestRoleTags(source)
               + "]"
               + ", \"Scope\" : \""
               + scope.toString()

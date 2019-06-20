@@ -396,7 +396,7 @@ public class MemoryRepositoryBuilder {
     private void loadConnectorRoleTags(Connection connection, Map<Integer, MemoryEAConnector> connectors) throws SQLException {
 	// process the source roles
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT tag.PropertyID, tag.TagValue, tag.Notes, connector.Connector_ID from ( t_taggedvalue as tag inner join t_connector as connector on tag.ElementId = connector.ea_guid ) where BaseClass = \"ASSOCIATION_SOURCE\"");
+            ResultSet rs = s.executeQuery("SELECT tag.PropertyID, tag.TagValue, tag.Notes, connector.Connector_ID from ( t_taggedvalue as tag inner join t_connector as connector on tag.ElementId = connector.ea_guid ) where tag.BaseClass = \"ASSOCIATION_SOURCE\"");
 
             while (rs.next()) {
                 String key = rs.getString("PropertyID");
@@ -412,7 +412,7 @@ public class MemoryRepositoryBuilder {
         }
 	// process the target roles
         try (Statement s = connection.createStatement()) {
-            ResultSet rs = s.executeQuery("SELECT tag.PropertyID, tag.TagValue, tag.Notes, connector.Connector_ID from ( t_taggedvalue as tag inner join t_connector as connector on tag.ElementId = connector.ea_guid ) where BaseClass = \"ASSOCIATION_TARGER\"");
+            ResultSet rs = s.executeQuery("SELECT tag.PropertyID, tag.TagValue, tag.Notes, connector.Connector_ID from ( t_taggedvalue as tag inner join t_connector as connector on tag.ElementId = connector.ea_guid ) where tag.BaseClass = \"ASSOCIATION_TARGET\"");
 
             while (rs.next()) {
                 String key = rs.getString("PropertyID");
