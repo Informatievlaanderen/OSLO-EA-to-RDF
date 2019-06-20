@@ -35,6 +35,8 @@ public class RoleEAConnector implements EAConnector {
     @Override
     public String getName() {
 	// for a role connector is the name the role
+        if ((part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST))
+	    return inner.getName();
         return this.getDestRole();
     }
 
@@ -71,6 +73,8 @@ public class RoleEAConnector implements EAConnector {
             return inner.getSourceRoleTags();
         if (part == ConnectionPart.DEST_TO_SOURCE)
             return inner.getDestRoleTags();
+        if ((part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST))
+	    return null;
         return inner.getSourceRoleTags();
     }
 
@@ -93,13 +97,15 @@ public class RoleEAConnector implements EAConnector {
             return inner.getDestRoleTags();
         if (part == ConnectionPart.DEST_TO_SOURCE)
             return inner.getSourceRoleTags();
+        if ((part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST))
+	    return null;
         return inner.getDestRoleTags();
     }
 
     @Override
     public EAElement getSource() {
 	EAElement result = null;
-        if (part == ConnectionPart.SOURCE_TO_DEST)
+        if ((part == ConnectionPart.SOURCE_TO_DEST) || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST))
             result = inner.getSource();
 	else {
             result = inner.getDestination();
@@ -110,7 +116,7 @@ public class RoleEAConnector implements EAConnector {
     @Override
     public EAElement getDestination() {
 	EAElement result = null;
-        if (part == ConnectionPart.SOURCE_TO_DEST)
+        if ((part == ConnectionPart.SOURCE_TO_DEST) || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST))
             result = inner.getDestination();
 	else {
             result = inner.getSource();
@@ -133,7 +139,8 @@ public class RoleEAConnector implements EAConnector {
     // for a Role connector are the tags those of the Role and not of the main one
     // we could consider an overwrite approach TODO XXX
     public List<EATag> getTags() {
-	LOGGER.debug("Role Tags");
+        if ((part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST) )
+        	return inner.getTags();
         return this.getDestRoleTags();
     }
 
@@ -147,18 +154,18 @@ public class RoleEAConnector implements EAConnector {
 
     @Override
     public String getSourceCardinality() {
-        if (part == ConnectionPart.SOURCE_TO_DEST)
+        if ((part == ConnectionPart.SOURCE_TO_DEST) || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST))
             return inner.getSourceCardinality();
-        if (part == ConnectionPart.DEST_TO_SOURCE)
+        if ((part == ConnectionPart.DEST_TO_SOURCE) || (part == ConnectionPart.UNSPEC_DEST_TO_SOURCE))
             return inner.getDestinationCardinality();
         throw new IllegalStateException();
     }
 
     @Override
     public String getDestinationCardinality() {
-        if (part == ConnectionPart.SOURCE_TO_DEST)
+        if ((part == ConnectionPart.SOURCE_TO_DEST) || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST))
             return inner.getDestinationCardinality();
-        if (part == ConnectionPart.DEST_TO_SOURCE)
+        if ((part == ConnectionPart.DEST_TO_SOURCE) || (part == ConnectionPart.UNSPEC_DEST_TO_SOURCE))
             return inner.getSourceCardinality();
         throw new IllegalStateException();
     }
@@ -179,6 +186,8 @@ public class RoleEAConnector implements EAConnector {
 
     public enum ConnectionPart {
         SOURCE_TO_DEST,
-        DEST_TO_SOURCE
+        DEST_TO_SOURCE,
+        UNSPEC_SOURCE_TO_DEST,
+        UNSPEC_DEST_TO_SOURCE
     }
 }

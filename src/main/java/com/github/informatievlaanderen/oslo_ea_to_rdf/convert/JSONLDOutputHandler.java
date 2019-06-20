@@ -340,6 +340,7 @@ public class JSONLDOutputHandler implements OutputHandler {
   private String extractDestRoleTags(EAConnector eaobj) {
     String rawTags = "";
     List<String> allRawTags = new ArrayList<>();
+    if (eaobj.getDestRoleTags() != null) {
     for (EATag t : eaobj.getDestRoleTags()) {
       allRawTags.add(
           "{ \"key\": \""
@@ -352,6 +353,7 @@ public class JSONLDOutputHandler implements OutputHandler {
     }
     ;
     rawTags = JOINER.join(allRawTags);
+    };
 
     return rawTags;
   };

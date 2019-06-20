@@ -37,9 +37,18 @@ public class Util {
         	result.add(conn);
 		if (conn.getSourceRole() != null && conn.getSourceRole() != "") {
         		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE));
+        		LOGGER.debug("1) add Role connector {}", conn.getPath());
 		};
 		if (conn.getDestRole() != null && conn.getDestRole() != "") {
         		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST));
+        		LOGGER.debug("2) add Role connector {}", conn.getPath());
+		};
+        	if ( (conn.getDestRole() == null || conn.getDestRole() == "") &&
+             	     (conn.getSourceRole() == null || conn.getSourceRole() == "") &&
+	     	     (direction == EAConnector.Direction.UNSPECIFIED) ) {
+        		LOGGER.debug("3) add Role connector {}", conn.getPath());
+        		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST));
+        		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE));
 		};
 	};
 	return result;

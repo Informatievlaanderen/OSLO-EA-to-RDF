@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.InvalidPropertyURIException;
+import org.apache.commons.text.CaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -230,7 +231,7 @@ public class UriAssigner {
                 for (EAConnector connector : element.getConnectors()) {
                     // Connectors not in the diagram will not occur in this map.
                     EAConnector.Direction direction = connectorDirections.getOrDefault(connector, EAConnector.Direction.UNSPECIFIED);
-                    normalisedConnectors.addAll(Util.extractAssociationElement3(connector, direction));
+                    normalisedConnectors.addAll(Util.extractAssociationElement2(connector, direction));
                 }
             }
         }
@@ -281,12 +282,19 @@ public class UriAssigner {
                     continue;
                 }
 
-                String localName = tagHelper.getOptionalTag(connector, LOCALNAME, connector.getName());
+                String localName0 = tagHelper.getOptionalTag(connector, LOCALNAME, connector.getName());
+/*
+    	  	String localName  = CaseUtils.toCamelCase(localName0, false, null);
                 if (localName == null) {
                     LOGGER.warn("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
                     continue;
                 }
-                connectorURI = packageURI + localName;
+		if (localName0 != localName) {
+                    LOGGER.warn("Connector \"{}\" has not a name in camelCase: {}.", connector.getPath(), localName0);
+		}
+*/
+
+                connectorURI = packageURI + localName0;
             }
             LOGGER.debug("Connector \"{}\" has uri <{}>.", connector.getPath(), connectorURI);
 

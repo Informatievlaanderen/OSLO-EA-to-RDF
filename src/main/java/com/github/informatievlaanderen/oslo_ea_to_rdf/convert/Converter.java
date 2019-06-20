@@ -401,6 +401,12 @@ public class Converter {
             LOGGER.debug("undirected Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath() );
             convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
         }
+        if ( (bareConnector.getDestRole() == null || bareConnector.getDestRole() == "") &&
+             (bareConnector.getSourceRole() == null || bareConnector.getSourceRole() == "") &&
+	     (rawDirection == EAConnector.Direction.UNSPECIFIED) ) {
+             convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+             convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+	}
     }
 
     }
