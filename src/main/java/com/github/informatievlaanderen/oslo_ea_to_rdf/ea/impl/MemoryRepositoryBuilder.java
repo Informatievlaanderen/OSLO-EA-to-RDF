@@ -57,6 +57,7 @@ public class MemoryRepositoryBuilder {
             loadObjectTags(conn, elements, objectIndexPackages);
             loadAttributeTags(conn, attributes);
             loadConnectorTags(conn, connectors);
+            loadConnectorRoleTags(conn, connectors);
             diagrams = loadDiagrams(conn, packages);
             loadDiagramObjects(conn, elements, packages, diagrams);
             loadDiagramConnectors(conn, diagrams, connectors);
@@ -381,6 +382,47 @@ public class MemoryRepositoryBuilder {
                 MemoryEAConnector connector = connectors.get(elementId);
                 if (connector != null) {
                     connector.getTagsOrig().add(new MemoryEATag(key, value, notes));
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Assumes connectors are fully loaded.
+     *
+     * @throws SQLException
+     */
+    private void loadConnectorRoleTags(Connection connection, Map<Integer, MemoryEAConnector> connectors) throws SQLException {
+	// process the source roles
+        try (Statement s = connection.createStatement()) {
+            ResultSet rs = s.executeQuery("SELECT tag.PropertyID, tag.TagValue, tag.Notes, connector.Connector_ID from ( t_taggedvalue as tag inner join t_connector as connector on tag.ElementId = connector.ea_guid ) where BaseClass = \"ASSOCIATION_SOURCE\"");
+
+            while (rs.next()) {
+                String key = rs.getString("PropertyID");
+                int elementId = rs.getInt("Connector_ID");
+                String value = rs.getString("TagValue");
+                String notes = rs.getString("Notes");
+
+                MemoryEAConnector connector = connectors.get(elementId);
+                if (connector != null) {
+                    connector.getSourceRoleTags().add(new MemoryEATag(key, value, notes));
+                }
+            }
+        }
+	// process the target roles
+        try (Statement s = connection.createStatement()) {
+            ResultSet rs = s.executeQuery("SELECT tag.PropertyID, tag.TagValue, tag.Notes, connector.Connector_ID from ( t_taggedvalue as tag inner join t_connector as connector on tag.ElementId = connector.ea_guid ) where BaseClass = \"ASSOCIATION_TARGER\"");
+
+            while (rs.next()) {
+                String key = rs.getString("PropertyID");
+                int elementId = rs.getInt("Connector_ID");
+                String value = rs.getString("TagValue");
+                String notes = rs.getString("Notes");
+
+                MemoryEAConnector connector = connectors.get(elementId);
+                if (connector != null) {
+                    connector.getDestRoleTags().add(new MemoryEATag(key, value, notes));
                 }
             }
         }

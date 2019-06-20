@@ -34,29 +34,21 @@ public class Util {
 		// handling association classes has priority
 		result = extractAssociationElement(conn, direction) ;
 	} else {
-		if (direction == EAConnector.Direction.UNSPECIFIED) {
-        	LOGGER.debug("handle unspecified connectors");
-		result = extractAssociationElement3(conn, direction);
-		} 
-		else { 
-//		if (direction == EAConnector.Direction.BIDIRECTIONAL) {
-//        	LOGGER.warn("handle bidirectional connectors");
-//		result = extractAssociationElement3(conn, direction);
-//		} else {
-        	LOGGER.debug("add directed connector {}", conn.getPath());
-            	result = Collections.singleton(conn);
-//		}
-		}
+        	result.add(conn);
+		if (conn.getSourceRole() != null && conn.getSourceRole() != "") {
+        		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE));
+		};
+		if (conn.getDestRole() != null && conn.getDestRole() != "") {
+        		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST));
+		};
 	};
-		return result;
-	
-	};
+	return result;
+    }
 
     public static Collection<EAConnector> extractAssociationElement3(EAConnector conn, EAConnector.Direction direction) {
         LOGGER.debug("add connector {}", conn.getPath());
         Collection<EAConnector> result = new ArrayList<>(3);
         result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST));
-        result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE));
         result.add(conn);
 	return result;
 	};

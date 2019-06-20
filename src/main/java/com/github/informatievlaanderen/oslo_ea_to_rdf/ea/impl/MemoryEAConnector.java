@@ -26,6 +26,8 @@ class MemoryEAConnector implements EAConnector {
     private EAElement associationClass;
     private String guid;
     private List<EATag> tags;
+    private List<EATag> sourceRoleTags;
+    private List<EATag> destRoleTags;
 
     MemoryEAConnector(int connectorId, String name, Direction direction, String notes, String type,
                       String sourceRole, String destinationRole, String sourceCardinality, String targetCardinality,
@@ -45,6 +47,8 @@ class MemoryEAConnector implements EAConnector {
         this.associationClass = associationClass;
         this.guid = guid;
         this.tags = new ArrayList<>();
+        this.sourceRoleTags = new ArrayList<>();
+        this.destRoleTags = new ArrayList<>();
     }
 
     @Override
@@ -73,8 +77,18 @@ class MemoryEAConnector implements EAConnector {
     }
 
     @Override
+    public List<EATag> getSourceRoleTags() {
+        return sourceRoleTags;
+    }
+
+    @Override
     public String getDestRole() {
         return destinationRole;
+    }
+
+    @Override
+    public List<EATag> getDestRoleTags() {
+        return destRoleTags;
     }
 
     @Override

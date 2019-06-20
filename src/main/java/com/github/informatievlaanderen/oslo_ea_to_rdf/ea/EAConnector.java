@@ -1,5 +1,7 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea;
 
+import java.util.List;
+
 /**
  * A link between two {@link EAElement}s, containing additional information.
  *
@@ -31,10 +33,23 @@ public interface EAConnector extends EAObject {
     String getSourceRole();
 
     /**
+     * Gets the tags linked to this object.
+     *
+     */
+    List<EATag> getSourceRoleTags();
+
+    /**
      * Gets the role on the destination of this connector.
      * @return the role, or {@code null}
      */
     String getDestRole();
+
+    /**
+     * Gets the tags linked to this object.
+     *
+     */
+    List<EATag> getDestRoleTags();
+
 
     /**
      * Gets the source of this connector.

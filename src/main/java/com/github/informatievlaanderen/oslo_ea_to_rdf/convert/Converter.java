@@ -379,6 +379,9 @@ public class Converter {
             convertConnector_base(true, dconnector, connector, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	}
     } else {
+        // if has direction -> export direction
+        // if has role -> export Role
+        // Note if has both then both will happen see case 02bTweede
         EAConnector.Direction rawDirection = directions.getOrDefault(bareConnector, EAConnector.Direction.UNSPECIFIED);
 	if ( rawDirection == EAConnector.Direction.SOURCE_TO_DEST ) {
             // simple directed connector
@@ -388,13 +391,16 @@ public class Converter {
             // simple directed connector
             LOGGER.debug("directed Connector \"{}\" DEST_TO_SOURCE", bareConnector.getPath() );
             convertConnector_base(false, dconnector, bareConnector, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
-        } else {
+        }}
+        if (bareConnector.getSourceRole() != null && bareConnector.getSourceRole() != "") {
+            LOGGER.debug("undirected Connector \"{}\" DEST_TO_SOURCE ", bareConnector.getPath() );
+            convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+	}
+        if (bareConnector.getDestRole() != null && bareConnector.getDestRole() != "") {
             // not directed connector => both directions are created
             LOGGER.debug("undirected Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath() );
             convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
-            LOGGER.debug("undirected Connector \"{}\" DEST_TO_SOURCE ", bareConnector.getPath() );
-            convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
-        }}
+        }
     }
 
     }

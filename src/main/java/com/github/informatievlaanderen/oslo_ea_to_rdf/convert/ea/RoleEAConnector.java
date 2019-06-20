@@ -61,6 +61,15 @@ public class RoleEAConnector implements EAConnector {
     }
 
     @Override
+    public List<EATag> getSourceRoleTags() {
+        if (part == ConnectionPart.SOURCE_TO_DEST)
+            return inner.getSourceRoleTags();
+        if (part == ConnectionPart.DEST_TO_SOURCE)
+            return inner.getDestRoleTags();
+        return inner.getSourceRoleTags();
+    }
+
+    @Override
     public String getDestRole() {
         String role = null;
         if (part == ConnectionPart.SOURCE_TO_DEST)
@@ -71,6 +80,15 @@ public class RoleEAConnector implements EAConnector {
 	    role = inner.getName(); // does not uses the tags label
 
         return role;
+    }
+
+    @Override
+    public List<EATag> getDestRoleTags() {
+        if (part == ConnectionPart.SOURCE_TO_DEST)
+            return inner.getDestRoleTags();
+        if (part == ConnectionPart.DEST_TO_SOURCE)
+            return inner.getSourceRoleTags();
+        return inner.getDestRoleTags();
     }
 
     @Override
@@ -107,9 +125,10 @@ public class RoleEAConnector implements EAConnector {
     }
 
     @Override
+    // for a Role connector are the tags those of the Role and not of the main one
+    // we could consider an overwrite approach TODO XXX
     public List<EATag> getTags() {
-        // here must the directionality taken into account
-        return inner.getTags();
+        return this.getDestRoleTags();
     }
 
     @Override

@@ -65,12 +65,22 @@ public class NormalizedEAConnector implements EAConnector {
     }
 
     @Override
+    public List<EATag> getSourceRoleTags() {
+        return inner.getSourceRoleTags();
+    }
+
+    @Override
     public String getDestRole() {
         if (part == ConnectionPart.ASSOCIATION_TO_DESTINATION)
             return inner.getDestRole();
         if (part == ConnectionPart.ASSOCIATION_TO_SOURCE)
             return inner.getSourceRole();
         return null;
+    }
+
+    @Override
+    public List<EATag> getDestRoleTags() {
+        return inner.getDestRoleTags();
     }
 
     @Override
