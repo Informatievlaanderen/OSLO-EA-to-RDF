@@ -399,9 +399,9 @@ public class MemoryRepositoryBuilder {
             ResultSet rs = s.executeQuery("SELECT tag.PropertyID, tag.TagValue, tag.Notes, connector.Connector_ID from ( t_taggedvalue as tag inner join t_connector as connector on tag.ElementId = connector.ea_guid ) where tag.BaseClass = \"ASSOCIATION_SOURCE\"");
 
             while (rs.next()) {
-                String key = rs.getString("PropertyID");
+                String key = rs.getString("TagValue");
                 int elementId = rs.getInt("Connector_ID");
-                String value = rs.getString("TagValue");
+                String value = "NOTE";
                 String notes = rs.getString("Notes");
 
                 MemoryEAConnector connector = connectors.get(elementId);
@@ -415,9 +415,9 @@ public class MemoryRepositoryBuilder {
             ResultSet rs = s.executeQuery("SELECT tag.PropertyID, tag.TagValue, tag.Notes, connector.Connector_ID from ( t_taggedvalue as tag inner join t_connector as connector on tag.ElementId = connector.ea_guid ) where tag.BaseClass = \"ASSOCIATION_TARGET\"");
 
             while (rs.next()) {
-                String key = rs.getString("PropertyID");
+                String key = rs.getString("TagValue");
                 int elementId = rs.getInt("Connector_ID");
-                String value = rs.getString("TagValue");
+                String value = "NOTE";
                 String notes = rs.getString("Notes");
 
                 MemoryEAConnector connector = connectors.get(elementId);
