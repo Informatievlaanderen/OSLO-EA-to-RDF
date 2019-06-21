@@ -6,6 +6,8 @@ import com.google.common.collect.*;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.InvalidPropertyURIException;
 import org.apache.commons.text.CaseUtils;
+import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,10 +202,14 @@ public class UriAssigner {
                         String namespace = attributePackageURI;
                         if (namespace.endsWith("/") || namespace.endsWith("#"))
                             namespace = namespace.substring(0, attributePackageURI.length() - 1);
-                        String instanceNamespace = namespace + "/" + tagHelper.getOptionalTag(element, LOCALNAME, element.getName()) + "/";
+
+			String localName0 = tagHelper.getOptionalTag(element, LOCALNAME, element.getName());
+		        String localName = caseLocalName(localName0, false, element.getName());
+
+                        String instanceNamespace = namespace + "/" + localName + "/";
                         instanceURIs.put(attribute, extractURI(attribute, instanceNamespace));
                     } else {
-                        String uri = extractURI(attribute, attributePackageURI);
+                        String uri = extractURIAttribute(attribute, attributePackageURI);
                         try {
                             ResourceFactory.createProperty(uri);
                             attributeURIs.put(attribute, uri);
@@ -283,18 +289,12 @@ public class UriAssigner {
                 }
 
                 String localName0 = tagHelper.getOptionalTag(connector, LOCALNAME, connector.getName());
-/*
-    	  	String localName  = CaseUtils.toCamelCase(localName0, false, null);
-                if (localName == null) {
+                if (localName0 == null) {
                     LOGGER.warn("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
                     continue;
                 }
-		if (localName0 != localName) {
-                    LOGGER.warn("Connector \"{}\" has not a name in camelCase: {}.", connector.getPath(), localName0);
-		}
-*/
-
-                connectorURI = packageURI + localName0;
+		String localName = caseLocalName(localName0, false, connector.getPath());
+                connectorURI = packageURI + localName;
             }
             LOGGER.debug("Connector \"{}\" has uri <{}>.", connector.getPath(), connectorURI);
 
@@ -317,10 +317,50 @@ public class UriAssigner {
             return temp;
 
         temp = tagHelper.getOptionalTag(element, Tag.LOCALNAME, null);
+	temp = caseLocalName(temp, true, element.getName());
+	
         if (temp != null)
             return packageURI + temp;
         else
             return packageURI + element.getName();
+    }
+
+    private String extractURIAttribute(EAObject element, String packageURI) {
+        String temp = tagHelper.getOptionalTag(element, Tag.EXTERNAL_URI, null);
+        if (temp != null)
+            return temp;
+
+        temp = tagHelper.getOptionalTag(element, Tag.LOCALNAME, null);
+	temp = caseLocalName(temp, false, element.getName());
+	
+        if (temp != null)
+            return packageURI + temp;
+        else
+            return packageURI + element.getName();
+    }
+
+
+    private String caseLocalName(String localName, Boolean firstCharUppercase, String elementLogID) {
+	if (localName == null || localName == "") {
+	    LOGGER.error("Element \"{}\" does not have a name.", elementLogID);
+	    localName = "";
+	};
+	// converts also already camelcased words 
+	// CaseUtils.toCamelCase(localName, firstCharUppercase, null);
+        if (StringUtils.containsAny(localName, " ") ) {
+        	localName = WordUtils.capitalize(localName);	
+		localName = localName.replaceAll("\\s+","");
+	};
+        String localName0  = localName;
+	if (firstCharUppercase) {
+		localName0  = StringUtils.capitalize(localName);
+	} else {
+		localName0  = StringUtils.uncapitalize(localName);
+	};
+	if (localName0 != localName) {
+	    LOGGER.warn("Element \"{}\" has not a name in camelCase: {}.", elementLogID, localName);
+	};
+	return localName0;
     }
 
     private String findUniqueKey(String startKey, Set<String> claimedKeys) {
