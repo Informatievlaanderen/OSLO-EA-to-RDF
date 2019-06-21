@@ -345,17 +345,18 @@ public class UriAssigner {
 	    LOGGER.error("Element \"{}\" does not have a name.", elementLogID);
 	    localName = "";
 	};
+        String localName1 = localName;
 	// converts also already camelcased words 
 	// CaseUtils.toCamelCase(localName, firstCharUppercase, null);
-        if (StringUtils.containsAny(localName, " ") ) {
-        	localName = WordUtils.capitalize(localName);	
-		localName = localName.replaceAll("\\s+","");
+        if (StringUtils.containsAny(localName1, " ") ) {
+        	localName1 = WordUtils.capitalize(localName1);	
+		localName1 = localName1.replaceAll("\\s+","");
 	};
-        String localName0  = localName;
+        String localName0  = localName1;
 	if (firstCharUppercase) {
-		localName0  = StringUtils.capitalize(localName);
+		localName0  = StringUtils.capitalize(localName1);
 	} else {
-		localName0  = StringUtils.uncapitalize(localName);
+		localName0  = StringUtils.uncapitalize(localName1);
 	};
 	if (localName0 != localName) {
 	    LOGGER.warn("Element \"{}\" has not a name in camelCase: {}.", elementLogID, localName);
