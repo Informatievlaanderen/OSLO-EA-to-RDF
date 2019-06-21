@@ -717,7 +717,7 @@ public class JSONLDOutputHandler implements OutputHandler {
               + "\", \"EA-Domain-Guid\" : \""
               + source.attribute.getElement().getGuid()
               + "\", \"EA-Range\" : \""
-              + prange
+              + StringEscapeUtils.escapeJson(prange)
               + "\", \"RangeData\" : "
               + rangedata.toJson() 
               + ", "
