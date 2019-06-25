@@ -319,7 +319,7 @@ public class UriAssigner {
         temp = tagHelper.getOptionalTag(element, Tag.LOCALNAME, null);
 	temp = caseLocalName(temp, true, element.getName());
 	
-        if (temp != null)
+        if (temp != null && temp != "" )
             return packageURI + temp;
         else
             return packageURI + element.getName();
