@@ -204,7 +204,7 @@ public class UriAssigner {
                             namespace = namespace.substring(0, attributePackageURI.length() - 1);
 
 			String localName0 = tagHelper.getOptionalTag(element, LOCALNAME, element.getName());
-		        String localName = caseLocalName(localName0, false, element.getName());
+		        String localName = caseLocalNameTest(localName0, false, element.getName());
 
                         String instanceNamespace = namespace + "/" + localName + "/";
                         instanceURIs.put(attribute, extractURI(attribute, instanceNamespace));
@@ -293,7 +293,7 @@ public class UriAssigner {
                     LOGGER.warn("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
                     continue;
                 }
-		String localName = caseLocalName(localName0, false, connector.getPath());
+		String localName = caseLocalNameTest(localName0, false, connector.getPath());
                 connectorURI = packageURI + localName;
             }
             LOGGER.debug("Connector \"{}\" has uri <{}>.", connector.getPath(), connectorURI);
@@ -317,7 +317,7 @@ public class UriAssigner {
             return temp;
 
         temp = tagHelper.getOptionalTag(element, Tag.LOCALNAME, null);
-	temp = caseLocalName(temp, true, element.getName());
+	temp = caseLocalNameTest(temp, true, element.getName());
 	
         if (temp != null && temp != "" )
             return packageURI + temp;
@@ -331,7 +331,7 @@ public class UriAssigner {
             return temp;
 
         temp = tagHelper.getOptionalTag(element, Tag.LOCALNAME, null);
-	temp = caseLocalName(temp, false, element.getName());
+	temp = caseLocalNameTest(temp, false, element.getName());
 	
         if (temp != null && temp != "")
             return packageURI + temp;
@@ -339,6 +339,13 @@ public class UriAssigner {
             return packageURI + element.getName();
     }
 
+    private String caseLocalNameTest(String localName, Boolean firstCharUppercase, String elementLogID) {
+	if (localName == null || localName == "") {
+	    LOGGER.error("Element \"{}\" does not have a name.", elementLogID);
+	    localName = "";
+	};
+	return localName;
+	}
 
     private String caseLocalName(String localName, Boolean firstCharUppercase, String elementLogID) {
 	if (localName == null || localName == "") {
