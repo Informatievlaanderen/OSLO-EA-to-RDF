@@ -82,6 +82,7 @@ public interface EAConnector extends EAObject {
     String getDestinationCardinality();
 
 
+
     enum Direction {
         UNSPECIFIED,
         SOURCE_TO_DEST,

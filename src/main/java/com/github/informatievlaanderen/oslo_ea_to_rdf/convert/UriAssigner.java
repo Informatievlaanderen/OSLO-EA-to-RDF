@@ -1,6 +1,8 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.AssocFreeEAConnector;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -311,6 +313,76 @@ public class UriAssigner {
         }
     }
 
+    public ConnectorURI assignConnectorURI(
+                EAConnector connector,
+		Multimap<String, EAPackage> nameToPackages, Map<EAPackage, String> packageURIs ) {
+            if (Boolean.valueOf(tagHelper.getOptionalTag(connector, Tag.IGNORE, "false")))
+                return null;
+
+            if (Boolean.valueOf(tagHelper.getOptionalTag(connector.getSource(), Tag.IGNORE, "false")))
+                return null;
+
+            if (Boolean.valueOf(tagHelper.getOptionalTag(connector.getDestination(), Tag.IGNORE, "false")))
+                return null;
+
+            // Inheritance related connectors don't get an URI
+            if (EAConnector.TYPE_GENERALIZATION.equals(connector.getType()))
+                return null;
+
+            // Determine in which package (= ontology) this connector (= property) is defined
+            EAPackage definingPackage = null;
+            String connectorURI = tagHelper.getOptionalTag(connector, Tag.EXTERNAL_URI, null);
+
+            String packageName = tagHelper.getOptionalTag(connector, Tag.DEFINING_PACKAGE, null);
+            Collection<EAPackage> connectionPackage = nameToPackages.get(packageName);
+            if (connectionPackage.size() >= 2) {
+                LOGGER.warn("Ambiguous package name specified for connector \"{}\", it matches multiple packages in the project.", connector.getPath());
+                definingPackage = connectionPackage.iterator().next();
+            } else if (connectionPackage.size() == 1) {
+                definingPackage = connectionPackage.iterator().next();
+            } else {
+                EAPackage srcPackage = connector.getSource().getPackage();
+                EAPackage dstPackage = connector.getDestination().getPackage();
+                if (srcPackage.equals(dstPackage)) {
+                    definingPackage = srcPackage;
+                    LOGGER.info("Assuming connector \"{}\" belongs to package \"{}\" based on source and target definition.", connector.getPath(), definingPackage.getName());
+                }
+            }
+
+            if (connectorURI == null) {
+                if (definingPackage == null) {
+                    LOGGER.warn("Ignoring connector \"{}\" since it lacks a defining package.", connector.getPath());
+                    return null;
+                }
+
+                String packageURI = packageURIs.get(definingPackage);
+                if (packageURI == null) {
+                    LOGGER.warn("Connector \"{}\" is defined on an non existing package, it will be ignored.", connector.getPath());
+                    return null;
+                }
+
+                String localName0 = tagHelper.getOptionalTag(connector, LOCALNAME, connector.getName());
+                if (localName0 == null) {
+                    LOGGER.warn("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
+                    return null;
+                }
+		String localName = caseLocalNameTest(localName0, false, connector.getPath());
+                connectorURI = packageURI + localName;
+            }
+            LOGGER.debug("Connector \"{}\" has uri <{}>.", connector.getPath(), connectorURI);
+
+            try {
+                ResourceFactory.createProperty(connectorURI);
+                return new ConnectorURI(connectorURI, definingPackage);
+            } catch (InvalidPropertyURIException e) {
+                LOGGER.error("Invalid property URI \"{}\", use empty URI connector {}.", connectorURI, connector.getPath());
+                return null;
+	    } catch (Exception e) {
+                LOGGER.debug("Exception \"{}\" has happend", e);
+	        throw e;
+            }
+    }
+
     private String extractURI(EAObject element, String packageURI) {
         String temp = tagHelper.getOptionalTag(element, Tag.EXTERNAL_URI, null);
         if (temp != null)
@@ -386,6 +458,16 @@ public class UriAssigner {
             this.uri = uri;
             this.locked = locked;
         }
+    }
+
+    public static class ConnectorURI {
+	public final String curi;
+        public final EAPackage cpackage;
+
+        public ConnectorURI(String curi, EAPackage cpackage) {
+	   this.curi = curi;
+  	   this.cpackage = cpackage;
+	};
     }
 
     public static class Result {

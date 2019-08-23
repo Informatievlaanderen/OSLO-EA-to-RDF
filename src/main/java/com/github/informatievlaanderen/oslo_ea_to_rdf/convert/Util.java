@@ -2,7 +2,11 @@ package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.NormalizedEAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.RoleEAConnector;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.AssociationEAConnector;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.AssocFreeEAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +31,28 @@ public class Util {
      *                  tags from a connector with an association class
      * @return a collections of connectors 
      */
+ 
+     /**
+      * Algorithm:
+      *    1. detect if the connector is specified according to the deprecated method for association classes.
+      *       if so, apply the deprecated interpretation
+      *    2. handle the connector:
+      *       a. add the connector as such
+      *       b. if a role is non-empty, add the corresponding role as association
+      *       c. if the connector has an undefined direction, add roles for both sides
+      *       d. add the connectors for to the eventual existing association class
+      */
 
     public static Collection<EAConnector> extractAssociationElement2(EAConnector conn, EAConnector.Direction direction) {
         Collection<EAConnector> result = new ArrayList<>();
-        if ( conn.getAssociationClass() != null) {
+	
+//        if ( conn.getAssociationClass() != null) {
+	if ( connectorHasOldAssociationClassTags(conn) ) {
 		// handling association classes has priority
+        	LOGGER.debug("0) add connectors based on deprecated tags for {}", conn.getPath());
 		result = extractAssociationElement(conn, direction) ;
 	} else {
-        	result.add(conn);
+        	result.add(new AssocFreeEAConnector(conn));
 		if (conn.getSourceRole() != null && conn.getSourceRole() != "") {
         		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE));
         		LOGGER.debug("1) add Role connector {}", conn.getPath());
@@ -50,6 +68,7 @@ public class Util {
         		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST));
         		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE));
 		};
+                result = handleAssociationElement(conn, result) ;
 	};
 	return result;
     }
@@ -91,6 +110,38 @@ public class Util {
         for (int i = 0; i < 4; i++) {
             result.add(new NormalizedEAConnector(conn, parts.get(i), prefixes.get(i)));
         }
+
+        return result;
+    }
+
+    public static Boolean connectorHasOldAssociationClassTags(EAConnector conn) {
+        Boolean bool = false;
+        if (conn.getAssociationClass() != null) {
+	
+        for (EATag tag : conn.getTags()) {
+            if (tag.getKey().startsWith(Tag.ASSOCIATION_SOURCE_PREFIX)) bool = true ;
+            if (tag.getKey().startsWith(Tag.ASSOCIATION_SOURCE_REV_PREFIX)) bool = true ;
+            if (tag.getKey().startsWith(Tag.ASSOCIATION_DEST_PREFIX)) bool = true ;
+            if (tag.getKey().startsWith(Tag.ASSOCIATION_DEST_REV_PREFIX)) bool = true ;
+        }
+
+	};
+	return bool;
+    }
+
+    /*
+     * correct interpretation with roles
+     */
+    public static Collection<EAConnector> handleAssociationElement(EAConnector conn, Collection<EAConnector> result) {
+        if (conn.getAssociationClass() == null) 
+            return result;
+       
+        EAElement assocClass = conn.getAssociationClass() ;
+        LOGGER.debug("5) add AssocationClass connectors {}", assocClass.getName());
+
+        result.add(new AssociationEAConnector(conn, assocClass, conn.getDestination(), conn.getDestination().getName() + ".target", "1", "0..n"));
+        result.add(new AssociationEAConnector(conn, assocClass, conn.getSource(), conn.getSource().getName() + ".source", "1", "0..n"));
+
 
         return result;
     }

@@ -143,7 +143,8 @@ public class Converter {
 
 //            convertConnector(dConnector, dConnector.getReferencedConnector(), connectorDirections, uris.elementURIs,
             convertConnector2(dConnector, connectorDirections, uris.elementURIs,
-                    uris.connectorURIs, uris.definingPackages, ontology, diagram.getPackage());
+                    uris.connectorURIs, uris.definingPackages, nameToPackages, uris.packageURIs,
+                    ontology, diagram.getPackage());
         }
 
         // Convert non-enum attributes.
@@ -221,7 +222,7 @@ public class Converter {
             builder.put(connector.getReferencedConnector(), direction);
 
             if (connector.getReferencedConnector().getAssociationClass() != null) {
-                for (EAConnector innerConnector : Util.extractAssociationElement(connector.getReferencedConnector(), direction)) {
+                for (EAConnector innerConnector : Util.extractAssociationElement2(connector.getReferencedConnector(), direction)) {
                     builder.put(innerConnector, innerConnector.getDirection());
                 }
             } else {
@@ -368,15 +369,27 @@ public class Converter {
 
     // process a single a Diagramconnector by determining its derived connectors:
     private void convertConnector2(DiagramConnector dconnector, Map<EAConnector, EAConnector.Direction> directions,
-                                  Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
-                                  Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
+                                  Map<EAElement, String> elementURIs, 
+				  Map<EAConnector, String> connectorURIs, // obsolete
+                                  Map<EAConnector, EAPackage> definingPackages, //obsolete
+		                  Multimap<String, EAPackage> nameToPackages, Map<EAPackage, String> packageURIs,
+                                  Resource ontology, EAPackage convertedPackage) {
    
     EAConnector bareConnector = dconnector.getReferencedConnector();
+    UriAssigner UA = new UriAssigner(tagHelper);
     if ( bareConnector.getAssociationClass() != null ) {
 	// connector with AssociationClass
         EAConnector.Direction rawDirection = directions.getOrDefault(bareConnector, EAConnector.Direction.UNSPECIFIED);
-        for (EAConnector connector : Util.extractAssociationElement(bareConnector, rawDirection)) {
-            convertConnector_base(true, dconnector, connector, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+        for (EAConnector connector : Util.extractAssociationElement2(bareConnector, rawDirection)) {
+	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(connector, nameToPackages, packageURIs);
+	    if (c != null) { 
+               LOGGER.debug("calculated uri for connector \"{}\" is {}", connector.getPath(), c.curi );
+	    } else {
+               LOGGER.debug("calculated uri for connector \"{}\" not found ", connector.getPath());
+	    };
+            // URI calculation works
+            // need to know the defining package which is also part from the URI calculation
+            convertConnector_base(true, dconnector, connector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	}
     } else {
         // if has direction -> export direction
@@ -386,26 +399,36 @@ public class Converter {
 	if ( rawDirection == EAConnector.Direction.SOURCE_TO_DEST ) {
             // simple directed connector
             LOGGER.debug("directed Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath() );
-            convertConnector_base(false, dconnector, bareConnector, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(bareConnector, nameToPackages, packageURIs);
+            convertConnector_base(false, dconnector, bareConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	} else { if ( rawDirection == EAConnector.Direction.DEST_TO_SOURCE ) {
             // simple directed connector
             LOGGER.debug("directed Connector \"{}\" DEST_TO_SOURCE", bareConnector.getPath() );
-            convertConnector_base(false, dconnector, bareConnector, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(bareConnector, nameToPackages, packageURIs);
+            convertConnector_base(false, dconnector, bareConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
         }}
         if (bareConnector.getSourceRole() != null && bareConnector.getSourceRole() != "") {
             LOGGER.debug("undirected Connector \"{}\" DEST_TO_SOURCE ", bareConnector.getPath() );
-            convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+            RoleEAConnector roleConnector = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE);
+	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(roleConnector, nameToPackages, packageURIs);
+            convertConnector_base(true, dconnector, roleConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	}
         if (bareConnector.getDestRole() != null && bareConnector.getDestRole() != "") {
             // not directed connector => both directions are created
             LOGGER.debug("undirected Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath() );
-            convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+	    RoleEAConnector roleConnector = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST);
+	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(roleConnector, nameToPackages, packageURIs);
+            convertConnector_base(true, dconnector, roleConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
         }
         if ( (bareConnector.getDestRole() == null || bareConnector.getDestRole() == "") &&
              (bareConnector.getSourceRole() == null || bareConnector.getSourceRole() == "") &&
 	     (rawDirection == EAConnector.Direction.UNSPECIFIED) ) {
-             convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
-             convertConnector_base(true, dconnector, new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST), directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+             RoleEAConnector roleConnector1 = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE);
+             RoleEAConnector roleConnector2 = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST);
+	     UriAssigner.ConnectorURI c1 = UA.assignConnectorURI(roleConnector1, nameToPackages, packageURIs);
+	     UriAssigner.ConnectorURI c2 = UA.assignConnectorURI(roleConnector2, nameToPackages, packageURIs);
+             convertConnector_base(true, dconnector, roleConnector1, c1, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
+             convertConnector_base(true, dconnector, roleConnector2, c2, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	}
     }
 
@@ -415,15 +438,21 @@ public class Converter {
     // the connector here should be a directed connector with all tags at the right place
     private void convertConnector_base(
                   		  Boolean derived,  
-                                  DiagramConnector dconnector, EAConnector connector, Map<EAConnector, EAConnector.Direction> directions,
-                                  Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
-                                  Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
+                                  DiagramConnector dconnector, EAConnector connector, 
+				  UriAssigner.ConnectorURI dconnectorUri,
+				  Map<EAConnector, EAConnector.Direction> directions,
+                                  Map<EAElement, String> elementURIs, 
+                                  Map<EAConnector, String> connectorURIs, // obsolete
+                                  Map<EAConnector, EAPackage> definingPackages,  // obsolete
+				  Resource ontology, EAPackage convertedPackage) {
         LOGGER.debug("initiating conversion Connector \"{}\" in a directed form.", connector.getPath() );
 
         if (connector.getAssociationClass() != null)
                 throw new AssertionError("Association class should not be present.");
 
-        if (connectorURIs.containsKey(connector)) {
+        
+//        if (connectorURIs.containsKey(connector)) {
+	if (dconnectorUri != null) {
             // must have a URI
 
             if (Arrays.asList(EAConnector.TYPE_ASSOCIATION, EAConnector.TYPE_AGGREGATION).contains(connector.getType())) {
@@ -431,7 +460,8 @@ public class Converter {
 
                 LOGGER.debug("Connector \"{}\" is processed.", connector.getPath());
 
-                Resource connResource = ResourceFactory.createResource(connectorURIs.get(connector));
+//                Resource connResource = ResourceFactory.createResource(connectorURIs.get(connector));
+                Resource connResource = ResourceFactory.createResource(dconnectorUri.curi);
 
                 // source and target are the two ends of the connector
                 // which element is source or target is determined by the drawing order
@@ -489,7 +519,8 @@ public class Converter {
                     higherCardinality = cardinality;
                 }
 
-                EAPackage definingPackage = definingPackages.get(connector);
+//                EAPackage definingPackage = definingPackages.get(connector);
+                EAPackage definingPackage = dconnectorUri.cpackage;
                 PackageExported packageExported;
                 if (definingPackage == null) {
                     packageExported = PackageExported.UNKNOWN;
@@ -537,7 +568,7 @@ public class Converter {
 	
     }
 
-
+/* deprecated
     private void convertConnector(DiagramConnector dconnector, EAConnector bareConnector, Map<EAConnector, EAConnector.Direction> directions,
                                   Map<EAElement, String> elementURIs, Map<EAConnector, String> connectorURIs,
                                   Map<EAConnector, EAPackage> definingPackages, Resource ontology, EAPackage convertedPackage) {
@@ -654,6 +685,7 @@ public class Converter {
             }
         }
     }
+*/
 
     private void convertElement(DiagramElement diagramElement, Map<EAElement, String> elementURIs,
                                 Map<EAAttribute, String> instanceURIs, Resource ontology, Scope scope) {

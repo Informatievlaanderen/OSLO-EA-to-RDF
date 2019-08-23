@@ -35,8 +35,10 @@ public class RoleEAConnector implements EAConnector {
     @Override
     public String getName() {
 	// for a role connector is the name the role
-        if ((part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST))
-	    return inner.getName();
+        if (part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) 
+	    return inner.getName()+"."+inner.getDestination().getName();
+        if (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST)
+	    return inner.getName()+"."+inner.getSource().getName();
         return this.getDestRole();
     }
 
