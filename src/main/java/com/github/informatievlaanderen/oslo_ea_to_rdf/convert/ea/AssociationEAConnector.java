@@ -112,12 +112,13 @@ public class AssociationEAConnector implements EAConnector {
     public List<EATag> getTags() {
         List<EATag> result = new ArrayList<>();
         String value = "a definition";
+        String usage = "a usage";
         EATag label = new MemoryEATag("label-nl",this.aname,"");
         EATag aplabel = new MemoryEATag("ap-label-nl",this.aname,"");
         EATag definition = new MemoryEATag("definition-nl",value,"");
         EATag apdefinition = new MemoryEATag("ap-definition-nl",value,"");
-        EATag usageNote = new MemoryEATag("usageNote-nl",value,"");
-        EATag apusageNote = new MemoryEATag("ap-usageNote-nl",value,"");
+        EATag usageNote = new MemoryEATag("usageNote-nl",usage,"");
+        EATag apusageNote = new MemoryEATag("ap-usageNote-nl",usage,"");
         result.add(definition);
         result.add(apdefinition);
         result.add(usageNote);

@@ -35,10 +35,13 @@ public class RoleEAConnector implements EAConnector {
     @Override
     public String getName() {
 	// for a role connector is the name the role
+        // The name is used for the URI and this associations that do not have set a direction will have the same URI.
         if (part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) 
-	    return inner.getName()+"."+inner.getDestination().getName();
+	    return inner.getName();
+//	    return inner.getName()+"."+inner.getDestination().getName();
         if (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST)
-	    return inner.getName()+"."+inner.getSource().getName();
+	    return inner.getName();
+//	    return inner.getName()+"."+inner.getSource().getName();
         return this.getDestRole();
     }
 

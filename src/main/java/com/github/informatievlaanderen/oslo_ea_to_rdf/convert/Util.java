@@ -52,7 +52,13 @@ public class Util {
         	LOGGER.debug("0) add connectors based on deprecated tags for {}", conn.getPath());
 		result = extractAssociationElement(conn, direction) ;
 	} else {
-        	result.add(new AssocFreeEAConnector(conn));
+        	if ( (conn.getDestRole() == null || conn.getDestRole() == "") &&
+             	     (conn.getSourceRole() == null || conn.getSourceRole() == "") &&
+	     	     (direction != EAConnector.Direction.UNSPECIFIED) ) {
+		    
+        		LOGGER.debug("0) add AssocFree connector {}", conn.getPath());
+        	    	result.add(new AssocFreeEAConnector(conn));
+                };
 		if (conn.getSourceRole() != null && conn.getSourceRole() != "") {
         		result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE));
         		LOGGER.debug("1) add Role connector {}", conn.getPath());
