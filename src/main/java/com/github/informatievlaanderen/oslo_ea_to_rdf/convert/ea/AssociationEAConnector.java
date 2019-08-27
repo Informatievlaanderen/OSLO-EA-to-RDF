@@ -119,6 +119,8 @@ public class AssociationEAConnector implements EAConnector {
         EATag apdefinition = new MemoryEATag("ap-definition-nl",value,"");
         EATag usageNote = new MemoryEATag("usageNote-nl",usage,"");
         EATag apusageNote = new MemoryEATag("ap-usageNote-nl",usage,"");
+        result.add(label);
+        result.add(aplabel);
         result.add(definition);
         result.add(apdefinition);
         result.add(usageNote);

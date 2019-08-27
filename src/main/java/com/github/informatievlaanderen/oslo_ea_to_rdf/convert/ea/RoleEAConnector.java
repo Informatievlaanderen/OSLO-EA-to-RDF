@@ -5,6 +5,8 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryEATag;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,14 +37,18 @@ public class RoleEAConnector implements EAConnector {
     @Override
     public String getName() {
 	// for a role connector is the name the role
-        // The name is used for the URI and this associations that do not have set a direction will have the same URI.
+        // The name is used to construct the URI, if not given
+        // in case derived from a connector without a direction, add the domain class first
+        // otherwise use the role name with the first character lowercase
+        
         if (part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) 
-	    return inner.getName();
-//	    return inner.getName()+"."+inner.getDestination().getName();
+//	    return inner.getName();
+	    return inner.getDestination().getName() + "." + StringUtils.uncapitalize(inner.getName());
+		 
         if (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST)
-	    return inner.getName();
-//	    return inner.getName()+"."+inner.getSource().getName();
-        return this.getDestRole();
+//	    return inner.getName();
+	    return inner.getSource().getName() + "." + StringUtils.uncapitalize(inner.getName());
+        return StringUtils.uncapitalize(this.getDestRole());
     }
 
     @Override

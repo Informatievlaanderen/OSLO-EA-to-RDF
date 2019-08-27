@@ -145,8 +145,8 @@ public class Util {
         EAElement assocClass = conn.getAssociationClass() ;
         LOGGER.debug("5) add AssocationClass connectors {}", assocClass.getName());
 
-        result.add(new AssociationEAConnector(conn, assocClass, conn.getDestination(), conn.getDestination().getName() + ".target", "1", "0..n"));
-        result.add(new AssociationEAConnector(conn, assocClass, conn.getSource(), conn.getSource().getName() + ".source", "1", "0..n"));
+        result.add(new AssociationEAConnector(conn, assocClass, conn.getDestination(), conn.getDestination().getName() + ".target", conn.getDestinationCardinality(), "1"));
+        result.add(new AssociationEAConnector(conn, assocClass, conn.getSource(), conn.getSource().getName() + ".source", conn.getSourceCardinality(), "1"));
 
 
         return result;

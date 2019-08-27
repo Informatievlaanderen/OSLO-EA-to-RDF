@@ -314,6 +314,7 @@ public class UriAssigner {
     }
 
     public ConnectorURI assignConnectorURI(
+		Boolean forceFirstCharLowerCase,
                 EAConnector connector,
 		Multimap<String, EAPackage> nameToPackages, Map<EAPackage, String> packageURIs ) {
             if (Boolean.valueOf(tagHelper.getOptionalTag(connector, Tag.IGNORE, "false")))
@@ -366,7 +367,7 @@ public class UriAssigner {
                     LOGGER.warn("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
                     return null;
                 }
-		String localName = caseLocalNameTest(localName0, false, connector.getPath());
+		String localName = caseLocalName(localName0, forceFirstCharLowerCase, connector.getPath());
                 connectorURI = packageURI + localName;
             }
             LOGGER.debug("Connector \"{}\" has uri <{}>.", connector.getPath(), connectorURI);
@@ -419,7 +420,7 @@ public class UriAssigner {
 	return localName;
 	}
 
-    private String caseLocalName(String localName, Boolean firstCharUppercase, String elementLogID) {
+    private String caseLocalName(String localName, Boolean forceFirstCharLowerCase, String elementLogID) {
 	if (localName == null || localName == "") {
 	    LOGGER.error("Element \"{}\" does not have a name.", elementLogID);
 	    localName = "";
@@ -432,9 +433,7 @@ public class UriAssigner {
 		localName1 = localName1.replaceAll("\\s+","");
 	};
         String localName0  = localName1;
-	if (firstCharUppercase) {
-		localName0  = StringUtils.capitalize(localName1);
-	} else {
+	if (forceFirstCharLowerCase) {
 		localName0  = StringUtils.uncapitalize(localName1);
 	};
 	if (localName0 != localName) {
