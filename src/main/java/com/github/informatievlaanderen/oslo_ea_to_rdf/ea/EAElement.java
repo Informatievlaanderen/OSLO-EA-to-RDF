@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @author Dieter De Paepe
  */
-public interface EAElement extends EAObject {
+public interface EAElement extends EAObject,URIObject {
     /**
      * Gets the primary stereotype for this element.
      * @return the stereotype, or {@code null}

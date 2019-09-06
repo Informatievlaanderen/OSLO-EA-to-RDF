@@ -145,8 +145,9 @@ public class Util {
         EAElement assocClass = conn.getAssociationClass() ;
         LOGGER.debug("5) add AssocationClass connectors {}", assocClass.getName());
 
-        result.add(new AssociationEAConnector(conn, assocClass, conn.getDestination(), conn.getDestination().getName() + ".target", conn.getDestinationCardinality(), "1"));
-        result.add(new AssociationEAConnector(conn, assocClass, conn.getSource(), conn.getSource().getName() + ".source", conn.getSourceCardinality(), "1"));
+	// Hier is de issue voor de naam: dat is de localName van de klasse
+        result.add(new AssociationEAConnector(conn, assocClass, conn.getDestination(), conn.getDestination().getName(), conn.getDestinationCardinality(), "1"));
+        result.add(new AssociationEAConnector(conn, assocClass, conn.getSource(), conn.getSource().getName(), conn.getSourceCardinality(), "1"));
 
 
         return result;

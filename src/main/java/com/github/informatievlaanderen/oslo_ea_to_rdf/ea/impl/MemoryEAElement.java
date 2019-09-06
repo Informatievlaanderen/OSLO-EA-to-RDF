@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * @author Dieter De Paepe
  */
-class MemoryEAElement implements EAElement {
+class MemoryEAElement implements EAElement,URIObject {
     private int objectID;
     @Expose
     private String name;
@@ -23,6 +23,7 @@ class MemoryEAElement implements EAElement {
     private List<EAConnector> connectors;
     private List<EAAttribute> attributes;
     private List<EATag> tags;
+    private String myuri;
 
     MemoryEAElement(int objectID, String name, String notes, String guid, String stereotype,
                     Type type, EAPackage containingPackage) {
@@ -102,5 +103,14 @@ class MemoryEAElement implements EAElement {
 
     List<EATag> getTagsOrig() {
         return tags;
+    }
+
+    @Override
+    public String getURI() {
+        return myuri;
+    }
+
+    public void setURI(String mu ) {
+	this.myuri = mu;
     }
 }

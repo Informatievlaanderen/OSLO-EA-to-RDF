@@ -1,5 +1,6 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl;
 
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.URIObject;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
@@ -11,7 +12,7 @@ import java.util.List;
 /**
  * @author Dieter De Paepe
  */
-class MemoryEAConnector implements EAConnector {
+class MemoryEAConnector implements EAConnector, URIObject {
     private int connectorId;
     private String name;
     private Direction direction;
@@ -28,6 +29,7 @@ class MemoryEAConnector implements EAConnector {
     private List<EATag> tags;
     private List<EATag> sourceRoleTags;
     private List<EATag> destRoleTags;
+    private String myuri;
 
     MemoryEAConnector(int connectorId, String name, Direction direction, String notes, String type,
                       String sourceRole, String destinationRole, String sourceCardinality, String targetCardinality,
@@ -140,5 +142,14 @@ class MemoryEAConnector implements EAConnector {
 
     List<EATag> getTagsOrig() {
         return tags;
+    }
+
+    @Override
+    public String getURI() {
+        return myuri;
+    }
+
+    public void setURI(String mu ) {
+	this.myuri = mu;
     }
 }

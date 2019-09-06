@@ -1,9 +1,13 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.URIObject;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryEATag;
+
+//import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag;
+//import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagHelper;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,9 +22,10 @@ import org.slf4j.LoggerFactory;
  * A directed connector derived from another connector
  *
  */
-public class RoleEAConnector implements EAConnector {
+public class RoleEAConnector implements EAConnector, URIObject{
     private EAConnector inner;
     private ConnectionPart part;
+    private String myuri; 
     private final Logger LOGGER = LoggerFactory.getLogger(RoleEAConnector.class);
 
     /**
@@ -42,12 +47,12 @@ public class RoleEAConnector implements EAConnector {
         // otherwise use the role name with the first character lowercase
         
         if (part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) 
-//	    return inner.getName();
-	    return inner.getDestination().getName() + "." + StringUtils.uncapitalize(inner.getName());
+	    return inner.getName();
+//	    return inner.getDestination().getName() + "." + StringUtils.uncapitalize(inner.getName());
 		 
         if (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST)
-//	    return inner.getName();
-	    return inner.getSource().getName() + "." + StringUtils.uncapitalize(inner.getName());
+	    return inner.getName();
+//	    return inner.getSource().getName() + "." + StringUtils.uncapitalize(inner.getName());
         return StringUtils.uncapitalize(this.getDestRole());
     }
 
@@ -200,5 +205,15 @@ public class RoleEAConnector implements EAConnector {
         DEST_TO_SOURCE,
         UNSPEC_SOURCE_TO_DEST,
         UNSPEC_DEST_TO_SOURCE
+    }
+
+    @Override
+    public String getURI() {
+        return myuri;
+    }
+
+    @Override
+    public void setURI(String mu ) {
+	this.myuri = mu;
     }
 }

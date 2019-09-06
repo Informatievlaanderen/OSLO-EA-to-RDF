@@ -111,8 +111,8 @@ public class AssociationEAConnector implements EAConnector {
     // we could consider an overwrite approach TODO XXX
     public List<EATag> getTags() {
         List<EATag> result = new ArrayList<>();
-        String value = "a definition";
-        String usage = "a usage";
+        String value = "verbindt de associatieklasse behorende bij de basiseigenschap met de domein/range klasse van de basiseigenschap.";
+        String usage = "";
         EATag label = new MemoryEATag("label-nl",this.aname,"");
         EATag aplabel = new MemoryEATag("ap-label-nl",this.aname,"");
         EATag definition = new MemoryEATag("definition-nl",value,"");

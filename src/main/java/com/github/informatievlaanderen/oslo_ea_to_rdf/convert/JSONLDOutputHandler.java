@@ -16,6 +16,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CaseUtils;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -609,11 +610,11 @@ public class JSONLDOutputHandler implements OutputHandler {
     } else if (classDescription.getName().size() < 1) {
       if (severity < 0) {
         LOGGER.error(
-            " Class {} without name in dutch, further processing this class will be incoherent",
+            " Class {} without label in dutch, further processing this class will be incoherent",
             sourceElement.getName());
       } else {
         LOGGER.warn(
-            " Class {} without name in dutch, further processing this class will be incoherent",
+            " Class {} without label in dutch, further processing this class will be incoherent",
             sourceElement.getName());
       }
     } else {
@@ -987,7 +988,11 @@ public class JSONLDOutputHandler implements OutputHandler {
       tv = t.getOriginValue();
       switch (t.getOriginTag()) {
         case "label":
-          propertyDescription.getName().add(new LanguageStringDescription("nl", tv));
+	   String ltv = StringUtils.uncapitalize(tv); // force first letter lowercase
+	   if (ltv != tv) {
+      		LOGGER.warn( "The label of property \"{}\" does not start with a lowercase \"{}\".", property.getURI(), tv);
+	   };
+          propertyDescription.getName().add(new LanguageStringDescription("nl", ltv));
     	  camelCaseName = CaseUtils.toCamelCase(tv, false, null);
           break;
         case "definition":
