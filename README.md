@@ -34,6 +34,10 @@ Typical usage (for more options/commands, use `--help`):
     java -jar <jarfile> tsv --diagram <diagramName> --config <configFile> --input <EA project file> --output <turtle output file>
 
 
+### Source code formatting
+
+The source code is formatted using [google java format](https://github.com/google/google-java-format).
+
 ## Conversion Conventions
 
 Due to the mismatch between UML and RDF, there are some constraints that must be followed
