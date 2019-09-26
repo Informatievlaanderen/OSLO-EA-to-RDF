@@ -770,6 +770,7 @@ public class Converter {
       }
       ;
 
+	// TODO support tags name-source-class name-target-class for disambiguation
       AssociationEAConnector assocConnector1 =
           new AssociationEAConnector(
               bareConnector,
@@ -791,7 +792,7 @@ public class Converter {
               false,
               assocConnector1,
               assocConnector1.getSource(),
-              sourceDis,
+              destDis,
               nameToPackages,
               packageURIs);
       convertConnector_base(
@@ -810,7 +811,7 @@ public class Converter {
               false,
               assocConnector2,
               assocConnector2.getSource(),
-              destDis,
+              sourceDis,
               nameToPackages,
               packageURIs);
       convertConnector_base(

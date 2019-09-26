@@ -117,20 +117,29 @@ public class AssociationEAConnector implements EAConnector {
   public List<EATag> getTags() {
     List<EATag> result = new ArrayList<>();
     String value =
-        "verbindt de associatieklasse behorende bij de basiseigenschap met de domein/range klasse van de basiseigenschap.";
+        "Referentie naar verbonden klasse.";
     String usage = "";
-    EATag label = new MemoryEATag("label-nl", this.getName() + "(" + this.aname + ")", "");
-    EATag aplabel = new MemoryEATag("ap-label-nl", this.getName() + "(" + this.aname + ")", "");
+    EATag label = null;
+    EATag aplabel = null;
+    if ((this.aname != null) && (this.aname !="")) {
+       label = new MemoryEATag("label-nl", this.getName() + " (" + this.aname + ")", "");
+       aplabel = new MemoryEATag("ap-label-nl", this.getName() + " (" + this.aname + ")", "");
+    } else {
+       label = new MemoryEATag("label-nl", this.getName(), "");
+       aplabel = new MemoryEATag("ap-label-nl", this.getName(), "");
+    }
     EATag definition = new MemoryEATag("definition-nl", value, "");
     EATag apdefinition = new MemoryEATag("ap-definition-nl", value, "");
     EATag usageNote = new MemoryEATag("usageNote-nl", usage, "");
     EATag apusageNote = new MemoryEATag("ap-usageNote-nl", usage, "");
+    EATag definingpackage = new MemoryEATag("package", asource.getPackage().getName() , "");
     result.add(label);
     result.add(aplabel);
     result.add(definition);
     result.add(apdefinition);
     result.add(usageNote);
     result.add(apusageNote);
+    result.add(definingpackage);
     return result;
   }
 
