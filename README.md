@@ -24,6 +24,10 @@ Building requires Maven and Java (JDK) to be installed.
     cd target
     java -jar <jarfile> --help
 
+The build process is dockerized in two stages, to enable offline builds. In the makefile the target build will create a first base image.
+This will download all dependencies. From that moment on, the target exec can be used to create offline builds. In this way the development
+process can be speeded up. The target format enables the formatting of the source code. 
+
 Typical usage (for more options/commands, use `--help`):
 
     # Converts a diagram in an EA project to a RDF ontology (in the Turtle format).
