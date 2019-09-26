@@ -182,6 +182,7 @@ public class UriAssigner {
                 String euri =  extractURI(element, elementPackageURI);
                 elementURIs.put(element, euri);
 	        element.setURI(euri);
+	        element.setEffectiveName(extractEffectiveName(element));
 
                 for (EAAttribute attribute : element.getAttributes()) {
                     if (Boolean.valueOf(tagHelper.getOptionalTag(attribute, Tag.IGNORE, "false")))
@@ -319,6 +320,7 @@ public class UriAssigner {
 		Boolean forceFirstCharLowerCase,
                 EAConnector connector,
                 EAObject prefixElement,
+                String disambiguation,
 		Multimap<String, EAPackage> nameToPackages, Map<EAPackage, String> packageURIs ) {
             if (Boolean.valueOf(tagHelper.getOptionalTag(connector, Tag.IGNORE, "false")))
                 return null;
@@ -366,6 +368,7 @@ public class UriAssigner {
                 }
 
 	        // the tag name has precedence of the EA Name of the connector
+                // calculate the effectiveName for the connector
                 String localName0 = tagHelper.getOptionalTag(connector, Tag.LOCALNAME, connector.getName());
                 if (localName0 == null) {
                     LOGGER.warn("Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
@@ -375,10 +378,14 @@ public class UriAssigner {
                 String prefix = "";
 		if (prefixElement != null) {
                     LOGGER.debug("Prefix Element \"{}\" provided.", prefixElement.getName());
-		    prefix = extractLocalName(prefixElement) + ".";
+		    prefix = extractEffectiveName(prefixElement) + ".";
                     localName = StringUtils.uncapitalize(localName); // force first letter lowercase
 		} 
-                connectorURI = packageURI + prefix + localName;
+		if ((disambiguation != null) && (disambiguation != "")) {
+                    connectorURI = packageURI + prefix + localName + "." + disambiguation;
+		} else {
+                    connectorURI = packageURI + prefix + localName;
+		};
             }
             LOGGER.debug("Connector \"{}\" has uri <{}>.", connector.getPath(), connectorURI);
 
@@ -408,14 +415,16 @@ public class UriAssigner {
             return packageURI + element.getName();
     }
 
-    private String extractLocalName(EAObject element) {
+    private String extractEffectiveName(EAObject element) {
+/* Het volgende is helemaal niet nodig
         String temp = tagHelper.getOptionalTag(element, Tag.EXTERNAL_URI, null);
         if (temp != null) {
 	    LOGGER.warn("LocalName for element \"{}\" requested, but uri found.", element.getName());
             return null;
 	};
+*/
 
-        temp = tagHelper.getOptionalTag(element, Tag.LOCALNAME, element.getName());
+        String temp = tagHelper.getOptionalTag(element, Tag.LOCALNAME, element.getName());
 	temp = caseLocalNameTest(temp, false, element.getName());
 	
         return temp;

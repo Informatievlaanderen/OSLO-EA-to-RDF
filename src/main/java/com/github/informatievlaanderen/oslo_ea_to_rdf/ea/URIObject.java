@@ -21,4 +21,18 @@ public interface URIObject {
      */
     void setURI(String uri);
 
+    /**
+     * Gets the effectiveName of the object.
+     *
+     * @return the effectiveName, or {@code null}
+     */
+    String getEffectiveName();
+
+    /**
+     * Sets the effectiveName of the object.
+     *
+     * @param ef is the effectiveName to be set
+     * @return void
+     */
+    void setEffectiveName(String effectiveName);
 }

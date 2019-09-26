@@ -26,6 +26,7 @@ public class RoleEAConnector implements EAConnector, URIObject{
     private EAConnector inner;
     private ConnectionPart part;
     private String myuri; 
+    private String myef; 
     private final Logger LOGGER = LoggerFactory.getLogger(RoleEAConnector.class);
 
     /**
@@ -215,5 +216,13 @@ public class RoleEAConnector implements EAConnector, URIObject{
     @Override
     public void setURI(String mu ) {
 	this.myuri = mu;
+    }
+
+    public String getEffectiveName() {
+        return myef;
+    }
+
+    public void setEffectiveName(String ef) {
+	this.myef = ef;
     }
 }

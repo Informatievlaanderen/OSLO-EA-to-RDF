@@ -45,7 +45,7 @@ public class AssociationEAConnector implements EAConnector {
 
     @Override
     public String getName() {
-        return this.aname;
+        return this.asource.getEffectiveName();
     }
 
     @Override
@@ -113,8 +113,8 @@ public class AssociationEAConnector implements EAConnector {
         List<EATag> result = new ArrayList<>();
         String value = "verbindt de associatieklasse behorende bij de basiseigenschap met de domein/range klasse van de basiseigenschap.";
         String usage = "";
-        EATag label = new MemoryEATag("label-nl",this.aname,"");
-        EATag aplabel = new MemoryEATag("ap-label-nl",this.aname,"");
+        EATag label = new MemoryEATag("label-nl",this.getName() + "(" + this.aname + ")","");
+        EATag aplabel = new MemoryEATag("ap-label-nl",this.getName() + "(" + this.aname + ")","");
         EATag definition = new MemoryEATag("definition-nl",value,"");
         EATag apdefinition = new MemoryEATag("ap-definition-nl",value,"");
         EATag usageNote = new MemoryEATag("usageNote-nl",usage,"");

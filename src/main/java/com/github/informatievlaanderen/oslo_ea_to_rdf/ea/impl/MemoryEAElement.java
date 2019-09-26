@@ -24,6 +24,7 @@ class MemoryEAElement implements EAElement,URIObject {
     private List<EAAttribute> attributes;
     private List<EATag> tags;
     private String myuri;
+    private String myef;
 
     MemoryEAElement(int objectID, String name, String notes, String guid, String stereotype,
                     Type type, EAPackage containingPackage) {
@@ -112,5 +113,13 @@ class MemoryEAElement implements EAElement,URIObject {
 
     public void setURI(String mu ) {
 	this.myuri = mu;
+    }
+
+    public String getEffectiveName() {
+        return myef;
+    }
+
+    public void setEffectiveName(String ef) {
+	this.myef = ef;
     }
 }

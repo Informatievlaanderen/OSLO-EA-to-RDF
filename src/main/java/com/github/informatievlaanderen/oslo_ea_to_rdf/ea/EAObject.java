@@ -13,6 +13,7 @@ public interface EAObject {
      */
     String getName();
 
+
     /**
      * Gets the notes of this object.
      *

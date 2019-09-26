@@ -417,25 +417,25 @@ public class Converter {
 	if ( rawDirection == EAConnector.Direction.SOURCE_TO_DEST ) {
             // simple directed connector
             LOGGER.debug("directed Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath() );
-	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, bareConnector, null, nameToPackages, packageURIs);
+	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, bareConnector, null, "", nameToPackages, packageURIs);
             convertConnector_base(false, dconnector, bareConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	} else { if ( rawDirection == EAConnector.Direction.DEST_TO_SOURCE ) {
             // simple directed connector
             LOGGER.debug("directed Connector \"{}\" DEST_TO_SOURCE", bareConnector.getPath() );
-	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, bareConnector, null, nameToPackages, packageURIs);
+	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, bareConnector, null, "", nameToPackages, packageURIs);
             convertConnector_base(false, dconnector, bareConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
         }}
         if (bareConnector.getSourceRole() != null && bareConnector.getSourceRole() != "") {
             LOGGER.debug("undirected Connector \"{}\" DEST_TO_SOURCE ", bareConnector.getPath() );
             RoleEAConnector roleConnector = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE);
-	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, roleConnector, null,  nameToPackages, packageURIs);
+	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
             convertConnector_base(true, dconnector, roleConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	}
         if (bareConnector.getDestRole() != null && bareConnector.getDestRole() != "") {
             // not directed connector => both directions are created
             LOGGER.debug("undirected Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath() );
 	    RoleEAConnector roleConnector = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST);
-	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, roleConnector, null, nameToPackages, packageURIs);
+	    UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
             convertConnector_base(true, dconnector, roleConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
         }
         if ( (bareConnector.getDestRole() == null || bareConnector.getDestRole() == "") &&
@@ -443,8 +443,8 @@ public class Converter {
 	     (rawDirection == EAConnector.Direction.UNSPECIFIED) ) {
              RoleEAConnector roleConnector1 = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE);
              RoleEAConnector roleConnector2 = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST);
-	     UriAssigner.ConnectorURI c1 = UA.assignConnectorURI(false, roleConnector1, roleConnector1.getSource(), nameToPackages, packageURIs);
-	     UriAssigner.ConnectorURI c2 = UA.assignConnectorURI(false, roleConnector2, roleConnector2.getSource(), nameToPackages, packageURIs);
+	     UriAssigner.ConnectorURI c1 = UA.assignConnectorURI(false, roleConnector1, roleConnector1.getSource(), "", nameToPackages, packageURIs);
+	     UriAssigner.ConnectorURI c2 = UA.assignConnectorURI(false, roleConnector2, roleConnector2.getSource(), "", nameToPackages, packageURIs);
              convertConnector_base(true, dconnector, roleConnector1, c1, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
              convertConnector_base(true, dconnector, roleConnector2, c2, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	}
@@ -468,7 +468,7 @@ public class Converter {
 		// handling association classes with old definition has priority
         	LOGGER.debug("0) add connectors based on deprecated tags for {}", bareConnector.getPath());
 		for (EAConnector connector : Util.extractAssociationElement(bareConnector, rawDirection)) {
-		    UriAssigner.ConnectorURI c = UA.assignConnectorURI(false, connector, null, nameToPackages, packageURIs);
+		    UriAssigner.ConnectorURI c = UA.assignConnectorURI(false, connector, null, "", nameToPackages, packageURIs);
 		    if (c != null) { 
 		       LOGGER.debug("calculated uri for connector \"{}\" is {}", connector.getPath(), c.curi );
 		    } else {
@@ -485,19 +485,19 @@ public class Converter {
 		    
         		LOGGER.debug("0) add AssocFree connector {}", bareConnector.getPath());
         	    	AssocFreeEAConnector aconn = new AssocFreeEAConnector(bareConnector);
-	                UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, aconn, null,  nameToPackages, packageURIs);
+	                UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, aconn, null,  "", nameToPackages, packageURIs);
                         convertConnector_base(true, dconnector, aconn, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
                 };
 		if (bareConnector.getSourceRole() != null && bareConnector.getSourceRole() != "") {
         		LOGGER.debug("1) add Role connector {}", bareConnector.getPath());
         		RoleEAConnector roleConnector = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE);
-	                UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, roleConnector, null,  nameToPackages, packageURIs);
+	                UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, roleConnector, null,  "", nameToPackages, packageURIs);
                         convertConnector_base(true, dconnector, roleConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 		};
 		if (bareConnector.getDestRole() != null && bareConnector.getDestRole() != "") {
         		LOGGER.debug("2) add Role connector {}", bareConnector.getPath());
         		RoleEAConnector roleConnector = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST);
-	                UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, roleConnector, null,  nameToPackages, packageURIs);
+	                UriAssigner.ConnectorURI c = UA.assignConnectorURI(true, roleConnector, null,  "", nameToPackages, packageURIs);
                         convertConnector_base(true, dconnector, roleConnector, c, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 		};
         	if ( (bareConnector.getDestRole() == null || bareConnector.getDestRole() == "") &&
@@ -506,9 +506,9 @@ public class Converter {
         		LOGGER.debug("3) add Role connector {}", bareConnector.getPath());
         		RoleEAConnector roleConnector1 = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST);
         		RoleEAConnector roleConnector2 = new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE);
-	                UriAssigner.ConnectorURI c1 = UA.assignConnectorURI(false, roleConnector1, roleConnector1.getSource(),  nameToPackages, packageURIs);
+	                UriAssigner.ConnectorURI c1 = UA.assignConnectorURI(false, roleConnector1, roleConnector1.getSource(), "",  nameToPackages, packageURIs);
                         convertConnector_base(true, dconnector, roleConnector1, c1, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
-	                UriAssigner.ConnectorURI c2 = UA.assignConnectorURI(false, roleConnector2, roleConnector2.getSource(),  nameToPackages, packageURIs);
+	                UriAssigner.ConnectorURI c2 = UA.assignConnectorURI(false, roleConnector2, roleConnector2.getSource(), "",  nameToPackages, packageURIs);
                         convertConnector_base(true, dconnector, roleConnector2, c2, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 		};
         	EAElement assocClass = bareConnector.getAssociationClass() ;
@@ -516,15 +516,20 @@ public class Converter {
 
 		String destName = bareConnector.getDestination().getName();
 		String sourceName = bareConnector.getSource().getName();
+                String destDis = "";
+                String sourceDis = "";
 	        if (destName == sourceName) {
-			destName =  destName + ".a";
-			sourceName = sourceName + ".b";
-		}
-        	AssociationEAConnector assocConnector1 = new AssociationEAConnector(bareConnector, assocClass, bareConnector.getDestination(), destName, bareConnector.getDestinationCardinality(), "1");
-        	AssociationEAConnector assocConnector2 = new AssociationEAConnector(bareConnector, assocClass, bareConnector.getSource(), sourceName, bareConnector.getSourceCardinality(), "1");
-	        UriAssigner.ConnectorURI c1 = UA.assignConnectorURI(false, assocConnector1, assocConnector1.getSource(),  nameToPackages, packageURIs);
+			destName =  destName + ".target";
+			sourceName = sourceName + ".source";
+			destDis = "target";
+			sourceDis = "source";
+		};
+		
+        	AssociationEAConnector assocConnector1 = new AssociationEAConnector(bareConnector, assocClass, bareConnector.getDestination(), destDis, bareConnector.getDestinationCardinality(), "1");
+        	AssociationEAConnector assocConnector2 = new AssociationEAConnector(bareConnector, assocClass, bareConnector.getSource(), sourceDis, bareConnector.getSourceCardinality(), "1");
+	        UriAssigner.ConnectorURI c1 = UA.assignConnectorURI(false, assocConnector1, assocConnector1.getSource(), sourceDis, nameToPackages, packageURIs);
                 convertConnector_base(true, dconnector, assocConnector1, c1, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
-	        UriAssigner.ConnectorURI c2 = UA.assignConnectorURI(false, assocConnector2, assocConnector2.getSource(),  nameToPackages, packageURIs);
+	        UriAssigner.ConnectorURI c2 = UA.assignConnectorURI(false, assocConnector2, assocConnector2.getSource(), destDis, nameToPackages, packageURIs);
                 convertConnector_base(true, dconnector, assocConnector2, c2, directions, elementURIs, connectorURIs, definingPackages, ontology, convertedPackage);
 	};
 

@@ -30,6 +30,7 @@ class MemoryEAConnector implements EAConnector, URIObject {
     private List<EATag> sourceRoleTags;
     private List<EATag> destRoleTags;
     private String myuri;
+    private String myef;
 
     MemoryEAConnector(int connectorId, String name, Direction direction, String notes, String type,
                       String sourceRole, String destinationRole, String sourceCardinality, String targetCardinality,
@@ -151,5 +152,13 @@ class MemoryEAConnector implements EAConnector, URIObject {
 
     public void setURI(String mu ) {
 	this.myuri = mu;
+    }
+
+    public String getEffectiveName() {
+        return myef;
+    }
+
+    public void setEffectiveName(String ef) {
+	this.myef = ef;
     }
 }
