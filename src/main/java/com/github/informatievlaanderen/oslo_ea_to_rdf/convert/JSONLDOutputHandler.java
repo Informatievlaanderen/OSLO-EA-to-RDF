@@ -635,11 +635,11 @@ public class JSONLDOutputHandler implements OutputHandler {
               || name.getValue().toLowerCase().trim().equals("todo")) {
             if (severity < 0) {
               LOGGER.error(
-                  " Class {} with empty or dummy name in dutch, further processing this class will be incoherent",
+                  " Class {} with empty or dummy label in dutch, further processing this class will be incoherent",
                   sourceElement.getName());
             } else {
               LOGGER.warn(
-                  " Class {} with empty or dummy name in dutch, further processing this class will be incoherent",
+                  " Class {} with empty or dummy label in dutch, further processing this class will be incoherent",
                   sourceElement.getName());
             }
           }
@@ -1110,11 +1110,11 @@ public class JSONLDOutputHandler implements OutputHandler {
               || name.getValue().toLowerCase().trim().equals("todo")) {
             if (severity < 0) {
               LOGGER.error(
-                  " Property {} without with empty or dummy name in dutch, further processing this property will be incoherent",
+                  " Property {} without with empty or dummy label in dutch, further processing this property will be incoherent",
                   pname);
             } else {
               LOGGER.warn(
-                  " Property {} without with empty or dummy name in dutch, further processing this property will be incoherent",
+                  " Property {} without with empty or dummy label in dutch, further processing this property will be incoherent",
                   pname);
             }
           }
