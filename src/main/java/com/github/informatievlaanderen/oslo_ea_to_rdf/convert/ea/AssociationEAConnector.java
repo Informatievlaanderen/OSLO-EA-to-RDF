@@ -50,7 +50,7 @@ public class AssociationEAConnector implements EAConnector {
 
   @Override
   public String getName() {
-    return this.asource.getEffectiveName();
+    return this.atarget.getEffectiveName();
   }
 
   @Override
