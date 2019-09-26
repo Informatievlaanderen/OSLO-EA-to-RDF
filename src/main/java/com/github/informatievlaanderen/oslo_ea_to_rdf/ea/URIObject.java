@@ -1,6 +1,5 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.ea;
 
-
 /** An EA object with a uri assigned */
 public interface URIObject {
   /**
