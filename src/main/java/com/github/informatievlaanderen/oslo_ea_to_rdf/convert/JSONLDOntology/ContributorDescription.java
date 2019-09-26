@@ -1,7 +1,7 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.JSONLDOntology;
 
 /** Created by langens-jonathan on 11/11/18. */
-public class ContributorDescription implements Comparable<ContributorDescription> { 
+public class ContributorDescription implements Comparable<ContributorDescription> {
   private String firstName;
   private String lastName;
   private String affiliation;
@@ -59,13 +59,11 @@ public class ContributorDescription implements Comparable<ContributorDescription
     this.email = email;
   }
 
- 
   // Used for sorting in ascending order of
   @Override
-  public int compareTo(ContributorDescription b)
-      {
-          String avalue = this.lastName + this.firstName;
-          String bvalue = b.getLastName() + b.getFirstName();
-          return avalue.compareTo(bvalue);
-      }
+  public int compareTo(ContributorDescription b) {
+    String avalue = this.lastName + this.firstName;
+    String bvalue = b.getLastName() + b.getFirstName();
+    return avalue.compareTo(bvalue);
+  }
 }

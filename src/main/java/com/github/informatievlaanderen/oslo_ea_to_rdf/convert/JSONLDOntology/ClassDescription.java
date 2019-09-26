@@ -96,10 +96,9 @@ public class ClassDescription implements Comparable<ClassDescription> {
 
   // Used for sorting in ascending order of
   @Override
-  public int compareTo(ClassDescription b)
-      {
-          String avalue = this.uri;
-          String bvalue = b.getUri();
-          return avalue.compareTo(bvalue);
-      }
+  public int compareTo(ClassDescription b) {
+    String avalue = this.uri;
+    String bvalue = b.getUri();
+    return avalue.compareTo(bvalue);
+  }
 }

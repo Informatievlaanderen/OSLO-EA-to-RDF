@@ -141,16 +141,16 @@ public class JSONLDOutputHandler implements OutputHandler {
             // recognized. Code found was: " + contributor.get(ontologyField));
           }
         }
-    }
-    List<ContributorDescription> sorteda = this.ontologyDescription.getAuthors(); 
-    Collections.sort(sorteda);
-    this.ontologyDescription.setAuthors(sorteda);
-    List<ContributorDescription> sortede = this.ontologyDescription.getEditors(); 
-    Collections.sort(sortede);
-    this.ontologyDescription.setEditors(sortede);
-    List<ContributorDescription> sortedc = this.ontologyDescription.getContributors(); 
-    Collections.sort(sortedc);
-    this.ontologyDescription.setContributors(sortedc);
+      }
+      List<ContributorDescription> sorteda = this.ontologyDescription.getAuthors();
+      Collections.sort(sorteda);
+      this.ontologyDescription.setAuthors(sorteda);
+      List<ContributorDescription> sortede = this.ontologyDescription.getEditors();
+      Collections.sort(sortede);
+      this.ontologyDescription.setEditors(sortede);
+      List<ContributorDescription> sortedc = this.ontologyDescription.getContributors();
+      Collections.sort(sortedc);
+      this.ontologyDescription.setContributors(sortedc);
 
     } catch (IOException e) {
       e.printStackTrace();
@@ -226,23 +226,21 @@ public class JSONLDOutputHandler implements OutputHandler {
 
   /* select the value for the tag */
   private String selectTagValue(List<TagData> tagData, String tagName) {
-     
-        LOGGER.debug(
-            "Select Tag Value: {}",
-            tagData);
 
-      String s =
-          tagData.stream()
-              .filter(t -> tagName.equals(t.getOriginTag()))
-              .findFirst()
-              .map(
-                  t ->
-                      t.getValue().isLiteral()
-                          ? t.getValue().asLiteral().getString()
-                          : t.getValue().asResource().getURI())
-              .orElse("");
-      
-    return StringEscapeUtils.escapeJson(s) ;
+    LOGGER.debug("Select Tag Value: {}", tagData);
+
+    String s =
+        tagData.stream()
+            .filter(t -> tagName.equals(t.getOriginTag()))
+            .findFirst()
+            .map(
+                t ->
+                    t.getValue().isLiteral()
+                        ? t.getValue().asLiteral().getString()
+                        : t.getValue().asResource().getURI())
+            .orElse("");
+
+    return StringEscapeUtils.escapeJson(s);
   }
 
   /* filter the extracted names w.r.t. the default list of tagnames in the configuration as this.tagNames */
@@ -342,23 +340,23 @@ public class JSONLDOutputHandler implements OutputHandler {
     String rawTags = "";
     List<String> allRawTags = new ArrayList<>();
     if (eaobj.getDestRoleTags() != null) {
-    for (EATag t : eaobj.getDestRoleTags()) {
-      allRawTags.add(
-          "{ \"key\": \""
-              + StringEscapeUtils.escapeJson(t.getKey())
-              + "\", \"value\": \""
-              + StringEscapeUtils.escapeJson(t.getValue())
-              + "\", \"note\": \""
-              + StringEscapeUtils.escapeJson(t.getNotes())
-              + "\" }");
+      for (EATag t : eaobj.getDestRoleTags()) {
+        allRawTags.add(
+            "{ \"key\": \""
+                + StringEscapeUtils.escapeJson(t.getKey())
+                + "\", \"value\": \""
+                + StringEscapeUtils.escapeJson(t.getValue())
+                + "\", \"note\": \""
+                + StringEscapeUtils.escapeJson(t.getNotes())
+                + "\" }");
+      }
+      ;
+      rawTags = JOINER.join(allRawTags);
     }
     ;
-    rawTags = JOINER.join(allRawTags);
-    };
 
     return rawTags;
   };
-
 
   private String extractVocabulary(String URI) {
     if (URI.lastIndexOf("#") > -1) {
@@ -499,17 +497,29 @@ public class JSONLDOutputHandler implements OutputHandler {
     List<EAElement> parents = findParents(findInDiagram(sourceElement));
     String eaparents = JOINER.join(Lists.transform(parents, EAElement::getName));
 
-
     List<String> pps = new ArrayList<>();
     for (EAElement p : parentElements) {
-        String pLabel = selectTagValue(tagHelper.getTagDataFor(p, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
-        String pPackage = p.getPackage().getName();
-        Resource pURIres = ResourceFactory.createResource(elementURIs.get(p));
-	String pURI = pURIres.getURI();
-	// determining the URI is hard
-	pps.add("{ \"name\": \"" + p.getName() +  "\", \"label\" : \"" + pLabel +  "\", \"package\" : \"" + pPackage +  "\", \"uri\" : \"" + pURI + "\" }");
-	};
-    //String eaparents2 = JOINER.join(Lists.transform(parentElements, EAElement::getName));
+      String pLabel =
+          selectTagValue(
+              tagHelper.getTagDataFor(p, tagHelper.getContentMappings(Scope.FULL_DEFINITON)),
+              "label");
+      String pPackage = p.getPackage().getName();
+      Resource pURIres = ResourceFactory.createResource(elementURIs.get(p));
+      String pURI = pURIres.getURI();
+      // determining the URI is hard
+      pps.add(
+          "{ \"name\": \""
+              + p.getName()
+              + "\", \"label\" : \""
+              + pLabel
+              + "\", \"package\" : \""
+              + pPackage
+              + "\", \"uri\" : \""
+              + pURI
+              + "\" }");
+    }
+    ;
+    // String eaparents2 = JOINER.join(Lists.transform(parentElements, EAElement::getName));
     String eaparents2 = JOINER.join(pps);
 
     String tags = "";
@@ -667,8 +677,7 @@ public class JSONLDOutputHandler implements OutputHandler {
       RangeData rangedata,
       String lowerbound,
       String upperbound,
-      List<Resource> superProperties
-      ) {
+      List<Resource> superProperties) {
     PropertyDescription propertyDescription = new PropertyDescription();
     propertyDescription.setUri(property.getURI());
     propertyDescription.setType(propertyType.getURI());
@@ -700,10 +709,11 @@ public class JSONLDOutputHandler implements OutputHandler {
     if (source.attribute != null) {
       pdomain = source.attribute.getElement().getName();
       prange = source.attribute.getType();
-//        prangeLabel = selectTagValue(tagHelper.getTagDataFor(prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
-//        prangePackage = prangeObject.getPackage().getName();
-        prangeLabel = "";
-        prangePackage = "";
+      //        prangeLabel = selectTagValue(tagHelper.getTagDataFor(prangeObject,
+      // tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label");
+      //        prangePackage = prangeObject.getPackage().getName();
+      prangeLabel = "";
+      prangePackage = "";
       extra =
           "{\"EA-Name\" : \""
               + source.attribute.getName()
@@ -720,7 +730,7 @@ public class JSONLDOutputHandler implements OutputHandler {
               + "\", \"EA-Range\" : \""
               + StringEscapeUtils.escapeJson(prange)
               + "\", \"RangeData\" : "
-              + rangedata.toJson() 
+              + rangedata.toJson()
               + ", "
               + tags
               + ", \"RawTags\" : ["
@@ -742,18 +752,27 @@ public class JSONLDOutputHandler implements OutputHandler {
         pdomainguid = source.connector.getSource().getGuid(); // Domain GUID
         prangeObject = source.connector.getDestination(); // Range
         prange = prangeObject.getName(); // Range
-        prangeLabel = selectTagValue(tagHelper.getTagDataFor(prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
+        prangeLabel =
+            selectTagValue(
+                tagHelper.getTagDataFor(
+                    prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)),
+                "label");
         prangePackage = prangeObject.getPackage().getName();
       } else if (EAConnector.Direction.DEST_TO_SOURCE.equals(direction)) {
         pdomain = source.connector.getDestination().getName(); // Domain
         pdomainguid = source.connector.getDestination().getGuid(); // Domain GUID
         prangeObject = source.connector.getSource(); // Range
         prange = prangeObject.getName(); // Range
-        prangeLabel = selectTagValue(tagHelper.getTagDataFor(prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
+        prangeLabel =
+            selectTagValue(
+                tagHelper.getTagDataFor(
+                    prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)),
+                "label");
         prangePackage = prangeObject.getPackage().getName();
-      };
-      String sRole = source.connector.getSourceRole();	
-      String dRole = source.connector.getDestRole();	
+      }
+      ;
+      String sRole = source.connector.getSourceRole();
+      String dRole = source.connector.getDestRole();
 
       extra =
           "{\"EA-Name\" : \""
@@ -771,11 +790,11 @@ public class JSONLDOutputHandler implements OutputHandler {
               + "\", \"EA-Range\" : \""
               + prange
               + "\", \"RangeData\" : "
-              + rangedata.toJson() 
+              + rangedata.toJson()
               + ", \"sourceRole\" : \""
-	      + sRole
+              + sRole
               + "\", \"destRole\" : \""
-	      + dRole
+              + dRole
               + "\", "
               + tags
               + ", \"RawTags\" : ["
@@ -796,7 +815,7 @@ public class JSONLDOutputHandler implements OutputHandler {
     // but used to extract
     // data for later processing
     String tv = "";
-    String camelCaseName ="";
+    String camelCaseName = "";
     for (TagData t :
         tagHelper.getTagDataFor(
             MoreObjects.firstNonNull(source.attribute, source.connector),
@@ -809,7 +828,7 @@ public class JSONLDOutputHandler implements OutputHandler {
       switch (t.getOriginTag()) {
         case "label":
           propertyDescription.getName().add(new LanguageStringDescription("nl", tv));
-    	  camelCaseName = CaseUtils.toCamelCase(tv, false, null);
+          camelCaseName = CaseUtils.toCamelCase(tv, false, null);
           break;
         case "definition":
           propertyDescription.getDescription().add(new LanguageStringDescription("nl", tv));
@@ -839,14 +858,14 @@ public class JSONLDOutputHandler implements OutputHandler {
       propertyDescription.getDomain().add(propdomain);
     }
     if (range != null) {
-      String proprange = rangedata.toJson() ;
-/*
-          "{ \"uri\": \"" + range.getURI() 
-           + "\", \"EA-Name\" : \"" + prange 
-           + "\", \"label\" : \"" + prangeLabel
-           + "\", \"EA-Package\" : \"" + prangePackage
-           + "\" }";
-*/
+      String proprange = rangedata.toJson();
+      /*
+                "{ \"uri\": \"" + range.getURI()
+                 + "\", \"EA-Name\" : \"" + prange
+                 + "\", \"label\" : \"" + prangeLabel
+                 + "\", \"EA-Package\" : \"" + prangePackage
+                 + "\" }";
+      */
       propertyDescription.getRange().add(proprange);
     }
 
@@ -878,8 +897,6 @@ public class JSONLDOutputHandler implements OutputHandler {
     }
   }
 
-
-
   @Override
   // expected input is a directed connector
   public void handlePropertyConnector(
@@ -895,8 +912,7 @@ public class JSONLDOutputHandler implements OutputHandler {
       RangeData rangedata,
       String lowerbound,
       String upperbound,
-      List<Resource> superProperties
-      ) {
+      List<Resource> superProperties) {
 
     PropertyDescription propertyDescription = new PropertyDescription();
     propertyDescription.setUri(property.getURI());
@@ -909,14 +925,10 @@ public class JSONLDOutputHandler implements OutputHandler {
 
     List<String> tagJsons =
         extractTagsJsonFilterDefault(
-            tagHelper.getTagDataFor(
-                source,
-                tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
+            tagHelper.getTagDataFor(source, tagHelper.getContentMappings(Scope.FULL_DEFINITON)));
     tags = JOINER.join(tagJsons);
     List<String> tagScoped =
-        tagHelper.getTagDataForJson(
-            source,
-            tagHelper.getContentMappings(Scope.FULL_DEFINITON));
+        tagHelper.getTagDataForJson(source, tagHelper.getContentMappings(Scope.FULL_DEFINITON));
     scopedtags = JOINER.join(tagScoped);
 
     String pdomain = "";
@@ -926,54 +938,58 @@ public class JSONLDOutputHandler implements OutputHandler {
     String prangeLabel = "";
     String prangePackage = "";
     String sRole = "";
-    String dRole = "";	
+    String dRole = "";
 
     pdomain = source.getSource().getName(); // Domain
     pdomainguid = source.getSource().getGuid(); // Domain GUID
     prangeObject = source.getDestination(); // Range
     prange = prangeObject.getName(); // Range
-    prangeLabel = selectTagValue(tagHelper.getTagDataFor(prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)), "label"); 
+    prangeLabel =
+        selectTagValue(
+            tagHelper.getTagDataFor(
+                prangeObject, tagHelper.getContentMappings(Scope.FULL_DEFINITON)),
+            "label");
     prangePackage = prangeObject.getPackage().getName();
-    sRole = source.getSourceRole();	
-    dRole = source.getDestRole();	
+    sRole = source.getSourceRole();
+    dRole = source.getDestRole();
 
     extra =
-          "{\"EA-Name\" : \""
-              + source.getName()
-              + "\", \"EA-Guid\" : \""
-              + source.getGuid()
-              + "\", \"derived\" : \""
-              + derived 
-              + "\", \"EA-Package\" : \""
-              + ""
-              + "\", \"EA-Type\" : \""
-              + "connector"
-              + "\", \"EA-Domain\" : \""
-              + pdomain
-              + "\", \"EA-Domain-Guid\" : \""
-              + pdomainguid
-              + "\", \"EA-Range\" : \""
-              + prange
-              + "\", \"RangeData\" : "
-              + rangedata.toJson() 
-              + ", \"sourceRole\" : \""
-	      + sRole
-              + "\", \"destRole\" : \""
-	      + dRole
-              + "\", "
-              + tags
-              + ", \"RawTags\" : ["
-              + extractRawTags(source)
-              + "]"
-              + ", \"DestRoleTags\" : ["
-              + extractDestRoleTags(source)
-              + "]"
-              + ", \"Scope\" : \""
-              + scope.toString()
-              + "\""
-              + ", "
-              + scopedtags
-              + "}";
+        "{\"EA-Name\" : \""
+            + source.getName()
+            + "\", \"EA-Guid\" : \""
+            + source.getGuid()
+            + "\", \"derived\" : \""
+            + derived
+            + "\", \"EA-Package\" : \""
+            + ""
+            + "\", \"EA-Type\" : \""
+            + "connector"
+            + "\", \"EA-Domain\" : \""
+            + pdomain
+            + "\", \"EA-Domain-Guid\" : \""
+            + pdomainguid
+            + "\", \"EA-Range\" : \""
+            + prange
+            + "\", \"RangeData\" : "
+            + rangedata.toJson()
+            + ", \"sourceRole\" : \""
+            + sRole
+            + "\", \"destRole\" : \""
+            + dRole
+            + "\", "
+            + tags
+            + ", \"RawTags\" : ["
+            + extractRawTags(source)
+            + "]"
+            + ", \"DestRoleTags\" : ["
+            + extractDestRoleTags(source)
+            + "]"
+            + ", \"Scope\" : \""
+            + scope.toString()
+            + "\""
+            + ", "
+            + scopedtags
+            + "}";
 
     propertyDescription.setExtra(extra);
     propertyDescription.setScopetags(scopedtags);
@@ -982,18 +998,26 @@ public class JSONLDOutputHandler implements OutputHandler {
     // but used to extract
     // data for later processing
     String tv = "";
-    String camelCaseName ="";
-    for (TagData t : tagHelper.getTagDataFor( source, tagHelper.getContentMappings(Scope.FULL_DEFINITON))) {
-      LOGGER.debug( "process property-tag \"{}\" having value {}.", t.getOriginTag(), t.getValue().toString());
+    String camelCaseName = "";
+    for (TagData t :
+        tagHelper.getTagDataFor(source, tagHelper.getContentMappings(Scope.FULL_DEFINITON))) {
+      LOGGER.debug(
+          "process property-tag \"{}\" having value {}.",
+          t.getOriginTag(),
+          t.getValue().toString());
       tv = t.getOriginValue();
       switch (t.getOriginTag()) {
         case "label":
-	   String ltv = StringUtils.uncapitalize(tv); // force first letter lowercase
-	   if (ltv != tv) {
-      		LOGGER.warn( "The label of property \"{}\" does not start with a lowercase \"{}\".", property.getURI(), tv);
-	   };
+          String ltv = StringUtils.uncapitalize(tv); // force first letter lowercase
+          if (ltv != tv) {
+            LOGGER.warn(
+                "The label of property \"{}\" does not start with a lowercase \"{}\".",
+                property.getURI(),
+                tv);
+          }
+          ;
           propertyDescription.getName().add(new LanguageStringDescription("nl", ltv));
-    	  camelCaseName = CaseUtils.toCamelCase(tv, false, null);
+          camelCaseName = CaseUtils.toCamelCase(tv, false, null);
           break;
         case "definition":
           propertyDescription.getDescription().add(new LanguageStringDescription("nl", tv));
@@ -1023,7 +1047,7 @@ public class JSONLDOutputHandler implements OutputHandler {
       propertyDescription.getDomain().add(propdomain);
     }
     if (range != null) {
-      String proprange = rangedata.toJson() ;
+      String proprange = rangedata.toJson();
       propertyDescription.getRange().add(proprange);
     }
 
@@ -1054,12 +1078,6 @@ public class JSONLDOutputHandler implements OutputHandler {
       this.ontologyDescription.getProperties().add(propertyDescription);
     }
   }
-
-
-
-
-
-
 
   private void qualitycontrol_propertydescription(
       int severity, PropertyDescription propertyDescription, String pname) {
@@ -1123,25 +1141,24 @@ public class JSONLDOutputHandler implements OutputHandler {
     return result;
   }
 
-
   private void writeOntology() {
     // TODO instead of writing this through write statements we need the inclusion of a
     //      json manipulation library such as jackson
     try {
-    
-      List<ClassDescription> sortedc = this.ontologyDescription.getClasses(); 
-    Collections.sort(sortedc);
-    this.ontologyDescription.setClasses(sortedc);
-      List<PropertyDescription> sortedp = this.ontologyDescription.getProperties(); 
-    Collections.sort(sortedp);
-    this.ontologyDescription.setProperties(sortedp);
-      
+
+      List<ClassDescription> sortedc = this.ontologyDescription.getClasses();
+      Collections.sort(sortedc);
+      this.ontologyDescription.setClasses(sortedc);
+      List<PropertyDescription> sortedp = this.ontologyDescription.getProperties();
+      Collections.sort(sortedp);
+      this.ontologyDescription.setProperties(sortedp);
+
       sortedc = this.ontologyDescription.getExternalClasses();
-    Collections.sort(sortedc);
-    this.ontologyDescription.setExternalClasses(sortedc);
-      sortedp = this.ontologyDescription.getExternalProperties(); 
-    Collections.sort(sortedp);
-    this.ontologyDescription.setExternalProperties(sortedp);
+      Collections.sort(sortedc);
+      this.ontologyDescription.setExternalClasses(sortedc);
+      sortedp = this.ontologyDescription.getExternalProperties();
+      Collections.sort(sortedp);
+      this.ontologyDescription.setExternalProperties(sortedp);
 
       writer.write("{\n");
       writer.write(generateContext());
