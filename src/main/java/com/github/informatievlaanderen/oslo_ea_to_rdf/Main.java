@@ -113,7 +113,14 @@ public class Main {
                   + convertJSONLDArgs.config);
         } else {
           System.out.println("Load mapping config:" + themaConfiguration.getConfig());
-          Configuration config = loadConfig(new File(themaConfiguration.getConfig()));
+          Configuration config = null;
+          if ((themaConfiguration.getConfig() == null) || (themaConfiguration.getConfig() == "")) {
+            System.out.println("no specific mapping config found: defaulting to tool's version");
+            config = loadConfig(new File("/app/config/config.json"));
+          } else {
+            config = loadConfig(new File(themaConfiguration.getConfig()));
+          }
+          ;
           EARepository repo =
               new MemoryRepositoryBuilder().build(new File(themaConfiguration.getEap()));
           File outputFile =

@@ -4,6 +4,7 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.URIObject;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 public class RoleEAConnector implements EAConnector, URIObject {
   private EAConnector inner;
   private ConnectionPart part;
+  private List<EATag> newlabels;
   private String myuri;
   private String myef;
   private final Logger LOGGER = LoggerFactory.getLogger(RoleEAConnector.class);
@@ -32,6 +34,13 @@ public class RoleEAConnector implements EAConnector, URIObject {
 
     this.inner = inner;
     this.part = part;
+  }
+
+  public RoleEAConnector(EAConnector inner, ConnectionPart part, List<EATag> newlabels) {
+
+    this.inner = inner;
+    this.part = part;
+    this.newlabels = newlabels;
   }
 
   @Override
@@ -142,7 +151,13 @@ public class RoleEAConnector implements EAConnector, URIObject {
   // we could consider an overwrite approach TODO XXX
   public List<EATag> getTags() {
     if ((part == ConnectionPart.UNSPEC_DEST_TO_SOURCE)
-        || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST)) return inner.getTags();
+        || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST)) {
+      List<EATag> ts = new ArrayList<>();
+      if (inner.getTags() != null) ts.addAll(inner.getTags());
+      if (newlabels != null) ts.addAll(newlabels);
+      return ts;
+    }
+    ;
     return this.getDestRoleTags();
   }
 

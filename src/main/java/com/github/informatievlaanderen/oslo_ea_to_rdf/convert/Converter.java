@@ -5,6 +5,7 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.AssocFreeEAConn
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.AssociationEAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.RoleEAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.*;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryEATag;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import java.util.*;
@@ -719,15 +720,55 @@ public class Converter {
           && (bareConnector.getSourceRole() == null || bareConnector.getSourceRole() == "")
           && (rawDirection == EAConnector.Direction.UNSPECIFIED)) {
         LOGGER.debug("3) add Role connector {}", bareConnector.getPath());
+        String destName = bareConnector.getDestination().getName();
+        String sourceName = bareConnector.getSource().getName();
+        String destDis = "";
+        String sourceDis = "";
+        // collect the labels to extend
+        String cname = tagHelper.getOptionalTag(bareConnector, "label-nl", "");
+        String cnameap = tagHelper.getOptionalTag(bareConnector, "ap-label-nl", "");
+        String dcname = "";
+        String dcnameap = "";
+        String scname = "";
+        String scnameap = "";
+
+        if (destName == sourceName) {
+          destName = destName + ".target";
+          sourceName = sourceName + ".source";
+          destDis = "target";
+          sourceDis = "source";
+          dcname = cname + " (target)";
+          scname = cname + " (source)";
+          dcnameap = cnameap + " (target)";
+          scnameap = cnameap + " (source)";
+        }
+        ;
+
+        EATag dcnameTag = new MemoryEATag("label-nl", dcname, "");
+        EATag scnameTag = new MemoryEATag("label-nl", scname, "");
+        EATag dcnameapTag = new MemoryEATag("ap-label-nl", dcnameap, "");
+        EATag scnameapTag = new MemoryEATag("ap-label-nl", scnameap, "");
+        List<EATag> dresult = new ArrayList<>();
+        List<EATag> sresult = new ArrayList<>();
+        dresult.add(dcnameapTag);
+        dresult.add(dcnameTag);
+        sresult.add(scnameapTag);
+        sresult.add(scnameTag);
+
         RoleEAConnector roleConnector1 =
             new RoleEAConnector(
-                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST);
+                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST, sresult);
         RoleEAConnector roleConnector2 =
             new RoleEAConnector(
-                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE);
+                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE, dresult);
         UriAssigner.ConnectorURI c1 =
             UA.assignConnectorURI(
-                false, roleConnector1, roleConnector1.getSource(), "", nameToPackages, packageURIs);
+                false,
+                roleConnector1,
+                roleConnector1.getSource(),
+                sourceDis,
+                nameToPackages,
+                packageURIs);
         convertConnector_base(
             true,
             dconnector,
@@ -741,7 +782,12 @@ public class Converter {
             convertedPackage);
         UriAssigner.ConnectorURI c2 =
             UA.assignConnectorURI(
-                false, roleConnector2, roleConnector2.getSource(), "", nameToPackages, packageURIs);
+                false,
+                roleConnector2,
+                roleConnector2.getSource(),
+                destDis,
+                nameToPackages,
+                packageURIs);
         convertConnector_base(
             true,
             dconnector,
@@ -770,7 +816,7 @@ public class Converter {
       }
       ;
 
-	// TODO support tags name-source-class name-target-class for disambiguation
+      // TODO support tags name-source-class name-target-class for disambiguation
       AssociationEAConnector assocConnector1 =
           new AssociationEAConnector(
               bareConnector,
