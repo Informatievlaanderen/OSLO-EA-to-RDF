@@ -1,9 +1,12 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea;
 
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.Tag;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.TagHelper;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.URIObject;
+import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryEATag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +24,8 @@ public class RoleEAConnector implements EAConnector, URIObject {
   private List<EATag> newlabels;
   private String myuri;
   private String myef;
+  private TagHelper tagHelper;
+
   private final Logger LOGGER = LoggerFactory.getLogger(RoleEAConnector.class);
 
   /**
@@ -30,17 +35,20 @@ public class RoleEAConnector implements EAConnector, URIObject {
    * @param inner the base connector
    * @param part the part of the base connector to be represented by this connector
    */
-  public RoleEAConnector(EAConnector inner, ConnectionPart part) {
+  public RoleEAConnector(EAConnector inner, ConnectionPart part, TagHelper dtagHelper) {
 
     this.inner = inner;
     this.part = part;
+    this.tagHelper = dtagHelper;
   }
 
-  public RoleEAConnector(EAConnector inner, ConnectionPart part, List<EATag> newlabels) {
+  public RoleEAConnector(
+      EAConnector inner, ConnectionPart part, List<EATag> newlabels, TagHelper dtagHelper) {
 
     this.inner = inner;
     this.part = part;
     this.newlabels = newlabels;
+    this.tagHelper = dtagHelper;
   }
 
   @Override
@@ -107,7 +115,7 @@ public class RoleEAConnector implements EAConnector, URIObject {
     if (part == ConnectionPart.SOURCE_TO_DEST) return inner.getDestRoleTags();
     if (part == ConnectionPart.DEST_TO_SOURCE) return inner.getSourceRoleTags();
     if ((part == ConnectionPart.UNSPEC_DEST_TO_SOURCE)
-        || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST)) return null;
+        || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST)) return inner.getTags();
     return inner.getDestRoleTags();
   }
 
@@ -150,15 +158,66 @@ public class RoleEAConnector implements EAConnector, URIObject {
   // for a Role connector are the tags those of the Role and not of the main one
   // we could consider an overwrite approach TODO XXX
   public List<EATag> getTags() {
-    if ((part == ConnectionPart.UNSPEC_DEST_TO_SOURCE)
-        || (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST)) {
-      List<EATag> ts = new ArrayList<>();
-      if (inner.getTags() != null) ts.addAll(inner.getTags());
-      if (newlabels != null) ts.addAll(newlabels);
-      return ts;
+    String destName = this.getDestination().getName();
+    String sourceName = this.getSource().getName();
+    if (destName == sourceName) {
+      if (part == ConnectionPart.UNSPEC_DEST_TO_SOURCE) {
+        String cname = tagHelper.getOptionalTag(this.inner, Tag.LABELNL, "");
+        String cnameap = tagHelper.getOptionalTag(this.inner, Tag.APLABELNL, "");
+        LOGGER.debug("role labels {} - {} ", cname, cnameap);
+        String scname = cname + " (target)";
+        String scnameap = "";
+        if (cnameap != "") scnameap = cnameap + " (target)";
+        LOGGER.debug("disambiguated role labels {} - {} ", scname, scnameap);
+        EATag scnameTag = new MemoryEATag("label-nl", scname, "");
+        EATag scnameapTag = null;
+        List<EATag> ts = new ArrayList<>();
+        if (inner.getTags() != null) ts.addAll(inner.getTags());
+        ts.add(scnameTag);
+        if (scnameap != "") {
+          scnameapTag = new MemoryEATag("ap-label-nl", scnameap, "");
+          ts.add(scnameapTag);
+        }
+        ;
+        return ts;
+
+      } else {
+        if (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST) {
+          //      List<EATag> ts = new ArrayList<>();
+          //      if (inner.getTags() != null) ts.addAll(inner.getTags());
+          //      if (newlabels != null) ts.addAll(newlabels);
+          //      return ts;
+          String cname = tagHelper.getOptionalTag(this.inner, Tag.LABELNL, "");
+          String cnameap = tagHelper.getOptionalTag(this.inner, Tag.APLABELNL, "");
+          LOGGER.debug("role labels {} - {} ", cname, cnameap);
+          String scname = cname + " (source)";
+          String scnameap = "";
+          if (cnameap != "") scnameap = cnameap + " (source)";
+          LOGGER.debug("disambiguated role labels {} - {} ", scname, scnameap);
+          EATag scnameTag = new MemoryEATag("label-nl", scname, "");
+          EATag scnameapTag = null;
+          List<EATag> ts = new ArrayList<>();
+          if (inner.getTags() != null) ts.addAll(inner.getTags());
+          ts.add(scnameTag);
+          if (scnameap != "") {
+            scnameapTag = new MemoryEATag("ap-label-nl", scnameap, "");
+            ts.add(scnameapTag);
+          }
+          ;
+          return ts;
+        } else {
+          if (this.inner.getTags() == null) {
+            LOGGER.debug("No tags found for {} ", this.inner.getPath());
+            List<EATag> ts = new ArrayList<>();
+            return ts;
+          } else {
+            return this.inner.getTags();
+          }
+        }
+      }
+    } else {
+      return this.getDestRoleTags();
     }
-    ;
-    return this.getDestRoleTags();
   }
 
   @Override

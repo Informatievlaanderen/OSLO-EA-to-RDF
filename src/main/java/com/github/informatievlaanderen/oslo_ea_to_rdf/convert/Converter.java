@@ -259,14 +259,16 @@ public class Converter {
 
       if (connector.getReferencedConnector().getAssociationClass() != null) {
         for (EAConnector innerConnector :
-            Util.extractAssociationElement2(connector.getReferencedConnector(), direction)) {
+            Util.extractAssociationElement2(
+                connector.getReferencedConnector(), direction, tagHelper)) {
           builder.put(innerConnector, innerConnector.getDirection());
         }
       } else {
         if (direction == EAConnector.Direction.UNSPECIFIED
             || direction == EAConnector.Direction.BIDIRECTIONAL) {
           for (EAConnector innerConnector :
-              Util.extractAssociationElement2(connector.getReferencedConnector(), direction)) {
+              Util.extractAssociationElement2(
+                  connector.getReferencedConnector(), direction, tagHelper)) {
             if (builder.containsKey(innerConnector)) {
               LOGGER.warn(
                   "Connector {} without explicit direction already added to the set of directions",
@@ -538,7 +540,8 @@ public class Converter {
       if (bareConnector.getSourceRole() != null && bareConnector.getSourceRole() != "") {
         LOGGER.debug("undirected Connector \"{}\" DEST_TO_SOURCE ", bareConnector.getPath());
         RoleEAConnector roleConnector =
-            new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE);
+            new RoleEAConnector(
+                bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE, tagHelper);
         UriAssigner.ConnectorURI c =
             UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
@@ -557,7 +560,8 @@ public class Converter {
         // not directed connector => both directions are created
         LOGGER.debug("undirected Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath());
         RoleEAConnector roleConnector =
-            new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST);
+            new RoleEAConnector(
+                bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST, tagHelper);
         UriAssigner.ConnectorURI c =
             UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
@@ -577,10 +581,10 @@ public class Converter {
           && (rawDirection == EAConnector.Direction.UNSPECIFIED)) {
         RoleEAConnector roleConnector1 =
             new RoleEAConnector(
-                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE);
+                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE, tagHelper);
         RoleEAConnector roleConnector2 =
             new RoleEAConnector(
-                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST);
+                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST, tagHelper);
         UriAssigner.ConnectorURI c1 =
             UA.assignConnectorURI(
                 false, roleConnector1, roleConnector1.getSource(), "", nameToPackages, packageURIs);
@@ -681,7 +685,8 @@ public class Converter {
       if (bareConnector.getSourceRole() != null && bareConnector.getSourceRole() != "") {
         LOGGER.debug("1) add Role connector {}", bareConnector.getPath());
         RoleEAConnector roleConnector =
-            new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE);
+            new RoleEAConnector(
+                bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE, tagHelper);
         UriAssigner.ConnectorURI c =
             UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
@@ -700,7 +705,8 @@ public class Converter {
       if (bareConnector.getDestRole() != null && bareConnector.getDestRole() != "") {
         LOGGER.debug("2) add Role connector {}", bareConnector.getPath());
         RoleEAConnector roleConnector =
-            new RoleEAConnector(bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST);
+            new RoleEAConnector(
+                bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST, tagHelper);
         UriAssigner.ConnectorURI c =
             UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
@@ -727,6 +733,7 @@ public class Converter {
         // collect the labels to extend
         String cname = tagHelper.getOptionalTag(bareConnector, "label-nl", "");
         String cnameap = tagHelper.getOptionalTag(bareConnector, "ap-label-nl", "");
+        LOGGER.debug("role labels {} - {} ", cname, cnameap);
         String dcname = "";
         String dcnameap = "";
         String scname = "";
@@ -739,28 +746,31 @@ public class Converter {
           sourceDis = "source";
           dcname = cname + " (target)";
           scname = cname + " (source)";
-          dcnameap = cnameap + " (target)";
-          scnameap = cnameap + " (source)";
+          if (cnameap != "") dcnameap = cnameap + " (target)";
+          if (cnameap != "") scnameap = cnameap + " (source)";
         }
         ;
+        LOGGER.debug("disambiguated role labels {} - {} ", dcname, dcnameap);
 
         EATag dcnameTag = new MemoryEATag("label-nl", dcname, "");
         EATag scnameTag = new MemoryEATag("label-nl", scname, "");
-        EATag dcnameapTag = new MemoryEATag("ap-label-nl", dcnameap, "");
-        EATag scnameapTag = new MemoryEATag("ap-label-nl", scnameap, "");
+        EATag dcnameapTag = null;
+        EATag scnameapTag = null;
+        if (dcnameap != "") dcnameapTag = new MemoryEATag("ap-label-nl", dcnameap, "");
+        if (scnameap != "") scnameapTag = new MemoryEATag("ap-label-nl", scnameap, "");
         List<EATag> dresult = new ArrayList<>();
         List<EATag> sresult = new ArrayList<>();
-        dresult.add(dcnameapTag);
+        if (dcnameap != "") dresult.add(dcnameapTag);
         dresult.add(dcnameTag);
-        sresult.add(scnameapTag);
+        if (scnameap != "") sresult.add(scnameapTag);
         sresult.add(scnameTag);
 
         RoleEAConnector roleConnector1 =
             new RoleEAConnector(
-                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST, sresult);
+                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST, tagHelper);
         RoleEAConnector roleConnector2 =
             new RoleEAConnector(
-                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE, dresult);
+                bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE, tagHelper);
         UriAssigner.ConnectorURI c1 =
             UA.assignConnectorURI(
                 false,

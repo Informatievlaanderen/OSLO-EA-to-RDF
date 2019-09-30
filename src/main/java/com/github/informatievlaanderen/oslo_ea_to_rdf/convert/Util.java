@@ -36,7 +36,7 @@ public class Util {
    * to the eventual existing association class
    */
   public static Collection<EAConnector> extractAssociationElement2(
-      EAConnector conn, EAConnector.Direction direction) {
+      EAConnector conn, EAConnector.Direction direction, TagHelper tagHelper) {
     Collection<EAConnector> result = new ArrayList<>();
 
     //        if ( conn.getAssociationClass() != null) {
@@ -54,12 +54,14 @@ public class Util {
       }
       ;
       if (conn.getSourceRole() != null && conn.getSourceRole() != "") {
-        result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE));
+        result.add(
+            new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE, tagHelper));
         LOGGER.debug("1) add Role connector {}", conn.getPath());
       }
       ;
       if (conn.getDestRole() != null && conn.getDestRole() != "") {
-        result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST));
+        result.add(
+            new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST, tagHelper));
         LOGGER.debug("2) add Role connector {}", conn.getPath());
       }
       ;
@@ -67,8 +69,12 @@ public class Util {
           && (conn.getSourceRole() == null || conn.getSourceRole() == "")
           && (direction == EAConnector.Direction.UNSPECIFIED)) {
         LOGGER.debug("3) add Role connector {}", conn.getPath());
-        result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST));
-        result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE));
+        result.add(
+            new RoleEAConnector(
+                conn, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST, tagHelper));
+        result.add(
+            new RoleEAConnector(
+                conn, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE, tagHelper));
       }
       ;
       // outcommented because not anymore used
@@ -79,10 +85,10 @@ public class Util {
   }
 
   public static Collection<EAConnector> extractAssociationElement3(
-      EAConnector conn, EAConnector.Direction direction) {
+      EAConnector conn, EAConnector.Direction direction, TagHelper tagHelper) {
     LOGGER.debug("add connector {}", conn.getPath());
     Collection<EAConnector> result = new ArrayList<>(3);
-    result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST));
+    result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST, tagHelper));
     result.add(conn);
     return result;
   };

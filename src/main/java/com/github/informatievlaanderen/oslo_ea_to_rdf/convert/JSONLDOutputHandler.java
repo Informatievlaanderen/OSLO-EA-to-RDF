@@ -197,7 +197,9 @@ public class JSONLDOutputHandler implements OutputHandler {
       for (DiagramConnector rawConnector : element.getConnectors()) {
         for (EAConnector conn :
             Util.extractAssociationElement2(
-                rawConnector.getReferencedConnector(), rawConnector.getLabelDirection())) {
+                rawConnector.getReferencedConnector(),
+                rawConnector.getLabelDirection(),
+                this.tagHelper)) {
           if (connector.equals(conn)) return rawConnector;
         }
       }

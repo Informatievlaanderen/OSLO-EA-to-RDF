@@ -282,7 +282,8 @@ public class UriAssigner {
           // Connectors not in the diagram will not occur in this map.
           EAConnector.Direction direction =
               connectorDirections.getOrDefault(connector, EAConnector.Direction.UNSPECIFIED);
-          normalisedConnectors.addAll(Util.extractAssociationElement2(connector, direction));
+          normalisedConnectors.addAll(
+              Util.extractAssociationElement2(connector, direction, tagHelper));
         }
       }
     }
