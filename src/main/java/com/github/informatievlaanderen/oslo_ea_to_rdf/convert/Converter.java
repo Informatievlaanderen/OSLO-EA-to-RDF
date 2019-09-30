@@ -824,7 +824,8 @@ public class Converter {
               bareConnector.getDestination(),
               destDis,
               bareConnector.getDestinationCardinality(),
-              "1");
+              "1",
+              tagHelper);
       AssociationEAConnector assocConnector2 =
           new AssociationEAConnector(
               bareConnector,
@@ -832,7 +833,8 @@ public class Converter {
               bareConnector.getSource(),
               sourceDis,
               bareConnector.getSourceCardinality(),
-              "1");
+              "1",
+              tagHelper);
       UriAssigner.ConnectorURI c1 =
           UA.assignConnectorURI(
               false,

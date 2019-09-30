@@ -17,7 +17,9 @@ public enum Tag {
   IS_LITERAL("literal"),
   PACKAGE_BASE_URI("baseURI"),
   PACKAGE_BASE_URI_ABBREVIATION("baseURIabbrev"),
-  PACKAGE_ONTOLOGY_URI("ontologyURI");
+  PACKAGE_ONTOLOGY_URI("ontologyURI"),
+  LABELNL("label-nl"),
+  APLABELNL("ap-label-nl");
 
   public static final String ASSOCIATION_SOURCE_PREFIX = "source-";
   public static final String ASSOCIATION_SOURCE_REV_PREFIX = "source-rev-";

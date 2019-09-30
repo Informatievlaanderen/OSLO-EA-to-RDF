@@ -1,11 +1,9 @@
 package com.github.informatievlaanderen.oslo_ea_to_rdf.convert;
 
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.AssocFreeEAConnector;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.AssociationEAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.NormalizedEAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.convert.ea.RoleEAConnector;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAConnector;
-import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EAElement;
 import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.EATag;
 import java.util.*;
 import org.slf4j.Logger;
@@ -73,7 +71,8 @@ public class Util {
         result.add(new RoleEAConnector(conn, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE));
       }
       ;
-      result = handleAssociationElement(conn, result);
+      // outcommented because not anymore used
+      //      result = handleAssociationElement(conn, result);
     }
     ;
     return result;
@@ -142,31 +141,33 @@ public class Util {
   /*
    * correct interpretation with roles
    */
-  public static Collection<EAConnector> handleAssociationElement(
-      EAConnector conn, Collection<EAConnector> result) {
-    if (conn.getAssociationClass() == null) return result;
+  /* outcommented because not anymore used
+    public static Collection<EAConnector> handleAssociationElement(
+        EAConnector conn, Collection<EAConnector> result) {
+      if (conn.getAssociationClass() == null) return result;
 
-    EAElement assocClass = conn.getAssociationClass();
-    LOGGER.debug("5) add AssocationClass connectors {}", assocClass.getName());
+      EAElement assocClass = conn.getAssociationClass();
+      LOGGER.debug("5) add AssocationClass connectors {}", assocClass.getName());
 
-    // Hier is de issue voor de naam: dat is de localName van de klasse
-    result.add(
-        new AssociationEAConnector(
-            conn,
-            assocClass,
-            conn.getDestination(),
-            conn.getDestination().getName(),
-            conn.getDestinationCardinality(),
-            "1"));
-    result.add(
-        new AssociationEAConnector(
-            conn,
-            assocClass,
-            conn.getSource(),
-            conn.getSource().getName(),
-            conn.getSourceCardinality(),
-            "1"));
+      // Hier is de issue voor de naam: dat is de localName van de klasse
+      result.add(
+          new AssociationEAConnector(
+              conn,
+              assocClass,
+              conn.getDestination(),
+              conn.getDestination().getName(),
+              conn.getDestinationCardinality(),
+              "1"));
+      result.add(
+          new AssociationEAConnector(
+              conn,
+              assocClass,
+              conn.getSource(),
+              conn.getSource().getName(),
+              conn.getSourceCardinality(),
+              "1"));
 
-    return result;
-  }
+      return result;
+    }
+  */
 }
