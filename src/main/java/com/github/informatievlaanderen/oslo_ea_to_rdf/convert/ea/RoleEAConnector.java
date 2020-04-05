@@ -64,7 +64,8 @@ public class RoleEAConnector implements EAConnector, URIObject {
 
     if (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST) return inner.getName();
     //	    return inner.getSource().getName() + "." + StringUtils.uncapitalize(inner.getName());
-    return StringUtils.uncapitalize(this.getDestRole());
+    //return StringUtils.uncapitalize(this.getDestRole());
+    return this.getDestRole();
   }
 
   @Override

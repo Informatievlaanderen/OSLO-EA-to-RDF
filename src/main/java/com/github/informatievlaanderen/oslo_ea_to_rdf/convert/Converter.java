@@ -545,7 +545,7 @@ public class Converter {
         UriAssigner.ConnectorURI c =
             UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
-            true,
+            false,
             dconnector,
             roleConnector,
             c,
@@ -565,7 +565,7 @@ public class Converter {
         UriAssigner.ConnectorURI c =
             UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
-            true,
+            false,
             dconnector,
             roleConnector,
             c,
@@ -688,7 +688,7 @@ public class Converter {
             new RoleEAConnector(
                 bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE, tagHelper);
         UriAssigner.ConnectorURI c =
-            UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
+            UA.assignConnectorURI(false, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
             true,
             dconnector,
@@ -708,7 +708,7 @@ public class Converter {
             new RoleEAConnector(
                 bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST, tagHelper);
         UriAssigner.ConnectorURI c =
-            UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
+            UA.assignConnectorURI(false, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
             true,
             dconnector,
