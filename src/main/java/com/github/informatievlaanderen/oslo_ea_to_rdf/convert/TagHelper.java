@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -308,10 +309,12 @@ public class TagHelper {
         .map(
             t ->
                 USE_NOTE_VALUE.equals(t.getValue())
-                    ? (t.getNotes() == null ? "TODO" : t.getNotes())
+                    ? (t.getNotes() == null ? "TODO" : StringUtils.remove(t.getNotes(),"NOTE$ea_notes="))
                     : t.getValue())
         .collect(Collectors.toList());
   }
+
+  // NOTE$ea_notes=
 
   public List<Mapping> getOntologyMappings() {
     return config.getOntologyMappings();
