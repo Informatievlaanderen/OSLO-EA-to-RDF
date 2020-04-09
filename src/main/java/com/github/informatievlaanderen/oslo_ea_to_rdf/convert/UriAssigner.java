@@ -427,7 +427,14 @@ public class UriAssigner {
 
       // the tag name has precedence of the EA Name of the connector
       // calculate the effectiveName for the connector
-      String localName0 = tagHelper.getOptionalTag(connector, Tag.LOCALNAME, StringUtils.uncapitalize(connector.getName())); // force the fallback name EA Name to have a lowercase first letter
+      String localName0 =
+          tagHelper.getOptionalTag(
+              connector,
+              Tag.LOCALNAME,
+              StringUtils.uncapitalize(
+                  connector
+                      .getName())); // force the fallback name EA Name to have a lowercase first
+                                    // letter
       if (localName0 == null) {
         LOGGER.warn(
             "Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());
@@ -438,7 +445,7 @@ public class UriAssigner {
       if (prefixElement != null) {
         LOGGER.debug("Prefix Element \"{}\" provided.", prefixElement.getName());
         prefix = extractEffectiveName(prefixElement) + ".";
-//        localName = StringUtils.uncapitalize(localName); // force first letter lowercase
+        //        localName = StringUtils.uncapitalize(localName); // force first letter lowercase
       }
       if ((disambiguation != null) && (disambiguation != "")) {
         connectorURI = packageURI + prefix + localName + "." + disambiguation;

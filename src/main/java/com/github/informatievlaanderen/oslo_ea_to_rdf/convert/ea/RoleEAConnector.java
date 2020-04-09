@@ -10,7 +10,6 @@ import com.github.informatievlaanderen.oslo_ea_to_rdf.ea.impl.MemoryEATag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +63,7 @@ public class RoleEAConnector implements EAConnector, URIObject {
 
     if (part == ConnectionPart.UNSPEC_SOURCE_TO_DEST) return inner.getName();
     //	    return inner.getSource().getName() + "." + StringUtils.uncapitalize(inner.getName());
-    //return StringUtils.uncapitalize(this.getDestRole());
+    // return StringUtils.uncapitalize(this.getDestRole());
     return this.getDestRole();
   }
 
@@ -208,16 +207,16 @@ public class RoleEAConnector implements EAConnector, URIObject {
           return ts;
         } else {
           if (this.getDestRoleTags() == null) {
-		LOGGER.debug("No Dest Role tags found, fallback to inner.getTags()");
+            LOGGER.debug("No Dest Role tags found, fallback to inner.getTags()");
 
-		  if (this.inner.getTags() == null) {
-		    LOGGER.debug("No tags found for {} ", this.inner.getPath());
-		    List<EATag> ts = new ArrayList<>();
-		    return ts;
-		  } else {
-		    return this.inner.getTags();
-		  }
-	  } else {
+            if (this.inner.getTags() == null) {
+              LOGGER.debug("No tags found for {} ", this.inner.getPath());
+              List<EATag> ts = new ArrayList<>();
+              return ts;
+            } else {
+              return this.inner.getTags();
+            }
+          } else {
             return this.getDestRoleTags();
           }
         }

@@ -309,7 +309,9 @@ public class TagHelper {
         .map(
             t ->
                 USE_NOTE_VALUE.equals(t.getValue())
-                    ? (t.getNotes() == null ? "TODO" : StringUtils.remove(t.getNotes(),"NOTE$ea_notes="))
+                    ? (t.getNotes() == null
+                        ? "TODO"
+                        : StringUtils.remove(t.getNotes(), "NOTE$ea_notes="))
                     : t.getValue())
         .collect(Collectors.toList());
   }
