@@ -434,7 +434,7 @@ public class UriAssigner {
               StringUtils.uncapitalize(
                   connector
                       .getName())); // force the fallback name EA Name to have a lowercase first
-                                    // letter
+      // letter
       if (localName0 == null) {
         LOGGER.warn(
             "Connector \"{}\" does not have a name, it will be ignored.", connector.getPath());

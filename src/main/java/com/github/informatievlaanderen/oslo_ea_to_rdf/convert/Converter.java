@@ -579,6 +579,18 @@ public class Converter {
       if ((bareConnector.getDestRole() == null || bareConnector.getDestRole() == "")
           && (bareConnector.getSourceRole() == null || bareConnector.getSourceRole() == "")
           && (rawDirection == EAConnector.Direction.UNSPECIFIED)) {
+
+        String destName = bareConnector.getDestination().getName();
+        String sourceName = bareConnector.getSource().getName();
+        String destDis = "";
+        String sourceDis = "";
+        if (destName == sourceName) {
+          destName = destName + ".target";
+          sourceName = sourceName + ".source";
+          destDis = "target";
+          sourceDis = "source";
+        }
+        ;
         RoleEAConnector roleConnector1 =
             new RoleEAConnector(
                 bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_DEST_TO_SOURCE, tagHelper);
@@ -587,10 +599,20 @@ public class Converter {
                 bareConnector, RoleEAConnector.ConnectionPart.UNSPEC_SOURCE_TO_DEST, tagHelper);
         UriAssigner.ConnectorURI c1 =
             UA.assignConnectorURI(
-                false, roleConnector1, roleConnector1.getSource(), "", nameToPackages, packageURIs);
+                false,
+                roleConnector1,
+                roleConnector1.getSource(),
+                destDis,
+                nameToPackages,
+                packageURIs);
         UriAssigner.ConnectorURI c2 =
             UA.assignConnectorURI(
-                false, roleConnector2, roleConnector2.getSource(), "", nameToPackages, packageURIs);
+                false,
+                roleConnector2,
+                roleConnector2.getSource(),
+                sourceDis,
+                nameToPackages,
+                packageURIs);
         convertConnector_base(
             true,
             dconnector,
