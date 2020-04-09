@@ -506,7 +506,7 @@ public class Converter {
         // simple directed connector
         LOGGER.debug("directed Connector \"{}\" SOURCE_TO_DEST ", bareConnector.getPath());
         UriAssigner.ConnectorURI c =
-            UA.assignConnectorURI(true, bareConnector, null, "", nameToPackages, packageURIs);
+            UA.assignConnectorURI(false, bareConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
             false,
             dconnector,
@@ -523,7 +523,7 @@ public class Converter {
           // simple directed connector
           LOGGER.debug("directed Connector \"{}\" DEST_TO_SOURCE", bareConnector.getPath());
           UriAssigner.ConnectorURI c =
-              UA.assignConnectorURI(true, bareConnector, null, "", nameToPackages, packageURIs);
+              UA.assignConnectorURI(false, bareConnector, null, "", nameToPackages, packageURIs);
           convertConnector_base(
               false,
               dconnector,
@@ -543,7 +543,7 @@ public class Converter {
             new RoleEAConnector(
                 bareConnector, RoleEAConnector.ConnectionPart.DEST_TO_SOURCE, tagHelper);
         UriAssigner.ConnectorURI c =
-            UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
+            UA.assignConnectorURI(false, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
             false,
             dconnector,
@@ -563,7 +563,7 @@ public class Converter {
             new RoleEAConnector(
                 bareConnector, RoleEAConnector.ConnectionPart.SOURCE_TO_DEST, tagHelper);
         UriAssigner.ConnectorURI c =
-            UA.assignConnectorURI(true, roleConnector, null, "", nameToPackages, packageURIs);
+            UA.assignConnectorURI(false, roleConnector, null, "", nameToPackages, packageURIs);
         convertConnector_base(
             false,
             dconnector,
