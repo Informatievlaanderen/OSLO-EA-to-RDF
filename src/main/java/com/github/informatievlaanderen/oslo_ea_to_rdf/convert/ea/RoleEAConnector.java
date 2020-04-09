@@ -207,12 +207,18 @@ public class RoleEAConnector implements EAConnector, URIObject {
           ;
           return ts;
         } else {
-          if (this.inner.getTags() == null) {
-            LOGGER.debug("No tags found for {} ", this.inner.getPath());
-            List<EATag> ts = new ArrayList<>();
-            return ts;
-          } else {
-            return this.inner.getTags();
+          if (this.getDestRoleTags() == null) {
+		LOGGER.debug("No Dest Role tags found, fallback to inner.getTags()");
+
+		  if (this.inner.getTags() == null) {
+		    LOGGER.debug("No tags found for {} ", this.inner.getPath());
+		    List<EATag> ts = new ArrayList<>();
+		    return ts;
+		  } else {
+		    return this.inner.getTags();
+		  }
+	  } else {
+            return this.getDestRoleTags();
           }
         }
       }
