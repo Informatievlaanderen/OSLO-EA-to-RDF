@@ -1333,12 +1333,6 @@ public class JSONLDOutputHandler implements OutputHandler {
         outputString += "\"name\": {\n";
         outputString += print_languagetagged(classDescription.getName());
         outputString += "},\n";
-        outputString += "\"description\": {\n";
-        outputString += print_languagetagged(classDescription.getDescription());
-        outputString += "},\n";
-        outputString += "\"usage\": {\n";
-        outputString += print_languagetagged(classDescription.getUsage());
-        outputString += "},\n";
         outputString += "\"parents\": [\n";
         outputString += print_list(classDescription.getParents());
         outputString += "]\n";
@@ -1369,12 +1363,6 @@ public class JSONLDOutputHandler implements OutputHandler {
         externalS += "\"name\": {\n";
         externalS += print_languagetagged(external.getName());
         externalS += "},\n";
-        externalS += "\"description\": {\n";
-        externalS += print_languagetagged(external.getDescription());
-        externalS += "},\n";
-        externalS += "\"usage\": {\n";
-        externalS += print_languagetagged(external.getUsage());
-        externalS += "}\n";
         externalS += "}\n";
         excls.add(externalS);
         externalS = "";
@@ -1415,12 +1403,6 @@ public class JSONLDOutputHandler implements OutputHandler {
       outputString += "\"inpackage\": \"" + propertyDescription.getInPackage().toString() + "\",\n";
       outputString += propertyDescription.getScopetags() + ",\n";
       outputString += "\"extra\": " + propertyDescription.getExtra() + ",\n";
-      outputString += "\"description\": {\n";
-      outputString += print_languagetagged(propertyDescription.getDescription());
-      outputString += "},\n";
-      outputString += "\"usage\": {\n";
-      outputString += print_languagetagged(propertyDescription.getUsage());
-      outputString += "},\n";
       outputString += "\"codelist\": [\n";
       outputString += print_list(propertyDescription.getCodelist());
       outputString += "],\n";
@@ -1606,7 +1588,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         + "      \"@container\": \"@language\"\n"
         + "    },\n"
         + "    \"usage\": {\n"
-        + "      \"@id\": \"vann:usageNote\",\n"
+        + "      \"@id\": \"skos:scopeNote\",\n"
         + "      \"@container\": \"@language\"\n"
         + "    }\n"
         + "  },\n";
