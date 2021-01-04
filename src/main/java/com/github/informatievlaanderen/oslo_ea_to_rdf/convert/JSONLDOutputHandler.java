@@ -1362,7 +1362,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         externalS += "\"extra\": " + external.getExtra() + ",\n";
         externalS += "\"name\": {\n";
         externalS += print_languagetagged(external.getName());
-        externalS += "},\n";
+        externalS += "}\n";
         externalS += "}\n";
         excls.add(externalS);
         externalS = "";
@@ -1557,10 +1557,6 @@ public class JSONLDOutputHandler implements OutputHandler {
         + "      \"@id\": \"rdfs:label\",\n"
         + "      \"@container\": \"@language\"\n"
         + "    },\n"
-        + "    \"description\": {\n"
-        + "      \"@id\": \"rdfs:comment\",\n"
-        + "      \"@container\": \"@language\"\n"
-        + "    },\n"
         + "    \"properties\": {\n"
         + "      \"@reverse\": \"rdfs:isDefinedBy\"\n"
         + "    },\n"
@@ -1585,10 +1581,6 @@ public class JSONLDOutputHandler implements OutputHandler {
         + "      },\n"
         + "    \"label\": {\n"
         + "      \"@id\": \"rdfs:label\",\n"
-        + "      \"@container\": \"@language\"\n"
-        + "    },\n"
-        + "    \"usage\": {\n"
-        + "      \"@id\": \"skos:scopeNote\",\n"
         + "      \"@container\": \"@language\"\n"
         + "    }\n"
         + "  },\n";
