@@ -1330,9 +1330,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         outputString += print_ifpresent(classDescription.getScopetags());
         outputString += "\"extra\": " + classDescription.getExtra() + ",\n";
         outputString += "\"inpackage\": \"" + classDescription.getInPackage().toString() + "\",\n";
-        outputString += "\"name\": {\n";
-        outputString += print_languagetagged(classDescription.getName());
-        outputString += "},\n";
+        outputString += "\"name\": " + classDescription.getName() + ",\n";
         outputString += "\"parents\": [\n";
         outputString += print_list(classDescription.getParents());
         outputString += "]\n";
@@ -1397,9 +1395,7 @@ public class JSONLDOutputHandler implements OutputHandler {
       outputString += "{\n";
       outputString += "\"@id\": \"" + propertyDescription.getUri() + "\",\n";
       outputString += "\"@type\": \"" + propertyDescription.getType() + "\",\n";
-      outputString += "\"name\": {\n";
-      outputString += print_languagetagged(propertyDescription.getName());
-      outputString += "},\n";
+      outputString += "\"name\": " + propertyDescription.getName() + ",\n";
       outputString += "\"inpackage\": \"" + propertyDescription.getInPackage().toString() + "\",\n";
       outputString += propertyDescription.getScopetags() + ",\n";
       outputString += "\"extra\": " + propertyDescription.getExtra() + ",\n";
@@ -1554,8 +1550,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         + "      \"@reverse\": \"rdfs:isDefinedBy\"\n"
         + "      },\n"
         + "    \"name\": {\n"
-        + "      \"@id\": \"rdfs:label\",\n"
-        + "      \"@container\": \"@language\"\n"
+        + "      \"@id\": \"rdfs:label\"\n"
         + "    },\n"
         + "    \"properties\": {\n"
         + "      \"@reverse\": \"rdfs:isDefinedBy\"\n"
