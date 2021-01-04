@@ -1330,7 +1330,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         outputString += print_ifpresent(classDescription.getScopetags());
         outputString += "\"extra\": " + classDescription.getExtra() + ",\n";
         outputString += "\"inpackage\": \"" + classDescription.getInPackage().toString() + "\",\n";
-        outputString += "\"name\": " + classDescription.getName() + ",\n";
+        outputString += "\"name\": \"" + classDescription.getName() + "\",\n";
         outputString += "\"parents\": [\n";
         outputString += print_list(classDescription.getParents());
         outputString += "]\n";
@@ -1358,9 +1358,7 @@ public class JSONLDOutputHandler implements OutputHandler {
         externalS += "\"inpackage\": \"" + external.getInPackage().toString() + "\",\n";
         externalS += print_ifpresent(external.getScopetags());
         externalS += "\"extra\": " + external.getExtra() + ",\n";
-        externalS += "\"name\": {\n";
-        externalS += print_languagetagged(external.getName());
-        externalS += "}\n";
+        externalS += "\"name\": \"" + external.getName() + "\"\n";
         externalS += "}\n";
         excls.add(externalS);
         externalS = "";
@@ -1395,7 +1393,7 @@ public class JSONLDOutputHandler implements OutputHandler {
       outputString += "{\n";
       outputString += "\"@id\": \"" + propertyDescription.getUri() + "\",\n";
       outputString += "\"@type\": \"" + propertyDescription.getType() + "\",\n";
-      outputString += "\"name\": " + propertyDescription.getName() + ",\n";
+      outputString += "\"name\": \"" + propertyDescription.getName() + "\",\n";
       outputString += "\"inpackage\": \"" + propertyDescription.getInPackage().toString() + "\",\n";
       outputString += propertyDescription.getScopetags() + ",\n";
       outputString += "\"extra\": " + propertyDescription.getExtra() + ",\n";
