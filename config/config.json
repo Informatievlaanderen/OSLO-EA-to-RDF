@@ -57,7 +57,7 @@
     },
     {
       tag: "usage",
-      property: "	http://www.w3.org/2004/02/skos/core#scopeNote",
+      property: "http://www.w3.org/2004/02/skos/core#scopeNote",
       lang: "nl",
       fallbackTags: ["ap-usageNote-nl", "usageNote-nl"]
     },
@@ -76,7 +76,7 @@
     },
     {
       tag: "ap-usageNote-nl",
-      property: "	http://www.w3.org/2004/02/skos/core#scopeNote",
+      property: "http://www.w3.org/2004/02/skos/core#scopeNote",
       lang: "nl",
       fallbackTags: []
     },
@@ -101,7 +101,7 @@
     },
     {
       tag: "usage",
-      property: "	http://www.w3.org/2004/02/skos/core#scopeNote",
+      property: "http://www.w3.org/2004/02/skos/core#scopeNote",
       lang: "nl",
       fallbackTags: ["ap-usageNote-nl", "usageNote-nl"]
     },
@@ -119,7 +119,7 @@
     },
     {
       tag: "ap-usageNote-nl",
-      property: "	http://www.w3.org/2004/02/skos/core#scopeNote",
+      property: "http://www.w3.org/2004/02/skos/core#scopeNote",
       lang: "nl",
       fallbackTags: []
     },
