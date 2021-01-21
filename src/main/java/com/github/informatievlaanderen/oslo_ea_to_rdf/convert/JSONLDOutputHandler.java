@@ -628,28 +628,26 @@ public class JSONLDOutputHandler implements OutputHandler {
         } else if (classDescription.getName().size() < 1) {
             if (severity < 0) {
                 LOGGER.error(
-                        " Class {} without label in dutch, further processing this class will be incoherent",
+                        " Class {} without label, further processing this class will be incoherent",
                         sourceElement.getName());
             } else {
                 LOGGER.warn(
-                        " Class {} without label in dutch, further processing this class will be incoherent",
+                        " Class {} without label, further processing this class will be incoherent",
                         sourceElement.getName());
             }
         } else {
             for (LanguageStringDescription name : classDescription.getName()) {
-                if (name.getLanguage() == "nl") {
-                    if (name.getValue() == null
-                            || name.getValue().length() < 1
-                            || name.getValue().toLowerCase().trim().equals("todo")) {
-                        if (severity < 0) {
-                            LOGGER.error(
-                                    " Class {} with empty or dummy label in dutch, further processing this class will be incoherent",
-                                    sourceElement.getName());
-                        } else {
-                            LOGGER.warn(
-                                    " Class {} with empty or dummy label in dutch, further processing this class will be incoherent",
-                                    sourceElement.getName());
-                        }
+                if (name.getValue() == null
+                        || name.getValue().length() < 1
+                        || name.getValue().toLowerCase().trim().equals("todo")) {
+                    if (severity < 0) {
+                        LOGGER.error(
+                                " Class {} with empty or dummy label, further processing this class will be incoherent",
+                                sourceElement.getName());
+                    } else {
+                        LOGGER.warn(
+                                " Class {} with empty or dummy label, further processing this class will be incoherent",
+                                sourceElement.getName());
                     }
                 }
             }
