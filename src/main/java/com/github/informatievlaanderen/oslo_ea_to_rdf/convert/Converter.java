@@ -37,6 +37,7 @@ public class Converter {
           .put("DateTime", XSD.dateTime)
           .put("Int", XSD.xint) // Note: this differs from "...XMLSchema#integer"!
           .put("Integer", XSD.integer)
+          .put("Decimal", XSD.decimal)
           .put("Double", XSD.xdouble)
           .put("Boolean", XSD.xboolean)
           .put("LangString", RDF.langString)
