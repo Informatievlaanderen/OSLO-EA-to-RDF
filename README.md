@@ -1,6 +1,6 @@
 Deze repository is een onderdeel van het initiatief **Open Standaarden voor Linkende Organisaties __(OSLO)__**.
 Meer informatie is terug te vinden op de [OSLO productpagina](https://overheid.vlaanderen.be/producten-diensten/OSLO2).
-
+   
 Deze repository bevat de source code voor een conversie tool die UML diagrammen, opgesteld in Enterprise Architect, omzet naar het Resource Description Framework (RDF). Deze tool wordt gebruikt om de RDF specificaties die gepubliceerd worden op https://data.vlaanderen.be/ te genereren, maar kan ook lokaal geïnstalleerd worden voor testing en hergebruik.
 
 # Enterprise Architect RDF Conversion Tool
