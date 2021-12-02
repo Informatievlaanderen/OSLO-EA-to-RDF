@@ -1,0 +1,25 @@
+{
+  "name": "@oslo-flanders/ea-to-rdf",
+  "version": "0.0.0",
+  "description": "Packages to convert en EA file to RDF",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Informatievlaanderen/OSLO-EA-to-RDF.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Informatievlaanderen/OSLO-EA-to-RDF/issues"
+  },
+  "homepage": "https://github.com/Informatievlaanderen/OSLO-EA-to-RDF#readme",
+  "devDependencies": {
+    "@types/node": "^16.11.11",
+    "lerna": "^4.0.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.2"
+  }
+}
