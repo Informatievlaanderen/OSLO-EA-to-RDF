@@ -1,0 +1,26 @@
+{
+  "name": "@oslo-flanders/ea-to-rdf-types",
+  "version": "0.0.0",
+  "description": "Types for the OSLO-EA-to-RDF tool",
+  "author": "Dwight Van Lancker <dwight.vanlancker@hotmail.com>",
+  "homepage": "https://github.com/Informatievlaanderen/OSLO-EA-to-RDF/tree/main/packages/types#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Informatievlaanderen/OSLO-EA-to-RDF.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/Informatievlaanderen/OSLO-EA-to-RDF/issues"
+  }
+}
