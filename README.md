@@ -33,8 +33,16 @@ Typical usage (for more options/commands, use `--help`):
     java -jar <jarfile> tsv --diagram <diagramName> --config <configFile> --input <EA project file> --output <turtle output file>
 
 
-### Source code formatting
+In the [Makefile](./Makefile) the build and creation of an execution environment using Docker is documented.
 
+  - `make build`: creates a base image for EA-to-RDF. It retrieves all dependencies from public repositories.
+  - `make exec` : build an image with the local changes starting from the base image. It does not retrieve dependencies. 
+  - `make run`  : execute the image (from the previous command) as a Docker container mapping the current directory to /data
+  - `make apply` :  to be execute within the Docker container: the command to execute a test
+  - `make format` : format the source code according to the formatting conventions. To be applied before committing a change.
+
+
+### Source code formatting
 The source code is formatted using [google java format](https://github.com/google/google-java-format).
 
 ## Conversion Conventions
@@ -99,10 +107,18 @@ Not all annotations support a prefix {documenttype} or suffix {language}.
 For instance: `uri` has no prefix or suffix as a term should have only one globally unique persistent identifier. 
 
 
+## Deployment in the toolchain
+
+To use and integrate the tool in the [OSLO-toolchain](https://github.com/Informatievlaanderen/OSLO-publicationenvironment-template), a docker image with the build EA-to-RDF tool has to published in a public repository.
+
+The to-be used dockerfile is [Dockerfile-circleci](./Dockerfile-circleci).
+
 
 
 
 ## Annotation of the UML model - older documentation
+
+The documentation below is old, but still accurate.
 
 
 All tags listed below can be customised through the configuration, [see below](#builtin-tags).
