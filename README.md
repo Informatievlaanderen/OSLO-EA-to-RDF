@@ -1,9 +1,4 @@
-Deze repository is een onderdeel van het initiatief **Open Standaarden voor Linkende Organisaties __(OSLO)__**.
-Meer informatie is terug te vinden op de [OSLO productpagina](https://overheid.vlaanderen.be/producten-diensten/OSLO2).
-
-Deze repository bevat de source code voor een conversie tool die UML diagrammen, opgesteld in Enterprise Architect, omzet naar het Resource Description Framework (RDF). Deze tool wordt gebruikt om de RDF specificaties die gepubliceerd worden op https://data.vlaanderen.be/ te genereren, maar kan ook lokaal geïnstalleerd worden voor testing en hergebruik.
-
-# Enterprise Architect RDF Conversion Tool
+# Enterprise Architect Conversion Tool
 
 This project was created as part of the OSLO² ([Github](http://informatievlaanderen.github.io/OSLO/),
  [Vlaanderen.be](https://overheid.vlaanderen.be/producten-diensten/OSLO2)) initiative by the Flemish Government.
@@ -53,6 +48,62 @@ determines how these tags are converted into RDF.
 value `NOTE` to indicate tag note should be used as a value.
 
 The specific tags used for the OSLO² project are listed [here](OSLO-configuration.md).
+
+
+## Annotation of the UML model 
+
+The Enterprise Architect Conversion Tool is a tool supporting the key idea to model a semantic model in UML. 
+In OSLO the normative document is not the UML diagram but the semantic model that it is representing.
+Instead of reinventing a new graphical language, OSLO decided to (re)use UML as graphical modelling language.
+For coherency reasons accross all specifications it is easier to transform a UML diagram to a semantic representation, than transforming an semantic representation in a UML notation.
+
+To create the semantic models the UML diagrams have to be converted into a representation that is indepedent from the editorial environment.
+In case of OSLO the editorial environment is Enterprise Architect.
+To ease future processing a json(-ld) representation has been chosen as target.
+
+The connection between the UML graphical language and semantic world is based on interpreting the UML language but also on the additional annotations provided by the editors.
+These annotations are key because they control 
+  - the URI assignment
+  - the human readible semantics
+
+In addition some annotations are added to facilitate the control of the scope of the content of the semantic model.
+
+An graphical overview of the information is shown below.
+
+![doc/OSLO-EA.jpg](./doc/OSLO-EA.jpg)
+
+Each attribute/property corresponds with an annotation.
+In EA these annotations are expressed as tags.
+The tags have the following representation
+
+```
+   {documenttype}-{annotation}-{language}
+```
+
+The {documenttype} can be 
+   - **empty**:  corresponds with the vocabulary interpretation. The base information about the term.
+   - **ap**: application profile (ap) 
+
+The {language} corresponds to the 2-letter code for a language in which the content of the annotation is expressed.
+
+Examples:
+  - `label-nl`: the tag expresses the label of the term in Dutch at the level of a vocabulary. 
+  - `ap-usageNote-en`: the tag expresses the usage note in English for the application profile
+
+The pattern is very useful as it allows to have two perspectives on the same term in the UML file.
+One perspective is the base reference: the vocabulary, and the other perspective is the application usage context.
+Having the ability to have them side by side make it is much easier for editors to ensure the reuse of a term is done properly.
+
+
+Not all annotations support a prefix {documenttype} or suffix {language}. 
+For instance: `uri` has no prefix or suffix as a term should have only one globally unique persistent identifier. 
+
+
+
+
+
+## Annotation of the UML model - older documentation
+
 
 All tags listed below can be customised through the configuration, [see below](#builtin-tags).
 
