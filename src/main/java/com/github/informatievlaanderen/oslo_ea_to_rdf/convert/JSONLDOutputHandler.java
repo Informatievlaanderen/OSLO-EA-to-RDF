@@ -584,9 +584,12 @@ public class JSONLDOutputHandler implements OutputHandler {
             LOGGER.debug(
                     "process class-tag \"{}\" having value {}.", t.getOriginTag(), t.getValue().toString());
             tv = t.getOriginValue();
+            String camelCaseName = "";
             switch (t.getOriginTag()) {
                 case "label":
-                    classDescription.getName().add(new LanguageStringDescription("nl", tv));
+                    //classDescription.getName().add(new LanguageStringDescription("nl", tv));
+                    camelCaseName = CaseUtils.toCamelCase(tv, true, null);
+                    classDescription.getName().add(new LanguageStringDescription("nl", camelCaseName));
                     break;
                 case "definition":
                     classDescription.getDescription().add(new LanguageStringDescription("nl", tv));
@@ -835,8 +838,9 @@ public class JSONLDOutputHandler implements OutputHandler {
             tv = t.getOriginValue();
             switch (t.getOriginTag()) {
                 case "label":
-                    propertyDescription.getName().add(new LanguageStringDescription("nl", tv));
+                    //propertyDescription.getName().add(new LanguageStringDescription("nl", tv));
                     camelCaseName = CaseUtils.toCamelCase(tv, false, null);
+                    propertyDescription.getName().add(new LanguageStringDescription("nl", camelCaseName));
                     break;
                 case "definition":
                     propertyDescription.getDescription().add(new LanguageStringDescription("nl", tv));
@@ -1024,8 +1028,9 @@ public class JSONLDOutputHandler implements OutputHandler {
                                 tv);
                     }
                     ;
-                    propertyDescription.getName().add(new LanguageStringDescription("nl", ltv));
-                    camelCaseName = CaseUtils.toCamelCase(tv, false, null);
+//                    propertyDescription.getName().add(new LanguageStringDescription("nl", ltv));
+                    camelCaseName = CaseUtils.toCamelCase(ltv, false, null);
+                    propertyDescription.getName().add(new LanguageStringDescription("nl", camelCaseName));
                     break;
                 case "definition":
                     propertyDescription.getDescription().add(new LanguageStringDescription("nl", tv));
