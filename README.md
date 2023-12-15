@@ -1,9 +1,4 @@
-Deze repository is een onderdeel van het initiatief **Open Standaarden voor Linkende Organisaties __(OSLO)__**.
-Meer informatie is terug te vinden op de [OSLO productpagina](https://overheid.vlaanderen.be/producten-diensten/OSLO2).
-
-Deze repository bevat de source code voor een conversie tool die UML diagrammen, opgesteld in Enterprise Architect, omzet naar het Resource Description Framework (RDF). Deze tool wordt gebruikt om de RDF specificaties die gepubliceerd worden op https://data.vlaanderen.be/ te genereren, maar kan ook lokaal geïnstalleerd worden voor testing en hergebruik.
-
-# Enterprise Architect RDF Conversion Tool
+# Enterprise Architect Conversion Tool
 
 This project was created as part of the OSLO² ([Github](http://informatievlaanderen.github.io/OSLO/),
  [Vlaanderen.be](https://overheid.vlaanderen.be/producten-diensten/OSLO2)) initiative by the Flemish Government.
@@ -24,6 +19,10 @@ Building requires Maven and Java (JDK) to be installed.
     cd target
     java -jar <jarfile> --help
 
+The build process is dockerized in two stages, to enable offline builds. In the makefile the target build will create a first base image.
+This will download all dependencies. From that moment on, the target exec can be used to create offline builds. In this way the development
+process can be speeded up. The target format enables the formatting of the source code. 
+
 Typical usage (for more options/commands, use `--help`):
 
     # Converts a diagram in an EA project to a RDF ontology (in the Turtle format).
@@ -33,6 +32,18 @@ Typical usage (for more options/commands, use `--help`):
     # Converts a diagram in a tab separated value file listing the hierarchy, datatypes and more.
     java -jar <jarfile> tsv --diagram <diagramName> --config <configFile> --input <EA project file> --output <turtle output file>
 
+
+In the [Makefile](./Makefile) the build and creation of an execution environment using Docker is documented.
+
+  - `make build`: creates a base image for EA-to-RDF. It retrieves all dependencies from public repositories.
+  - `make exec` : build an image with the local changes starting from the base image. It does not retrieve dependencies. 
+  - `make run`  : execute the image (from the previous command) as a Docker container mapping the current directory to /data
+  - `make apply` :  to be execute within the Docker container: the command to execute a test
+  - `make format` : format the source code according to the formatting conventions. To be applied before committing a change.
+
+
+### Source code formatting
+The source code is formatted using [google java format](https://github.com/google/google-java-format).
 
 ## Conversion Conventions
 
@@ -45,6 +56,70 @@ determines how these tags are converted into RDF.
 value `NOTE` to indicate tag note should be used as a value.
 
 The specific tags used for the OSLO² project are listed [here](OSLO-configuration.md).
+
+
+## Annotation of the UML model 
+
+The Enterprise Architect Conversion Tool is a tool supporting the key idea to model a semantic model in UML. 
+In OSLO the normative document is not the UML diagram but the semantic model that it is representing.
+Instead of reinventing a new graphical language, OSLO decided to (re)use UML as graphical modelling language.
+For coherency reasons accross all specifications it is easier to transform a UML diagram to a semantic representation, than transforming an semantic representation in a UML notation.
+
+To create the semantic models the UML diagrams have to be converted into a representation that is indepedent from the editorial environment.
+In case of OSLO the editorial environment is Enterprise Architect.
+To ease future processing a json(-ld) representation has been chosen as target.
+
+The connection between the UML graphical language and semantic world is based on interpreting the UML language but also on the additional annotations provided by the editors.
+These annotations are key because they control 
+  - the URI assignment
+  - the human readible semantics
+
+In addition some annotations are added to facilitate the control of the scope of the content of the semantic model.
+
+An graphical overview of the information is shown below.
+
+![doc/OSLO-EA.jpg](./doc/OSLO-EA.jpg)
+
+Each attribute/property corresponds with an annotation.
+In EA these annotations are expressed as tags.
+The tags have the following representation
+
+```
+   {documenttype}-{annotation}-{language}
+```
+
+The {documenttype} can be 
+   - **empty**:  corresponds with the vocabulary interpretation. The base information about the term.
+   - **ap**: application profile (ap) 
+
+The {language} corresponds to the 2-letter code for a language in which the content of the annotation is expressed.
+
+Examples:
+  - `label-nl`: the tag expresses the label of the term in Dutch at the level of a vocabulary. 
+  - `ap-usageNote-en`: the tag expresses the usage note in English for the application profile
+
+The pattern is very useful as it allows to have two perspectives on the same term in the UML file.
+One perspective is the base reference: the vocabulary, and the other perspective is the application usage context.
+Having the ability to have them side by side make it is much easier for editors to ensure the reuse of a term is done properly.
+
+
+Not all annotations support a prefix {documenttype} or suffix {language}. 
+For instance: `uri` has no prefix or suffix as a term should have only one globally unique persistent identifier. 
+
+
+## Deployment in the toolchain
+
+To use and integrate the tool in the [OSLO-toolchain](https://github.com/Informatievlaanderen/OSLO-publicationenvironment-template), a docker image with the build EA-to-RDF tool has to published in a public repository.
+
+The to-be used dockerfile is [Dockerfile-circleci](./Dockerfile-circleci).
+
+
+
+
+## Annotation of the UML model - older documentation
+
+The documentation below is old, but still accurate.
+
 
 All tags listed below can be customised through the configuration, [see below](#builtin-tags).
 
